@@ -3,521 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProBooth Ultimate</title>
+    <title>Studio X: Design Booth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Permanent+Marker&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f5f5f7;
-            --panel: #ffffff;
-            --text-main: #1d1d1f;
-            --accent: #0071e3;
-            --danger: #ff3b30;
-            --border: #d2d2d7;
-            --shadow: 0 4px 20px rgba(0,0,0,0.08);
-            --radius: 12px;
+            --bg: #121212;
+            --panel: #1e1e1e;
+            --text: #ffffff;
+            --accent: #8b5cf6; /* Violet */
+            --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+            --border: #333;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: var(--bg);
-            color: var(--text-main);
+            color: var(--text);
             margin: 0;
             height: 100vh;
             display: flex;
             overflow: hidden;
         }
 
-        /* --- LEFT: VIEWPORT --- */
+        /* --- LEFT: STAGE --- */
         .stage {
             flex: 1;
-            padding: 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            padding: 20px;
             align-items: center;
-            position: relative;
+            justify-content: center;
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
-        .viewport-container {
+        .viewport-wrapper {
             position: relative;
-            width: 100%;
-            max-width: 900px;
-            aspect-ratio: 16/9;
-            background: #000;
-            border-radius: var(--radius);
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: var(--shadow);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 4px solid #333;
+            max-width: 100%;
+            max-height: 80vh;
         }
 
         video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1); /* Mirror */
+            display: block;
+            transform: scaleX(-1);
+            max-width: 100%;
+            height: auto;
         }
 
-        /* Overlays */
-        .overlay-flash {
+        /* LIVE OVERLAYS (CSS Mirrors of Canvas Logic) */
+        .overlay-frame {
             position: absolute;
             inset: 0;
-            background: white;
-            opacity: 0;
             pointer-events: none;
-            transition: opacity 0.1s ease-out;
-            z-index: 20;
-        }
-
-        .overlay-countdown {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 8rem;
-            font-weight: 800;
-            color: white;
-            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            opacity: 0;
-            transition: opacity 0.2s;
-            pointer-events: none;
-            z-index: 15;
-        }
-
-        .camera-error {
-            position: absolute;
-            inset: 0;
-            background: #1d1d1f;
-            color: white;
+            z-index: 10;
+            border: 0px solid white; /* Dynamic */
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
-            z-index: 25;
+        }
+
+        .overlay-text {
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 12;
+            text-align: center;
+        }
+
+        .sticker-layer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 4rem;
+            z-index: 11;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            animation: float 3s ease-in-out infinite;
             display: none;
         }
 
-        /* --- RIGHT: CONTROLS --- */
-        .controls {
-            width: 350px;
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .countdown {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10rem;
+            font-weight: 900;
+            color: white;
+            z-index: 20;
+            text-shadow: 0 0 30px rgba(139, 92, 246, 0.8);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- RIGHT: DESIGN STUDIO --- */
+        .studio-panel {
+            width: 380px;
             background: var(--panel);
             border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            gap: 20px;
             overflow-y: auto;
         }
 
-        h2 { margin: 0 0 10px 0; font-size: 1.2rem; }
-        
-        /* Control Groups */
-        .control-group {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 15px;
+        .header {
+            padding: 20px;
+            background: linear-gradient(to right, #1e1e1e, #2a2a2a);
+            border-bottom: 1px solid var(--border);
         }
+        .header h1 { margin: 0; font-size: 1.2rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #86868b;
-            margin-bottom: 8px;
+        .controls { padding: 20px; display: flex; flex-direction: column; gap: 25px; }
+
+        .control-section h3 {
+            font-size: 0.75rem;
             text-transform: uppercase;
-        }
-
-        select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            font-size: 0.9rem;
-        }
-
-        /* Layout Options */
-        .layout-options {
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 10px;
             display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Template Grid */
+        .template-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
-        
-        .layout-btn {
-            flex: 1;
+        .template-card {
+            background: #2a2a2a;
             padding: 10px;
-            border: 1px solid var(--border);
-            background: #fff;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
+            border: 2px solid transparent;
             text-align: center;
             font-size: 0.8rem;
             transition: all 0.2s;
         }
-        .layout-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
+        .template-card:hover { background: #333; }
+        .template-card.active { border-color: #d946ef; background: #3a1c3a; }
 
-        /* Filter Grid */
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .filter-chip {
-            aspect-ratio: 1;
-            border-radius: 6px;
-            background: #eee;
-            cursor: pointer;
-            border: 2px solid transparent;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-        .filter-chip.active { border-color: var(--accent); color: var(--accent); background: #e3f0ff; }
-
-        /* Main Action */
-        .shutter-btn {
+        /* Inputs */
+        input[type="text"] {
             width: 100%;
-            padding: 15px;
-            background: var(--text-main);
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        /* Stickers */
+        .sticker-bar {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .sticker-btn {
+            font-size: 1.5rem;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+            min-width: 50px;
+        }
+        .sticker-btn.active { border-color: var(--accent); background: #3a1c3a; }
+
+        /* Big Button */
+        .snap-btn {
+            background: var(--accent-gradient);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
             transition: transform 0.1s;
+            margin-top: 10px;
         }
-        .shutter-btn:active { transform: scale(0.98); }
-        .shutter-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .snap-btn:active { transform: scale(0.98); }
 
         /* Gallery */
         .gallery {
-            display: flex;
-            flex-direction: column;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
+            border-top: 1px solid var(--border);
         }
-        
-        .gallery-item {
-            position: relative;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .gallery-item img { width: 100%; display: block; }
-        .gallery-actions {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            background: rgba(255,255,255,0.9);
-            padding: 8px;
-            display: flex;
-            justify-content: space-between;
-            transform: translateY(100%);
+        .gallery img {
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid #444;
+            cursor: pointer;
             transition: transform 0.2s;
         }
-        .gallery-item:hover .gallery-actions { transform: translateY(0); }
-        
-        .btn-sm {
-            border: none; background: none; font-size: 0.8rem; font-weight: 700; cursor: pointer;
-        }
+        .gallery img:hover { transform: scale(1.05); z-index: 5; }
 
-        /* Hide Canvas */
         canvas { display: none; }
     </style>
 </head>
 <body>
 
     <div class="stage">
-        <div class="viewport-container">
+        <div class="viewport-wrapper" id="viewport">
             <video id="video" autoplay playsinline muted></video>
-            <div id="flash" class="overlay-flash"></div>
-            <div id="countdown" class="overlay-countdown">3</div>
             
-            <div id="camError" class="camera-error">
-                <h3>Camera Unavailable</h3>
-                <p>Please check permissions or use HTTPS/Localhost.</p>
-                <button onclick="initCamera()" class="btn-sm" style="background:white; padding:5px 10px; margin-top:10px; border-radius:4px;">Retry</button>
+            <div id="overlayFrame" class="overlay-frame">
+                <div id="overlayText" class="overlay-text"></div>
             </div>
+            <div id="activeSticker" class="sticker-layer"></div>
+            <div id="countdown" class="countdown">3</div>
         </div>
-        <p style="margin-top: 15px; color: #86868b; font-size: 0.9rem;">
-            Shortcuts: <b>Space</b> to Snap • <b>Esc</b> to Cancel
-        </p>
+        <p style="margin-top:10px; font-size: 0.8rem; color: #666;">High-Res Canvas Rendering Active</p>
     </div>
 
-    <div class="controls">
-        <h2>ProBooth Setup</h2>
-
-        <div class="control-group">
-            <label>Camera Source</label>
-            <select id="camSelect" onchange="changeCamera()"></select>
+    <div class="studio-panel">
+        <div class="header">
+            <h1>✨ Studio X Design</h1>
         </div>
 
-        <div class="control-group">
-            <label>Layout Mode</label>
-            <div class="layout-options">
-                <div class="layout-btn active" onclick="setMode('single', this)">Single</div>
-                <div class="layout-btn" onclick="setMode('strip', this)">Strip (3)</div>
-                <div class="layout-btn" onclick="setMode('grid', this)">Grid (4)</div>
+        <div class="controls">
+            
+            <div class="control-section">
+                <h3>1. Choose Template</h3>
+                <div class="template-grid">
+                    <div class="template-card active" onclick="setTemplate('none')">No Frame</div>
+                    <div class="template-card" onclick="setTemplate('polaroid')">Polaroid</div>
+                    <div class="template-card" onclick="setTemplate('magazine')">Vogue</div>
+                    <div class="template-card" onclick="setTemplate('film')">Film Strip</div>
+                </div>
             </div>
-        </div>
 
-        <div class="control-group">
-            <label>Filters</label>
-            <div class="filter-grid">
-                <div class="filter-chip active" onclick="setFilter('none', this)">Normal</div>
-                <div class="filter-chip" onclick="setFilter('grayscale(100%) contrast(1.1)', this)">B&W</div>
-                <div class="filter-chip" onclick="setFilter('sepia(0.6) contrast(1.1)', this)">Sepia</div>
-                <div class="filter-chip" onclick="setFilter('saturate(1.8) contrast(1.1)', this)">Vivid</div>
-                <div class="filter-chip" onclick="setFilter('brightness(1.1) contrast(1.1)', this)">Bright</div>
-                <div class="filter-chip" onclick="setFilter('contrast(1.4)', this)">Drama</div>
+            <div class="control-section">
+                <h3>2. Add Caption</h3>
+                <input type="text" id="captionInput" placeholder="e.g. Summer 2026" oninput="updateText(this.value)">
             </div>
+
+            <div class="control-section">
+                <h3>3. Add Sticker</h3>
+                <div class="sticker-bar">
+                    <button class="sticker-btn" onclick="toggleSticker('none')">🚫</button>
+                    <button class="sticker-btn" onclick="toggleSticker('✨')">✨</button>
+                    <button class="sticker-btn" onclick="toggleSticker('💖')">💖</button>
+                    <button class="sticker-btn" onclick="toggleSticker('🔥')">🔥</button>
+                    <button class="sticker-btn" onclick="toggleSticker('👑')">👑</button>
+                </div>
+            </div>
+
+            <button class="snap-btn" onclick="takePhoto()">CAPTURE DESIGN</button>
         </div>
 
-        <button id="shutterBtn" class="shutter-btn" onclick="startSequence()">TAKE PHOTO</button>
-
-        <div class="control-group" style="border:none; flex:1;">
-            <label>Session Gallery</label>
-            <div id="gallery" class="gallery"></div>
-        </div>
+        <div class="gallery" id="gallery"></div>
     </div>
 
     <canvas id="canvas"></canvas>
 
 <script>
-    // --- STATE ---
-    let currentStream = null;
-    let currentFilter = 'none';
-    let currentMode = 'single'; // single, strip, grid
-    let isShooting = false;
-    
-    // --- DOM ELEMENTS ---
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const flash = document.getElementById('flash');
+    const overlayFrame = document.getElementById('overlayFrame');
+    const overlayText = document.getElementById('overlayText');
+    const activeSticker = document.getElementById('activeSticker');
     const countdownEl = document.getElementById('countdown');
-    const camSelect = document.getElementById('camSelect');
-    const shutterBtn = document.getElementById('shutterBtn');
-    
-    // --- 1. ROBUST CAMERA INIT ---
-    async function initCamera(deviceId = null) {
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-        }
 
-        const constraints = {
-            audio: false,
-            video: {
-                deviceId: deviceId ? { exact: deviceId } : undefined,
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-                facingMode: 'user'
-            }
-        };
+    // State
+    let config = {
+        template: 'none', // none, polaroid, magazine, film
+        text: '',
+        sticker: 'none'
+    };
 
+    // 1. INIT CAMERA
+    async function init() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            video.srcObject = stream;
-            currentStream = stream;
-            document.getElementById('camError').style.display = 'none';
-            
-            // Populate selector only once
-            if (camSelect.options.length === 0) {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(d => d.kind === 'videoinput');
-                videoDevices.forEach(device => {
-                    const option = document.createElement('option');
-                    option.value = device.deviceId;
-                    option.text = device.label || `Camera ${camSelect.length + 1}`;
-                    camSelect.appendChild(option);
-                });
-            }
-        } catch (err) {
-            console.error(err);
-            document.getElementById('camError').style.display = 'flex';
-        }
-    }
-
-    function changeCamera() {
-        initCamera(camSelect.value);
-    }
-
-    // --- 2. SETTINGS MANAGERS ---
-    function setFilter(filterVal, el) {
-        currentFilter = filterVal;
-        // Apply to video for preview
-        video.style.filter = filterVal;
-        // Update UI
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-    }
-
-    function setMode(mode, el) {
-        if(isShooting) return;
-        currentMode = mode;
-        document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-    }
-
-    // --- 3. CORE PHOTOGRAPHY ENGINE ---
-    async function startSequence() {
-        if (isShooting) return;
-        isShooting = true;
-        shutterBtn.disabled = true;
-        shutterBtn.innerText = "Processing...";
-
-        let captures = [];
-        let count = (currentMode === 'single') ? 1 : (currentMode === 'strip' ? 3 : 4);
-
-        try {
-            for (let i = 0; i < count; i++) {
-                await runCountdown(3);
-                triggerFlash();
-                const blob = await captureFrame();
-                captures.push(blob);
-                
-                // Small pause between shots for layout modes
-                if (i < count - 1) {
-                    countdownEl.innerText = "Ready?";
-                    countdownEl.style.opacity = 1;
-                    await new Promise(r => setTimeout(r, 1000));
-                }
-            }
-            
-            // Compose Final Image
-            composeFinalImage(captures);
-
-        } catch (e) {
-            console.log("Sequence cancelled");
-        } finally {
-            isShooting = false;
-            shutterBtn.disabled = false;
-            shutterBtn.innerText = "TAKE PHOTO";
-            countdownEl.style.opacity = 0;
-        }
-    }
-
-    function runCountdown(seconds) {
-        return new Promise((resolve) => {
-            let left = seconds;
-            countdownEl.style.opacity = 1;
-            countdownEl.innerText = left;
-            
-            const timer = setInterval(() => {
-                left--;
-                if (left <= 0) {
-                    clearInterval(timer);
-                    countdownEl.style.opacity = 0;
-                    resolve();
-                } else {
-                    countdownEl.innerText = left;
-                }
-            }, 1000);
-        });
-    }
-
-    function triggerFlash() {
-        flash.style.opacity = 1;
-        setTimeout(() => flash.style.opacity = 0, 150);
-    }
-
-    function captureFrame() {
-        return new Promise(resolve => {
-            // Use temporary canvas for single frame
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = video.videoWidth;
-            tempCanvas.height = video.videoHeight;
-            const tCtx = tempCanvas.getContext('2d');
-
-            // Mirror & Filter
-            tCtx.translate(tempCanvas.width, 0);
-            tCtx.scale(-1, 1);
-            tCtx.filter = currentFilter;
-            tCtx.drawImage(video, 0, 0);
-
-            resolve(tempCanvas);
-        });
-    }
-
-    // --- 4. COMPOSITING (The Advanced Part) ---
-    function composeFinalImage(canvases) {
-        const padding = 20;
-        const vidW = video.videoWidth;
-        const vidH = video.videoHeight;
-        
-        let finalW, finalH;
-
-        if (currentMode === 'single') {
-            finalW = vidW;
-            finalH = vidH;
-        } else if (currentMode === 'strip') {
-            finalW = vidW + (padding * 2);
-            finalH = (vidH * 3) + (padding * 4);
-        } else if (currentMode === 'grid') {
-            finalW = (vidW * 2) + (padding * 3);
-            finalH = (vidH * 2) + (padding * 3);
-        }
-
-        // Resize Main Canvas
-        canvas.width = finalW;
-        canvas.height = finalH;
-        
-        // Background
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, finalW, finalH);
-
-        // Draw Images
-        if (currentMode === 'single') {
-            ctx.drawImage(canvases[0], 0, 0);
-        } 
-        else if (currentMode === 'strip') {
-            let y = padding;
-            canvases.forEach(c => {
-                ctx.drawImage(c, padding, y);
-                y += vidH + padding;
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: {ideal: 1280}, height: {ideal: 720}, facingMode: 'user' },
+                audio: false
             });
-            // Date Stamp
-            ctx.fillStyle = "#000";
-            ctx.font = "bold 24px sans-serif";
+            video.srcObject = stream;
+        } catch(e) {
+            alert("Camera error. Please run on HTTPS or Localhost.");
+        }
+    }
+
+    // 2. LIVE PREVIEW UPDATES
+    function setTemplate(name) {
+        config.template = name;
+        
+        // Reset CSS
+        overlayFrame.style.border = 'none';
+        overlayFrame.style.background = 'transparent';
+        overlayText.style.fontFamily = 'Poppins';
+        overlayText.style.color = 'white';
+        overlayText.style.bottom = '20px';
+
+        // Update UI Highlights
+        document.querySelectorAll('.template-card').forEach(c => c.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // Apply CSS Preview Styles
+        if (name === 'polaroid') {
+            overlayFrame.style.border = '20px solid white';
+            overlayFrame.style.borderBottom = '80px solid white';
+            overlayText.style.color = '#333';
+            overlayText.style.fontFamily = 'Permanent Marker';
+            overlayText.style.transform = 'translateY(40px)'; // Move into the white space
+        } 
+        else if (name === 'magazine') {
+            overlayFrame.style.border = '2px solid rgba(255,255,255,0.5)';
+            overlayText.style.fontFamily = 'Playfair Display';
+            overlayText.style.fontSize = '3rem';
+            overlayText.style.fontStyle = 'italic';
+            overlayText.style.top = '20px'; // Top title
+            overlayText.style.bottom = 'auto';
+        }
+    }
+
+    function updateText(val) {
+        config.text = val;
+        overlayText.innerText = val;
+    }
+
+    function toggleSticker(emoji) {
+        config.sticker = emoji;
+        if (emoji === 'none') {
+            activeSticker.style.display = 'none';
+        } else {
+            activeSticker.innerText = emoji;
+            activeSticker.style.display = 'block';
+        }
+    }
+
+    // 3. CAPTURE & RENDER ENGINE
+    async function takePhoto() {
+        // Countdown
+        for(let i=3; i>0; i--) {
+            countdownEl.innerText = i;
+            countdownEl.style.opacity = 1;
+            await new Promise(r => setTimeout(r, 800));
+        }
+        countdownEl.style.opacity = 0;
+
+        // --- RENDER PIPELINE ---
+        const w = video.videoWidth;
+        const h = video.videoHeight;
+        
+        // 1. Setup Canvas
+        canvas.width = w;
+        canvas.height = h;
+
+        // 2. Draw Video (Mirrored)
+        ctx.save();
+        ctx.translate(w, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, w, h);
+        ctx.restore();
+
+        // 3. Apply Templates (Canvas Drawing API)
+        if (config.template === 'polaroid') {
+            const borderSize = 40;
+            const bottomSize = 160;
+            
+            // We need to shrink the video to fit inside or draw over? 
+            // Let's draw a white frame Over the video
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = borderSize * 2; // Stroke is centered
+            ctx.strokeRect(0, 0, w, h);
+            
+            // Bottom bar
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, h - bottomSize, w, bottomSize);
+            
+            // Text
+            if (config.text) {
+                ctx.fillStyle = "#222";
+                ctx.font = "60px 'Permanent Marker', cursive";
+                ctx.textAlign = "center";
+                ctx.fillText(config.text, w/2, h - 60);
+            }
+        } 
+        else if (config.template === 'magazine') {
+            // Dark gradient at bottom
+            const grad = ctx.createLinearGradient(0, h/2, 0, h);
+            grad.addColorStop(0, "transparent");
+            grad.addColorStop(1, "rgba(0,0,0,0.6)");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
+
+            // Vogue Style Text
+            if (config.text) {
+                ctx.fillStyle = "white";
+                ctx.font = "italic bold 100px 'Playfair Display', serif";
+                ctx.textAlign = "center";
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowBlur = 20;
+                ctx.fillText(config.text, w/2, 150);
+            }
+            
+            // Border
+            ctx.strokeStyle = "rgba(255,255,255,0.8)";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(30, 30, w-60, h-60);
+        }
+        else if (config.template === 'film') {
+            // Film Perforations
+            ctx.fillStyle = "black";
+            const stripW = 60;
+            ctx.fillRect(0, 0, stripW, h); // Left
+            ctx.fillRect(w-stripW, 0, stripW, h); // Right
+            
+            // Holes
+            ctx.fillStyle = "white";
+            for(let y=20; y<h; y+=80) {
+                ctx.fillRect(15, y, 30, 40);
+                ctx.fillRect(w-45, y, 30, 40);
+            }
+
+            if (config.text) {
+                ctx.fillStyle = "white";
+                ctx.font = "40px 'Courier New', monospace";
+                ctx.textAlign = "right";
+                ctx.fillText(config.text, w - 80, h - 30);
+            }
+        }
+        else {
+            // Normal Text placement
+            if (config.text) {
+                ctx.fillStyle = "white";
+                ctx.font = "bold 60px 'Poppins', sans-serif";
+                ctx.textAlign = "center";
+                ctx.shadowColor = "black";
+                ctx.shadowBlur = 10;
+                ctx.fillText(config.text, w/2, h - 50);
+            }
+        }
+
+        // 4. Draw Sticker
+        if (config.sticker !== 'none') {
+            ctx.font = "150px serif";
             ctx.textAlign = "center";
-            ctx.fillText(new Date().toLocaleDateString(), finalW/2, finalH - 10);
-        }
-        else if (currentMode === 'grid') {
-            // 2x2 Grid
-            ctx.drawImage(canvases[0], padding, padding); // TL
-            ctx.drawImage(canvases[1], padding*2 + vidW, padding); // TR
-            ctx.drawImage(canvases[2], padding, padding*2 + vidH); // BL
-            ctx.drawImage(canvases[3], padding*2 + vidW, padding*2 + vidH); // BR
+            ctx.textBaseline = "middle";
+            // Hardcoded position: Top Right
+            ctx.fillText(config.sticker, w - 120, 120);
         }
 
-        const finalData = canvas.toDataURL('image/jpeg', 0.95);
-        addToGallery(finalData);
+        // 5. Output
+        const finalImage = canvas.toDataURL('image/png');
+        addToGallery(finalImage);
     }
 
-    function addToGallery(dataUrl) {
-        const div = document.createElement('div');
-        div.className = 'gallery-item';
-        div.innerHTML = `
-            <img src="${dataUrl}">
-            <div class="gallery-actions">
-                <a href="${dataUrl}" download="probooth-${Date.now()}.jpg" class="btn-sm" style="color:var(--accent)">SAVE</a>
-                <button onclick="this.closest('.gallery-item').remove()" class="btn-sm" style="color:var(--danger)">DEL</button>
-            </div>
-        `;
-        document.getElementById('gallery').prepend(div);
+    function addToGallery(src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.onclick = () => {
+            const a = document.createElement('a');
+            a.href = src;
+            a.download = `DesignBooth_${Date.now()}.png`;
+            a.click();
+        };
+        document.getElementById('gallery').prepend(img);
     }
 
-    // --- 5. KEYBOARD SHORTCUTS ---
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            e.preventDefault(); // Stop scroll
-            startSequence();
-        }
-    });
-
-    // Start
-    window.addEventListener('load', () => initCamera());
+    window.onload = init;
 
 </script>
 </body>

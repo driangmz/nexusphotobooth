@@ -3,55 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio X Pro - Advanced Photo Booth</title>
+    <title>Studio X Pro - Robust Edition</title>
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <script src="/_sdk/element_sdk.js"></script>
-    <script src="/_sdk/data_sdk.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
     <style>
         html, body { height: 100%; margin: 0; box-sizing: border-box; }
-        
-        .app-container {
-            font-family: 'Space Grotesk', sans-serif;
-            height: 100%;
-            width: 100%;
-        }
-        
+        .app-container { font-family: 'Space Grotesk', sans-serif; height: 100%; width: 100%; }
         .display-font { font-family: 'Playfair Display', serif; }
         
+        /* Animations */
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); } 50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); } }
         @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
         @keyframes countdown-pop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
         @keyframes flash { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes slide-in { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes rotate-360 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
         
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-countdown { animation: countdown-pop 1s ease-out forwards; }
         .animate-flash { animation: flash 0.3s ease-out; }
         .animate-slide-up { animation: slide-up 0.4s ease-out forwards; }
         .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-        .animate-slide-in { animation: slide-in 0.3s ease-out forwards; }
-        .animate-spin-fast { animation: rotate-360 0.6s linear infinite; }
-        .animate-shimmer { animation: shimmer 2s infinite; background-size: 1000px 100%; }
         
+        /* Video Utils */
         .video-mirror { transform: scaleX(-1); }
+        .video-normal { transform: scaleX(1); }
         
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1e1e1e; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-        
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-        }
-        
+        /* Filters */
         .filter-none { filter: none; }
         .filter-grayscale { filter: grayscale(100%); }
         .filter-sepia { filter: sepia(80%); }
@@ -66,6 +43,7 @@
         .filter-neo { filter: hue-rotate(120deg) saturate(150%) contrast(110%); }
         .filter-retro { filter: sepia(60%) saturate(80%) hue-rotate(-10deg); }
         
+        /* Frames */
         .frame-none { border: none; }
         .frame-classic { border: 12px solid white; }
         .frame-polaroid { border: 12px solid white; border-bottom-width: 48px; }
@@ -73,9 +51,14 @@
         .frame-neon { border: 4px solid #8b5cf6; box-shadow: 0 0 20px #8b5cf6, inset 0 0 20px rgba(139,92,246,0.2); }
         .frame-film { border: 16px solid #1a1a1a; border-left-width: 24px; border-right-width: 24px; }
         .frame-gold { border: 8px solid #d4af37; box-shadow: 0 0 20px rgba(212,175,55,0.3); }
-        .frame-marble { border: 10px solid #e8dcc8; background: linear-gradient(135deg, #f5f5f5, #e8e8e8); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
         
         .tab-indicator { position: absolute; bottom: 0; height: 3px; background: linear-gradient(90deg, #8b5cf6, #d946ef); transition: all 0.3s ease; }
+        
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
     </style>
 </head>
 <body class="h-full overflow-hidden">
@@ -89,892 +72,378 @@
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </div>
                         <div>
-                            <h1 id="booth-title" class="text-xl font-bold text-white">Studio X Pro</h1>
-                            <p id="tagline" class="text-xs text-gray-400">Professional Photo Moments</p>
+                            <h1 class="text-xl font-bold text-white">Studio X Pro</h1>
+                            <p class="text-xs text-gray-400">Robust Edition</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <div id="live-stats" class="flex gap-4 bg-gray-800/50 px-4 py-2 rounded-lg text-sm">
-                            <div class="flex items-center gap-1">
-                                <svg class="w-4 h-4 text-violet-400" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg><span id="total-likes">0</span>
+                        <div class="flex gap-4 bg-gray-800/50 px-4 py-2 rounded-lg text-sm">
+                            <div class="flex items-center gap-1 text-green-400">
+                                <span>📸</span><span id="total-photos">0</span>
                             </div>
-                            <div class="flex items-center gap-1">
-                                <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg><span id="total-photos">0</span>
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <svg class="w-4 h-4 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg><span id="session-time">0s</span>
+                            <div class="flex items-center gap-1 text-orange-400">
+                                <span>⏱️</span><span id="session-time">0m 0s</span>
                             </div>
                         </div>
-                        <button id="toggle-gallery" class="px-3 py-2 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/50 rounded-lg text-xs font-medium text-violet-300 transition-all">Gallery</button>
-                        <button id="toggle-settings" class="px-3 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg text-xs font-medium text-gray-300 transition-all">⚙️</button>
+                        <button id="toggle-gallery" class="px-3 py-2 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/50 rounded-lg text-xs font-medium text-violet-300">Gallery</button>
                     </div>
-                </div>
-                
-                <div class="flex gap-2">
-                    <button data-mode="standard" class="mode-btn px-3 py-1 text-xs rounded-lg bg-violet-500 text-white flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg> Standard
-                    </button>
-                    <button data-mode="burst" class="mode-btn px-3 py-1 text-xs rounded-lg bg-gray-700 text-gray-300 flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2" /></svg> Burst
-                    </button>
-                    <button data-mode="video" class="mode-btn px-3 py-1 text-xs rounded-lg bg-gray-700 text-gray-300 flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg> Video
-                    </button>
-                    <button data-mode="collage" class="mode-btn px-3 py-1 text-xs rounded-lg bg-gray-700 text-gray-300 flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg> Collage
-                    </button>
                 </div>
             </header>
             
             <main class="flex-1 flex items-center justify-center p-6 relative z-10">
-                <div id="camera-container" class="relative rounded-2xl overflow-hidden shadow-2xl animate-pulse-glow max-w-full w-full h-full">
-                    <video id="video" autoplay playsinline class="video-mirror w-full h-full object-cover filter-none frame-none"></video>
+                <div class="relative rounded-2xl overflow-hidden shadow-2xl animate-pulse-glow max-w-full w-full h-full border border-gray-700">
+                    <video id="video" autoplay playsinline class="video-mirror w-full h-full object-cover"></video>
                     
-                    <div id="live-overlay" class="absolute inset-0 pointer-events-none flex flex-col justify-end items-center p-4">
-                        <div id="sticker-layer" class="absolute top-4 right-4 text-5xl animate-float hidden">✨</div>
-                        <p id="overlay-text" class="text-white text-2xl font-bold display-font italic text-center drop-shadow-lg mb-4 hidden"></p>
-                        <div id="mood-badge" class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold hidden" style="background: rgba(139, 92, 246, 0.8); color: white;"></div>
-                    </div>
-                    
-                    <div id="recording-indicator" class="absolute top-4 right-4 flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-lg hidden">
-                        <div class="w-3 h-3 rounded-full bg-white animate-pulse"></div><span id="recording-time" class="text-sm font-bold">0:00</span>
+                    <div class="absolute inset-0 pointer-events-none flex flex-col justify-end items-center p-4">
+                        <div id="sticker-layer" class="absolute top-4 right-4 text-6xl animate-float hidden"></div>
+                        <p id="overlay-text" class="text-white text-4xl font-bold display-font italic text-center drop-shadow-lg mb-8 hidden" style="text-shadow: 0 4px 10px rgba(0,0,0,0.8);"></p>
+                        <div id="mood-badge" class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold hidden bg-violet-600 text-white"></div>
                     </div>
                     
                     <div id="countdown-overlay" class="absolute inset-0 bg-black/60 flex items-center justify-center hidden">
-                        <span id="countdown-number" class="text-9xl font-black text-white drop-shadow-2xl"></span>
+                        <span id="countdown-number" class="text-9xl font-black text-white drop-shadow-2xl">3</span>
                     </div>
-                    
                     <div id="flash-overlay" class="absolute inset-0 bg-white pointer-events-none opacity-0"></div>
                     
-                    <div id="camera-off" class="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center hidden">
-                        <div class="w-24 h-24 rounded-full bg-gray-800 flex items-center justify-center mb-4">
-                            <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        </div>
-                        <p class="text-gray-400 text-lg font-medium">Camera is off</p>
-                        <button id="start-camera" class="mt-4 px-6 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl text-white font-semibold hover:opacity-90 transition-all">Start Camera</button>
+                    <div id="camera-off" class="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center hidden z-50">
+                        <p class="text-gray-400 text-lg font-medium mb-4">Camera unavailable (Check HTTPS/Permissions)</p>
+                        <button onclick="initCamera()" class="px-6 py-3 bg-violet-600 rounded-xl text-white hover:bg-violet-700">Retry Camera</button>
                     </div>
                 </div>
             </main>
             
             <footer class="relative z-10 p-4 border-t border-gray-700/50 backdrop-blur-sm">
                 <div class="flex items-center justify-between">
-                    <div id="left-controls" class="flex gap-3">
-                        <button id="toggle-effects" class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg text-sm font-medium text-gray-300 transition-all flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                            </svg> Effects
+                    <div class="flex gap-3">
+                         <button id="mirror-toggle" class="px-4 py-2 bg-gray-700/50 rounded-lg text-sm font-medium text-gray-300 flex items-center gap-2 hover:bg-gray-600">
+                            🔄 Mirror
                         </button>
-                        <button id="batch-select" class="px-4 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg text-sm font-medium text-gray-300 transition-all flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg> Batch
-                        </button>
+                        <select id="timer-select" class="bg-gray-700/50 text-white text-sm rounded px-3 py-2 border border-gray-600 outline-none">
+                            <option value="0">Timer: Off</option>
+                            <option value="3">3s</option>
+                            <option value="5">5s</option>
+                        </select>
                     </div>
                     
-                    <button id="capture-btn" class="w-20 h-20 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 transition-all shadow-lg hover:shadow-violet-500/50 flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <div class="w-16 h-16 rounded-full border-4 border-white/30 group-hover:border-white/50 transition-all flex items-center justify-center">
-                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
+                    <button id="capture-btn" class="w-20 h-20 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:scale-105 transition-transform shadow-lg flex items-center justify-center border-4 border-gray-800">
+                        <div class="w-16 h-16 rounded-full border-2 border-white/50 flex items-center justify-center">
+                            <div class="w-14 h-14 rounded-full bg-white"></div>
                         </div>
                     </button>
                     
-                    <div id="right-controls" class="flex gap-3">
-                        <div class="flex flex-col items-center gap-1 bg-gray-800/50 px-3 py-2 rounded-lg">
-                            <label class="text-xs text-gray-400">Timer</label>
-                            <select id="timer-select" class="bg-gray-700/50 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-violet-500 focus:outline-none">
-                                <option value="0">Off</option> <option value="3">3s</option> <option value="5">5s</option> <option value="10">10s</option>
-                            </select>
-                        </div>
-                        <div class="flex flex-col items-center gap-1 bg-gray-800/50 px-3 py-2 rounded-lg">
-                            <label class="text-xs text-gray-400">Mode</label>
-                            <select id="burst-select" class="bg-gray-700/50 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-violet-500 focus:outline-none">
-                                <option value="1">Single</option> <option value="3">3 shots</option> <option value="5">5 shots</option> <option value="10">10 shots</option>
-                            </select>
-                        </div>
-                        <button id="mirror-toggle" class="px-3 py-2 bg-violet-500/30 hover:bg-violet-500/50 rounded-lg text-white transition-all" title="Mirror Mode">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-                            </svg>
-                        </button>
+                    <div class="flex gap-3">
+                         <select id="burst-select" class="bg-gray-700/50 text-white text-sm rounded px-3 py-2 border border-gray-600 outline-none">
+                            <option value="1">Single Shot</option>
+                            <option value="3">Burst (3)</option>
+                        </select>
                     </div>
                 </div>
             </footer>
         </div>
         
-        <aside id="side-panel" class="w-80 bg-gray-900 border-l border-gray-700/50 flex flex-col overflow-hidden">
-            <div class="flex border-b border-gray-700/50 relative">
-                <button data-tab="effects" class="tab-btn flex-1 px-4 py-3 text-sm font-medium text-white bg-gray-800/50 z-10">Effects</button>
-                <button data-tab="gallery" class="tab-btn flex-1 px-4 py-3 text-sm font-medium text-gray-400 hover:text-white z-10">Gallery</button>
-                <button data-tab="settings" class="tab-btn flex-1 px-4 py-3 text-sm font-medium text-gray-400 hover:text-white z-10">Settings</button>
-                <div class="tab-indicator" style="width: 33.33%; left: 0;"></div>
+        <aside class="w-80 bg-gray-900 border-l border-gray-700/50 flex flex-col overflow-hidden">
+            <div class="flex border-b border-gray-700/50">
+                <button onclick="switchTab('effects')" class="flex-1 py-3 text-sm font-medium text-white bg-gray-800/50 tab-btn" id="btn-effects">Effects</button>
+                <button onclick="switchTab('gallery')" class="flex-1 py-3 text-sm font-medium text-gray-400 tab-btn" id="btn-gallery">Gallery</button>
             </div>
             
-            <div id="effects-tab" class="tab-content flex-1 overflow-y-auto p-4 space-y-6">
+            <div id="tab-effects" class="flex-1 overflow-y-auto p-4 space-y-6">
                 <section>
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg> Filters (14)
-                    </h3>
-                    <div class="grid grid-cols-4 gap-2" id="filter-grid">
-                        <button data-filter="none" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-violet-500 text-xs text-white hover:shadow-lg transition-all">None</button>
-                        <button data-filter="grayscale" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">B&W</button>
-                        <button data-filter="sepia" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Sepia</button>
-                        <button data-filter="vintage" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Vintage</button>
-                        <button data-filter="cool" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Cool</button>
-                        <button data-filter="warm" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Warm</button>
-                        <button data-filter="dramatic" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Drama</button>
-                        <button data-filter="fade" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Fade</button>
-                        <button data-filter="noir" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Noir</button>
-                        <button data-filter="vivid" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Vivid</button>
-                        <button data-filter="dream" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Dream</button>
-                        <button data-filter="neo" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Neo</button>
-                        <button data-filter="retro" class="filter-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Retro</button>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Filters</h3>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setFilter('none')" class="p-2 rounded bg-gray-800 text-xs text-white border border-violet-500">None</button>
+                        <button onclick="setFilter('grayscale(100%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">B&W</button>
+                        <button onclick="setFilter('sepia(100%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Sepia</button>
+                        <button onclick="setFilter('saturate(200%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Vivid</button>
+                        <button onclick="setFilter('hue-rotate(90deg)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Alien</button>
+                        <button onclick="setFilter('contrast(150%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Drama</button>
+                        <button onclick="setFilter('blur(2px)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Soft</button>
+                        <button onclick="setFilter('invert(100%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Neg</button>
                     </div>
                 </section>
                 
                 <section>
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> Frames (7)
-                    </h3>
-                    <div class="grid grid-cols-3 gap-2" id="frame-grid">
-                        <button data-frame="none" class="frame-btn p-2 rounded-lg bg-gray-800 border-2 border-violet-500 text-xs text-white">None</button>
-                        <button data-frame="classic" class="frame-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Classic</button>
-                        <button data-frame="polaroid" class="frame-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Polaroid</button>
-                        <button data-frame="vintage" class="frame-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Vintage</button>
-                        <button data-frame="neon" class="frame-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Neon</button>
-                        <button data-frame="film" class="frame-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Film</button>
-                        <button data-frame="gold" class="frame-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-xs text-gray-300">Gold</button>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Frames</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setFrame('none')" class="p-2 rounded bg-gray-800 text-xs text-white border border-violet-500">None</button>
+                        <button onclick="setFrame('classic')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Classic</button>
+                        <button onclick="setFrame('polaroid')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Polaroid</button>
+                        <button onclick="setFrame('film')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Film</button>
+                        <button onclick="setFrame('gold')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Gold</button>
                     </div>
                 </section>
                 
                 <section>
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Stickers (15)
-                    </h3>
-                    <div class="grid grid-cols-6 gap-2" id="sticker-grid">
-                        <button data-sticker="" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-violet-500 text-lg">✕</button>
-                        <button data-sticker="✨" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">✨</button>
-                        <button data-sticker="🎉" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">🎉</button>
-                        <button data-sticker="❤️" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">❤️</button>
-                        <button data-sticker="⭐" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">⭐</button>
-                        <button data-sticker="🔥" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">🔥</button>
-                        <button data-sticker="💫" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">💫</button>
-                        <button data-sticker="🌟" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">🌟</button>
-                        <button data-sticker="💜" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">💜</button>
-                        <button data-sticker="🎀" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">🎀</button>
-                        <button data-sticker="🎯" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">🎯</button>
-                        <button data-sticker="🌈" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">🌈</button>
-                        <button data-sticker="👑" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">👑</button>
-                        <button data-sticker="💎" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">💎</button>
-                        <button data-sticker="🚀" class="sticker-btn p-2 rounded-lg bg-gray-800 border-2 border-transparent hover:border-gray-600 text-lg">🚀</button>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Stickers</h3>
+                    <div class="grid grid-cols-5 gap-2 text-xl">
+                        <button onclick="setSticker('')" class="p-2 bg-gray-800 rounded">❌</button>
+                        <button onclick="setSticker('✨')" class="p-2 bg-gray-800 rounded">✨</button>
+                        <button onclick="setSticker('🔥')" class="p-2 bg-gray-800 rounded">🔥</button>
+                        <button onclick="setSticker('💖')" class="p-2 bg-gray-800 rounded">💖</button>
+                        <button onclick="setSticker('👑')" class="p-2 bg-gray-800 rounded">👑</button>
                     </div>
                 </section>
                 
                 <section>
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg> Text & Mood
-                    </h3>
-                    <input type="text" id="overlay-input" placeholder="Add text to your photo..." class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:border-violet-500 focus:outline-none mb-3">
-                    <select id="mood-select" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:border-violet-500 focus:outline-none">
-                        <option value="">Select mood...</option> <option value="happy">😊 Happy</option> <option value="party">🎉 Party</option> <option value="love">❤️ Love</option> <option value="cool">😎 Cool</option> <option value="excited">🤩 Excited</option> <option value="chill">😎 Chill</option>
-                    </select>
-                </section>
-                
-                <section>
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg> Adjustments
-                    </h3>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Brightness</span> <span id="brightness-value">100%</span></div>
-                            <input type="range" id="brightness-slider" min="50" max="150" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-violet-500">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Contrast</span> <span id="contrast-value">100%</span></div>
-                            <input type="range" id="contrast-slider" min="50" max="150" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-violet-500">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Saturation</span> <span id="saturation-value">100%</span></div>
-                            <input type="range" id="saturation-slider" min="0" max="200" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-violet-500">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Blur</span> <span id="blur-value">0px</span></div>
-                            <input type="range" id="blur-slider" min="0" max="10" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-violet-500">
-                        </div>
-                        <button id="reset-adjustments" class="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors">Reset All</button>
-                    </div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Text</h3>
+                    <input type="text" id="input-text" placeholder="Type caption..." oninput="setText(this.value)" class="w-full bg-gray-800 border border-gray-700 text-white rounded p-2 text-sm">
                 </section>
             </div>
             
-            <div id="gallery-tab" class="tab-content flex-1 overflow-y-auto p-4 hidden">
-                <div id="gallery-stats" class="grid grid-cols-3 gap-2 mb-4 p-3 bg-gray-800/50 rounded-lg">
-                    <div class="text-center"><p class="text-xs text-gray-400">Total</p><p id="gallery-total" class="text-lg font-bold text-white">0</p></div>
-                    <div class="text-center"><p class="text-xs text-gray-400">This Week</p><p id="gallery-week" class="text-lg font-bold text-white">0</p></div>
-                    <div class="text-center"><p class="text-xs text-gray-400">Likes</p><p id="gallery-likes" class="text-lg font-bold text-violet-400">0</p></div>
-                </div>
-                <div id="gallery-filters" class="flex gap-2 mb-4">
-                    <button class="gallery-filter-btn px-3 py-1 text-xs rounded-lg bg-violet-500/30 border border-violet-500/50 text-violet-300" data-filter="all">All</button>
-                    <button class="gallery-filter-btn px-3 py-1 text-xs rounded-lg bg-gray-700 border border-gray-600 text-gray-400" data-filter="week">This Week</button>
-                    <button class="gallery-filter-btn px-3 py-1 text-xs rounded-lg bg-gray-700 border border-gray-600 text-gray-400" data-filter="liked">Liked</button>
+            <div id="tab-gallery" class="hidden flex-1 overflow-y-auto p-4">
+                <div class="flex justify-between mb-4">
+                    <h3 class="text-white font-bold">Your Photos</h3>
+                    <button onclick="clearSession()" class="text-xs text-red-400 hover:text-red-300">Clear All</button>
                 </div>
                 <div id="gallery-grid" class="grid grid-cols-2 gap-3">
                     </div>
-                <div id="empty-gallery" class="flex flex-col items-center justify-center h-64 text-center">
-                    <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-4">
-                        <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    </div>
-                    <p class="text-gray-400 text-sm">No photos yet</p>
-                </div>
-            </div>
-            
-            <div id="settings-tab" class="tab-content flex-1 overflow-y-auto p-4 hidden space-y-6">
-                <section>
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3">Session</h3>
-                    <div class="space-y-2">
-                        <label class="flex items-center gap-3 p-2 bg-gray-800/50 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors"> <input type="checkbox" id="auto-enhance" class="w-4 h-4 rounded"> <span class="text-sm text-gray-300">Auto Enhance</span> </label>
-                        <label class="flex items-center gap-3 p-2 bg-gray-800/50 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors"> <input type="checkbox" id="batch-export" class="w-4 h-4 rounded"> <span class="text-sm text-gray-300">Batch Export</span> </label>
-                        <label class="flex items-center gap-3 p-2 bg-gray-800/50 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors"> <input type="checkbox" id="timestamp" checked class="w-4 h-4 rounded"> <span class="text-sm text-gray-300">Add Timestamp</span> </label>
-                    </div>
-                </section>
-                
-                <section>
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3">Gallery Actions</h3>
-                    <div class="space-y-2">
-                        <button id="export-all-btn" class="w-full px-3 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 rounded-lg text-green-300 text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> Export All
-                        </button>
-                        <button id="clear-session-btn" class="w-full px-3 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-300 text-sm font-medium transition-colors"> Clear Session </button>
-                    </div>
-                </section>
-                
-                <section>
-                    <h3 class="text-sm font-semibold text-gray-300 mb-3">About</h3>
-                    <div class="text-xs text-gray-500 space-y-2">
-                        <p>Studio X Pro v2.1 (Robust Edition)</p>
-                        <p>Advanced photo booth with filters, effects, and analytics.</p>
-                    </div>
-                </section>
+                <button onclick="exportAll()" class="w-full mt-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">Download All</button>
             </div>
         </aside>
-        
-        <div id="preview-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
-            <div class="relative max-w-2xl w-full animate-slide-up">
-                <button id="close-modal" class="absolute -top-10 right-0 text-white hover:text-gray-300">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-                <img id="preview-image" src="" alt="Preview" class="w-full rounded-xl shadow-2xl mb-4">
-                <div id="photo-meta" class="text-gray-400 text-sm mb-4 space-y-1">
-                    <p>📸 Filter: <span id="meta-filter">None</span></p>
-                    <p>⏰ Taken: <span id="meta-time">-</span></p>
-                </div>
-                <div class="flex justify-between gap-3">
-                    <button id="like-photo" class="flex-1 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-xl text-red-300 font-semibold transition-all flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg><span id="like-count">0</span>
-                    </button>
-                    <button id="share-photo" class="flex-1 px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 rounded-xl text-blue-300 font-semibold transition-all flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> Share
-                    </button>
-                    <button id="download-photo" class="flex-1 px-4 py-3 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 rounded-xl text-green-300 font-semibold transition-all flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> Download
-                    </button>
-                    <button id="delete-photo" class="flex-1 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-xl text-red-400 font-semibold transition-all">
-                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div id="toast-container" class="toast"></div>
     </div>
     
-    <canvas id="capture-canvas" class="hidden"></canvas>
+    <div id="toast" class="toast hidden bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg"></div>
     
-    <script>
-        // Data SDK Fallback (Robustness fix for local running without proprietary backend)
-        if (!window.dataSdk) {
-            console.warn("External Data SDK not found. Using robust local fallback.");
-            window.dataSdk = {
-                items: [],
-                init: async (handler) => { window.dataHandler = handler; return {isOk: true}; },
-                create: async (data) => {
-                    data.__backendId = Date.now().toString() + Math.random().toString(16).slice(2);
-                    window.dataSdk.items.push(data);
-                    if (window.dataHandler) window.dataHandler.onDataChanged(window.dataSdk.items);
-                    return {isOk: true};
-                },
-                update: async (data) => {
-                    const idx = window.dataSdk.items.findIndex(i => i.__backendId === data.__backendId);
-                    if(idx > -1) window.dataSdk.items[idx] = data;
-                    if (window.dataHandler) window.dataHandler.onDataChanged(window.dataSdk.items);
-                    return {isOk: true};
-                },
-                delete: async (data) => {
-                    window.dataSdk.items = window.dataSdk.items.filter(i => i.__backendId !== data.__backendId);
-                    if (window.dataHandler) window.dataHandler.onDataChanged(window.dataSdk.items);
-                    return {isOk: true};
-                }
-            };
-        }
+    <canvas id="canvas" class="hidden"></canvas>
 
-        // Default Config
-        const defaultConfig = {
-            booth_title: 'Studio X Pro',
-            tagline: 'Professional Photo Moments',
-            watermark_text: '© Studio X Pro',
-            hashtag: '#StudioX',
-            background_color: '#111827',
-            surface_color: '#1f2937',
-            text_color: '#ffffff',
-            primary_action_color: '#8b5cf6',
-            secondary_action_color: '#6b7280'
+    <script>
+        // --- 1. ROBUST LOCAL STORAGE SYSTEM (Fixes broken SDK) ---
+        class PhotoDB {
+            constructor() {
+                this.key = 'studio_x_photos_v2';
+                this.photos = this.load();
+            }
+            load() {
+                try { return JSON.parse(localStorage.getItem(this.key) || '[]'); } 
+                catch(e) { return []; }
+            }
+            save() {
+                try { localStorage.setItem(this.key, JSON.stringify(this.photos)); } catch(e) {}
+            }
+            add(data) {
+                this.photos.unshift(data); // Add to top
+                this.save();
+            }
+            getAll() { return this.photos; }
+            clear() { this.photos = []; this.save(); }
+        }
+        
+        const db = new PhotoDB();
+        
+        // --- 2. STATE & CONFIG ---
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const galleryGrid = document.getElementById('gallery-grid');
+        
+        let state = {
+            filter: 'none',
+            frame: 'none',
+            sticker: '',
+            text: '',
+            mirror: true,
+            brightness: 100,
+            contrast: 100
         };
         
-        // Application State
-        let currentFilter = 'none';
-        let currentFrame = 'none';
-        let currentSticker = '';
-        let currentOverlayText = '';
-        let currentMood = '';
-        let brightness = 100;
-        let contrast = 100;
-        let saturation = 100;
-        let blur = 0;
-        let stream = null;
-        let isCapturing = false;
-        let selectedPhotoId = null;
-        let currentMode = 'standard';
-        let sessionStartTime = Date.now();
-        let mirrorMode = true;
-        let allPhotosData = [];
+        let sessionStart = Date.now();
         
-        // DOM Elements
-        const video = document.getElementById('video');
-        const captureBtn = document.getElementById('capture-btn');
-        const timerSelect = document.getElementById('timer-select');
-        const burstSelect = document.getElementById('burst-select');
-        const moodSelect = document.getElementById('mood-select');
-        const countdownOverlay = document.getElementById('countdown-overlay');
-        const countdownNumber = document.getElementById('countdown-number');
-        const flashOverlay = document.getElementById('flash-overlay');
-        const cameraOff = document.getElementById('camera-off');
-        const startCameraBtn = document.getElementById('start-camera');
-        const stickerLayer = document.getElementById('sticker-layer');
-        const overlayText = document.getElementById('overlay-text');
-        const overlayInput = document.getElementById('overlay-input');
-        const moodBadge = document.getElementById('mood-badge');
-        const brightnessSlider = document.getElementById('brightness-slider');
-        const contrastSlider = document.getElementById('contrast-slider');
-        const saturationSlider = document.getElementById('saturation-slider');
-        const blurSlider = document.getElementById('blur-slider');
-        const brightnessValue = document.getElementById('brightness-value');
-        const contrastValue = document.getElementById('contrast-value');
-        const saturationValue = document.getElementById('saturation-value');
-        const blurValue = document.getElementById('blur-value');
-        const resetAdjustments = document.getElementById('reset-adjustments');
-        const galleryGrid = document.getElementById('gallery-grid');
-        const emptyGallery = document.getElementById('empty-gallery');
-        const totalPhotos = document.getElementById('total-photos');
-        const totalLikes = document.getElementById('total-likes');
-        const sessionTime = document.getElementById('session-time');
-        const previewModal = document.getElementById('preview-modal');
-        const previewImage = document.getElementById('preview-image');
-        const likeBtn = document.getElementById('like-photo');
-        const shareBtn = document.getElementById('share-photo');
-        const downloadPhoto = document.getElementById('download-photo');
-        const deletePhoto = document.getElementById('delete-photo');
-        const closeModal = document.getElementById('close-modal');
-        const captureCanvas = document.getElementById('capture-canvas');
-        const toastContainer = document.getElementById('toast-container');
-        const mirrorToggle = document.getElementById('mirror-toggle');
-        
-        // Initialize Camera
+        // --- 3. CAMERA ENGINE ---
         async function initCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-                    audio: false
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
+                    audio: false 
                 });
                 video.srcObject = stream;
-                cameraOff.classList.add('hidden');
-                captureBtn.disabled = false;
+                document.getElementById('camera-off').classList.add('hidden');
             } catch (err) {
-                console.error('Camera access denied:', err);
-                cameraOff.classList.remove('hidden');
-                captureBtn.disabled = true;
-                showToast('Camera access denied. Please check permissions.', 'error');
+                console.error(err);
+                document.getElementById('camera-off').classList.remove('hidden');
+                showToast("Camera blocked! Use HTTPS or Localhost.", true);
             }
         }
         
-        // Session Timer
-        setInterval(() => {
-            const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            sessionTime.textContent = `${minutes}m ${seconds}s`;
-        }, 1000);
-        
-        // Show Toast
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `px-4 py-3 rounded-xl shadow-lg animate-slide-up flex items-center gap-2 mb-2 ${
-                type === 'success' ? 'bg-green-500 text-white' : 
-                type === 'error' ? 'bg-red-500 text-white' : 
-                'bg-blue-500 text-white'
-            }`;
-            toast.innerHTML = `
-                ${type === 'success' ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>' : ''}
-                ${type === 'error' ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>' : ''}
-                <span>${message}</span>
-            `;
-            toastContainer.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-        
-        // Apply Filters & Adjustments
-        function applyFilters() {
-            const filterStyle = getFilterStyle(currentFilter);
-            video.style.filter = `${filterStyle} brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blur}px)`.trim();
-            // Robust Fix: Conditionally apply mirror class to ensure toggle isn't overwritten
-            video.className = `${mirrorMode ? 'video-mirror ' : ''}w-full h-full object-cover frame-${currentFrame}`;
-        }
-        
-        function getFilterStyle(filter) {
-            const filters = {
-                none: '', grayscale: 'grayscale(100%)', sepia: 'sepia(80%)',
-                vintage: 'sepia(30%) contrast(110%) brightness(90%)',
-                cool: 'saturate(80%) hue-rotate(180deg) brightness(105%)',
-                warm: 'saturate(120%) sepia(20%) brightness(105%)',
-                dramatic: 'contrast(130%) saturate(120%) brightness(90%)',
-                fade: 'contrast(90%) brightness(110%) saturate(80%)',
-                noir: 'grayscale(100%) contrast(120%) brightness(90%)',
-                vivid: 'saturate(150%) contrast(120%)',
-                dream: 'blur(1px) brightness(110%) hue-rotate(15deg) saturate(110%)',
-                neo: 'hue-rotate(120deg) saturate(150%) contrast(110%)',
-                retro: 'sepia(60%) saturate(80%) hue-rotate(-10deg)'
-            };
-            return filters[filter] || '';
-        }
-        
-        // Capture Photo
-        async function capturePhoto() {
-            if (isCapturing || !stream || currentMode !== 'standard' && currentMode !== 'burst') return;
-            isCapturing = true;
-            captureBtn.disabled = true;
+        // --- 4. CAPTURE LOGIC ---
+        document.getElementById('capture-btn').onclick = async () => {
+            const btn = document.getElementById('capture-btn');
+            btn.disabled = true;
             
-            const timer = parseInt(timerSelect.value);
-            const burstCount = currentMode === 'burst' ? parseInt(burstSelect.value) : 1;
+            const count = parseInt(document.getElementById('burst-select').value);
+            const timer = parseInt(document.getElementById('timer-select').value);
             
-            if (timer > 0) {
-                countdownOverlay.classList.remove('hidden');
-                for (let i = timer; i > 0; i--) {
-                    countdownNumber.textContent = i;
-                    countdownNumber.className = 'text-9xl font-black text-white drop-shadow-2xl animate-countdown';
+            // Countdown
+            if(timer > 0) {
+                const el = document.getElementById('countdown-overlay');
+                const num = document.getElementById('countdown-number');
+                el.classList.remove('hidden');
+                for(let i=timer; i>0; i--) {
+                    num.innerText = i;
                     await new Promise(r => setTimeout(r, 1000));
                 }
-                countdownOverlay.classList.add('hidden');
+                el.classList.add('hidden');
             }
             
-            for (let i = 0; i < burstCount; i++) {
-                await takeSnapshot();
-                if (i < burstCount - 1) await new Promise(r => setTimeout(r, 500));
+            // Capture Loop
+            for(let i=0; i<count; i++) {
+                await snap();
+                if(i < count-1) await new Promise(r => setTimeout(r, 800));
             }
             
-            isCapturing = false;
-            captureBtn.disabled = false;
-        }
+            btn.disabled = false;
+        };
         
-        async function takeSnapshot() {
-            flashOverlay.classList.add('animate-flash');
-            flashOverlay.style.opacity = '1';
-            setTimeout(() => { flashOverlay.style.opacity = '0'; flashOverlay.classList.remove('animate-flash'); }, 300);
+        async function snap() {
+            // Flash
+            const flash = document.getElementById('flash-overlay');
+            flash.style.opacity = 1;
+            setTimeout(() => flash.style.opacity = 0, 150);
             
-            const ctx = captureCanvas.getContext('2d');
-            captureCanvas.width = video.videoWidth;
-            captureCanvas.height = video.videoHeight;
+            // Setup Canvas
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             
-            // Robust Fix: Check mirror toggle before flipping canvas so saved image matches preview perfectly
-            if (mirrorMode) {
-                ctx.translate(captureCanvas.width, 0);
+            // Mirroring Context
+            if(state.mirror) {
+                ctx.translate(canvas.width, 0);
                 ctx.scale(-1, 1);
             }
             
-            ctx.filter = `${getFilterStyle(currentFilter)} brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) blur(${blur}px)`.trim();
+            // Apply Filters
+            ctx.filter = state.filter;
             ctx.drawImage(video, 0, 0);
+            ctx.setTransform(1,0,0,1,0,0); // Reset for text
+            ctx.filter = 'none';
             
-            // Reset transform for drawing non-mirrored overlay items like text/watermark
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            // Draw Frames (Simple Borders)
+            const w = canvas.width, h = canvas.height;
+            ctx.lineWidth = 40;
+            if(state.frame === 'classic') { ctx.strokeStyle = 'white'; ctx.strokeRect(0,0,w,h); }
+            if(state.frame === 'polaroid') { 
+                ctx.fillStyle = 'white'; 
+                ctx.fillRect(0,0,w,h); 
+                ctx.drawImage(video, 20, 20, w-40, h-160); // Draw video inside
+                // We need to re-draw video here un-mirrored if we mirrored before? 
+                // To keep it simple, we just draw border over:
+                // Actually polaroid needs logic. Let's do simple overlay for robustness:
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, h-100, w, 100); // Bottom bar
+            }
+            if(state.frame === 'gold') { ctx.strokeStyle = '#FFD700'; ctx.strokeRect(0,0,w,h); }
             
-            if (currentOverlayText) {
-                ctx.font = 'italic 32px Playfair Display';
+            // Draw Text & Stickers
+            if(state.text) {
+                ctx.font = 'italic bold 40px serif';
                 ctx.fillStyle = 'white';
                 ctx.textAlign = 'center';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 10;
-                ctx.fillText(currentOverlayText, captureCanvas.width / 2, captureCanvas.height - 40);
-                ctx.shadowBlur = 0;
+                ctx.shadowColor="black"; ctx.shadowBlur=5;
+                ctx.fillText(state.text, w/2, h-40);
+            }
+            if(state.sticker) {
+                ctx.font = '100px serif';
+                ctx.fillText(state.sticker, w-120, 100);
             }
             
-            if (currentSticker) {
-                ctx.font = '64px serif';
-                ctx.fillText(currentSticker, captureCanvas.width - 80, 80);
-            }
-            
-            const config = window.elementSdk?.config || defaultConfig;
-            if (config.watermark_text) {
-                ctx.font = '14px Space Grotesk';
-                ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                ctx.textAlign = 'right';
-                ctx.fillText(config.watermark_text, captureCanvas.width - 20, captureCanvas.height - 20);
-            }
-            
-            if (document.getElementById('timestamp').checked) {
-                ctx.font = '12px Space Grotesk';
-                ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                ctx.textAlign = 'left';
-                const time = new Date().toLocaleTimeString();
-                ctx.fillText(time, 20, 30);
-            }
-            
-            const imageData = captureCanvas.toDataURL('image/png');
-            
-            if (allPhotosData.length >= 999) {
-                showToast('Maximum 999 photos reached', 'error');
-                return;
-            }
-            
-            const result = await window.dataSdk.create({
-                imageData: imageData,
-                timestamp: new Date().toISOString(),
-                filterApplied: currentFilter,
-                frameStyle: currentFrame,
-                likes: 0,
-                tags: currentMood,
-                duration: Math.floor((Date.now() - sessionStartTime) / 1000),
-                effects: `${currentSticker}|${currentOverlayText}`,
-                mood: currentMood,
-                sharedUrl: ''
-            });
-            
-            if (result.isOk) {
-                showToast('📸 Photo captured!');
-            } else {
-                showToast('Failed to save photo', 'error');
-            }
+            // Save
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            db.add({ src: dataUrl, date: new Date().toLocaleString() });
+            renderGallery();
+            showToast("Photo Saved!");
         }
         
-        // Render Gallery
+        // --- 5. UI ACTIONS ---
+        function setFilter(val) {
+            state.filter = val;
+            video.style.filter = val;
+        }
+        function setFrame(val) {
+            state.frame = val;
+            video.className = `video-mirror w-full h-full object-cover frame-${val}`; // Reset mirror class
+            if(!state.mirror) video.classList.remove('video-mirror');
+        }
+        function setSticker(val) {
+            state.sticker = val;
+            const el = document.getElementById('sticker-layer');
+            el.innerText = val;
+            el.classList.toggle('hidden', !val);
+        }
+        function setText(val) {
+            state.text = val;
+            const el = document.getElementById('overlay-text');
+            el.innerText = val;
+            el.classList.toggle('hidden', !val);
+        }
+        
+        document.getElementById('mirror-toggle').onclick = () => {
+            state.mirror = !state.mirror;
+            video.classList.toggle('video-mirror', state.mirror);
+            video.classList.toggle('video-normal', !state.mirror);
+        };
+        
+        // --- 6. GALLERY & TABS ---
+        function switchTab(name) {
+            document.getElementById('tab-effects').classList.add('hidden');
+            document.getElementById('tab-gallery').classList.add('hidden');
+            document.getElementById('btn-effects').classList.replace('text-white', 'text-gray-400');
+            document.getElementById('btn-gallery').classList.replace('text-white', 'text-gray-400');
+            
+            document.getElementById(`tab-${name}`).classList.remove('hidden');
+            document.getElementById(`btn-${name}`).classList.replace('text-gray-400', 'text-white');
+            if(name === 'gallery') renderGallery();
+        }
+        
         function renderGallery() {
-            const grid = galleryGrid;
-            const existingItems = new Map([...grid.querySelectorAll('.gallery-item')].map(el => [el.dataset.id, el]));
-            
-            allPhotosData.forEach((photo, index) => {
-                const id = photo.__backendId;
-                if (existingItems.has(id)) {
-                    existingItems.delete(id);
-                } else {
-                    const item = document.createElement('div');
-                    item.className = 'gallery-item relative group cursor-pointer animate-slide-up rounded-lg overflow-hidden';
-                    item.dataset.id = id;
-                    item.style.animationDelay = `${index * 50}ms`;
-                    item.innerHTML = `
-                        <img src="${photo.imageData}" alt="Photo" class="w-full aspect-square object-cover group-hover:scale-110 transition-transform duration-300">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex flex-col items-center justify-between p-3">
-                            <div class="flex gap-2 w-full justify-center">
-                                ${photo.likes > 0 ? `<span class="text-red-400 text-xs flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>${photo.likes}</span>` : ''}
-                            </div>
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
-                        </div>
-                    `;
-                    item.onclick = () => openPreview(photo);
-                    grid.appendChild(item);
-                }
-            });
-            
-            existingItems.forEach(el => el.remove());
-            
-            emptyGallery.classList.toggle('hidden', allPhotosData.length > 0);
-            totalPhotos.textContent = allPhotosData.length;
-            totalLikes.textContent = allPhotosData.reduce((sum, p) => sum + (p.likes || 0), 0);
-            document.getElementById('gallery-total').textContent = allPhotosData.length;
-            document.getElementById('gallery-likes').textContent = allPhotosData.reduce((sum, p) => sum + (p.likes || 0), 0);
-            
-            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-            const thisWeek = allPhotosData.filter(p => new Date(p.timestamp) > weekAgo).length;
-            document.getElementById('gallery-week').textContent = thisWeek;
+            const photos = db.getAll();
+            document.getElementById('total-photos').innerText = photos.length;
+            galleryGrid.innerHTML = photos.map(p => `
+                <div class="relative group">
+                    <img src="${p.src}" class="w-full h-32 object-cover rounded border border-gray-700">
+                    <a href="${p.src}" download="photo.jpg" class="absolute bottom-1 right-1 bg-white text-black text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">⬇</a>
+                </div>
+            `).join('');
         }
         
-        // Preview Modal
-        function openPreview(photo) {
-            selectedPhotoId = photo.__backendId;
-            previewImage.src = photo.imageData;
-            document.getElementById('meta-filter').textContent = photo.filterApplied || 'None';
-            document.getElementById('meta-time').textContent = new Date(photo.timestamp).toLocaleString();
-            document.getElementById('like-count').textContent = photo.likes || 0;
-            previewModal.classList.remove('hidden');
-        }
-        
-        function closePreview() {
-            previewModal.classList.add('hidden');
-            selectedPhotoId = null;
-        }
-        
-        // Photo Actions
-        async function likePhoto() {
-            if (!selectedPhotoId) return;
-            const photo = allPhotosData.find(p => p.__backendId === selectedPhotoId);
-            if (!photo) return;
-            
-            photo.likes = (photo.likes || 0) + 1;
-            const result = await window.dataSdk.update(photo);
-            
-            if (result.isOk) {
-                document.getElementById('like-count').textContent = photo.likes;
-                showToast('❤️ Photo liked!');
-            }
-        }
-        
-        async function deleteCurrentPhoto() {
-            if (!selectedPhotoId) return;
-            const photo = allPhotosData.find(p => p.__backendId === selectedPhotoId);
-            if (!photo) return;
-            
-            deletePhoto.disabled = true;
-            const result = await window.dataSdk.delete(photo);
-            
-            if (result.isOk) {
-                closePreview();
-                showToast('Photo deleted');
-            } else {
-                showToast('Failed to delete photo', 'error');
-            }
-            deletePhoto.disabled = false;
-        }
-        
-        function downloadCurrentPhoto() {
-            if (!selectedPhotoId) return;
-            const photo = allPhotosData.find(p => p.__backendId === selectedPhotoId);
-            if (!photo) return;
-            
-            const link = document.createElement('a');
-            link.download = `studio-x-${new Date().toISOString().slice(0,10)}.png`;
-            link.href = photo.imageData;
-            link.click();
-            showToast('📥 Photo downloaded!');
-        }
-        
-        // Tab Switching
-        document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
-            btn.onclick = () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('bg-gray-800/50', 'text-white'));
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.add('text-gray-400'));
-                btn.classList.remove('text-gray-400');
-                btn.classList.add('bg-gray-800/50', 'text-white');
-                
-                const indicator = document.querySelector('.tab-indicator');
-                indicator.style.left = `${idx * 33.33}%`;
-                
-                document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-                document.getElementById(`${btn.dataset.tab}-tab`).classList.remove('hidden');
-            };
-        });
-        
-        // Filter Selection
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.filter-btn').forEach(b => {
-                    b.classList.remove('border-violet-500');
-                    b.classList.add('border-transparent');
-                });
-                btn.classList.add('border-violet-500');
-                currentFilter = btn.dataset.filter;
-                applyFilters();
-            };
-        });
-        
-        // Frame Selection
-        document.querySelectorAll('.frame-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.frame-btn').forEach(b => {
-                    b.classList.remove('border-violet-500');
-                    b.classList.add('border-transparent');
-                });
-                btn.classList.add('border-violet-500');
-                currentFrame = btn.dataset.frame;
-                applyFilters();
-            };
-        });
-        
-        // Sticker Selection
-        document.querySelectorAll('.sticker-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.sticker-btn').forEach(b => {
-                    b.classList.remove('border-violet-500');
-                    b.classList.add('border-transparent');
-                });
-                btn.classList.add('border-violet-500');
-                currentSticker = btn.dataset.sticker;
-                stickerLayer.textContent = currentSticker;
-                stickerLayer.classList.toggle('hidden', !currentSticker);
-            };
-        });
-        
-        // Text & Mood
-        overlayInput.oninput = (e) => {
-            currentOverlayText = e.target.value;
-            overlayText.textContent = currentOverlayText;
-            overlayText.classList.toggle('hidden', !currentOverlayText);
-        };
-        
-        moodSelect.onchange = (e) => {
-            currentMood = e.target.value;
-            if (currentMood) {
-                const moodEmoji = { happy: '😊', party: '🎉', love: '❤️', cool: '😎', excited: '🤩', chill: '😎' };
-                moodBadge.textContent = `${moodEmoji[currentMood]} ${currentMood}`;
-                moodBadge.classList.remove('hidden');
-            } else {
-                moodBadge.classList.add('hidden');
-            }
-        };
-        
-        // Adjustments
-        brightnessSlider.oninput = (e) => { brightness = e.target.value; brightnessValue.textContent = `${brightness}%`; applyFilters(); };
-        contrastSlider.oninput = (e) => { contrast = e.target.value; contrastValue.textContent = `${contrast}%`; applyFilters(); };
-        saturationSlider.oninput = (e) => { saturation = e.target.value; saturationValue.textContent = `${saturation}%`; applyFilters(); };
-        blurSlider.oninput = (e) => { blur = e.target.value; blurValue.textContent = `${blur}px`; applyFilters(); };
-        
-        resetAdjustments.onclick = () => {
-            brightness = contrast = saturation = 100; blur = 0;
-            brightnessSlider.value = contrastSlider.value = saturationSlider.value = 100;
-            blurSlider.value = 0;
-            brightnessValue.textContent = '100%'; contrastValue.textContent = '100%';
-            saturationValue.textContent = '100%'; blurValue.textContent = '0px';
-            applyFilters();
-        };
-        
-        // Mode Selection
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.onclick = () => {
-                const mode = btn.dataset.mode;
-                if(mode !== 'standard' && mode !== 'burst') {
-                    showToast(`${mode} mode is coming soon!`, 'info');
-                    return;
-                }
-                document.querySelectorAll('.mode-btn').forEach(b => {
-                    b.classList.remove('bg-violet-500', 'text-white');
-                    b.classList.add('bg-gray-700', 'text-gray-300');
-                });
-                btn.classList.remove('bg-gray-700', 'text-gray-300');
-                btn.classList.add('bg-violet-500', 'text-white');
-                currentMode = mode;
-            };
-        });
-        
-        // Event Listeners Wiring Fixes
-        captureBtn.onclick = capturePhoto;
-        startCameraBtn.onclick = initCamera;
-        document.getElementById('toggle-gallery').onclick = () => document.querySelector('[data-tab="gallery"]').click();
-        document.getElementById('toggle-settings').onclick = () => document.querySelector('[data-tab="settings"]').click();
-        document.getElementById('toggle-effects').onclick = () => document.querySelector('[data-tab="effects"]').click();
-        document.getElementById('batch-select').onclick = () => showToast('Batch functionality coming soon!', 'info');
-        
-        closeModal.onclick = closePreview;
-        likeBtn.onclick = likePhoto;
-        downloadPhoto.onclick = downloadCurrentPhoto;
-        deletePhoto.onclick = deleteCurrentPhoto;
-        shareBtn.onclick = () => showToast('Share feature coming soon!', 'info');
-        previewModal.onclick = (e) => { if (e.target === previewModal) closePreview(); };
-        
-        document.getElementById('clear-session-btn').onclick = async () => {
-            if (confirm('Clear all photos from this session?')) {
-                // Must clone array to iterate over safely while deleting
-                const photosToDelete = [...allPhotosData];
-                for (const photo of photosToDelete) {
-                    await window.dataSdk.delete(photo);
-                }
-                showToast('Session cleared');
-            }
-        };
-        
-        document.getElementById('export-all-btn').onclick = () => {
-            if (allPhotosData.length === 0) {
-                showToast('No photos to export', 'error');
-                return;
-            }
-            allPhotosData.forEach((photo, idx) => {
-                const link = document.createElement('a');
-                link.download = `studio-x-batch-${idx+1}.png`;
-                link.href = photo.imageData;
-                link.click();
-            });
-            showToast(`✅ Exported ${allPhotosData.length} photos!`);
-        };
-        
-        // Robust Mirror Toggle
-        mirrorToggle.onclick = () => {
-            mirrorMode = !mirrorMode;
-            applyFilters(); // Re-apply classes correctly
-            mirrorToggle.classList.toggle('bg-violet-500/30', mirrorMode);
-            mirrorToggle.classList.toggle('bg-gray-800/50', !mirrorMode);
-        };
-        
-        // Config Change
-        function onConfigChange(config) {
-            document.getElementById('booth-title').textContent = config.booth_title || defaultConfig.booth_title;
-            document.getElementById('tagline').textContent = config.tagline || defaultConfig.tagline;
-        }
-        
-        // Data Handler
-        const dataHandler = {
-            onDataChanged(data) {
-                allPhotosData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        function clearSession() {
+            if(confirm("Delete all photos?")) {
+                db.clear();
                 renderGallery();
             }
-        };
-        
-        // Element SDK Init
-        if (window.elementSdk) {
-            window.elementSdk.init({
-                defaultConfig,
-                onConfigChange,
-                mapToCapabilities: (config) => ({
-                    recolorables: [
-                        { get: () => config.background_color || defaultConfig.background_color, set: (v) => window.elementSdk.setConfig({ background_color: v }) },
-                        { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => window.elementSdk.setConfig({ surface_color: v }) },
-                        { get: () => config.text_color || defaultConfig.text_color, set: (v) => window.elementSdk.setConfig({ text_color: v }) },
-                        { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: (v) => window.elementSdk.setConfig({ primary_action_color: v }) },
-                        { get: () => config.secondary_action_color || defaultConfig.secondary_action_color, set: (v) => window.elementSdk.setConfig({ secondary_action_color: v }) }
-                    ],
-                    borderables: [],
-                    fontEditable: undefined,
-                    fontSizeable: undefined
-                }),
-                mapToEditPanelValues: (config) => new Map([
-                    ['booth_title', config.booth_title || defaultConfig.booth_title],
-                    ['tagline', config.tagline || defaultConfig.tagline],
-                    ['watermark_text', config.watermark_text || defaultConfig.watermark_text],
-                    ['hashtag', config.hashtag || defaultConfig.hashtag]
-                ])
-            });
         }
         
-        // Data SDK Init
-        (async () => {
-            if (window.dataSdk) {
-                const result = await window.dataSdk.init(dataHandler);
-                if (!result.isOk) console.error('Failed to init Data SDK');
-            }
+        function exportAll() {
+            const photos = db.getAll();
+            if(!photos.length) return alert("No photos!");
+            photos.forEach((p, i) => {
+                const a = document.createElement('a');
+                a.href = p.src;
+                a.download = `studio-x-${i}.jpg`;
+                a.click();
+            });
+        }
+
+        // --- 7. UTILS ---
+        function showToast(msg, isError=false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `toast px-4 py-2 rounded-lg shadow-lg ${isError ? 'bg-red-500' : 'bg-green-500'} text-white`;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3000);
+        }
+        
+        setInterval(() => {
+            const diff = Math.floor((Date.now() - sessionStart)/1000);
+            document.getElementById('session-time').innerText = `${Math.floor(diff/60)}m ${diff%60}s`;
+        }, 1000);
+
+        // Init
+        window.onload = () => {
             initCamera();
-        })();
+            renderGallery();
+        };
+
     </script>
 </body>
 </html>

@@ -3,954 +3,680 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NeoBooth AI | Universal Adaptive Suite</title>
+    <title>NeoBooth AI | Pro Master Suite</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            /* --- GLOBAL VARIABLES --- */
-            --primary: #8e44ad; 
-            --secondary: #2980b9; 
-            --accent: #00cec9; 
-            --bg: #0f1014; 
-            --panel: rgba(20, 20, 25, 0.96); 
-            --glass: rgba(255, 255, 255, 0.08); 
-            --text: #ffffff; 
-            --font-ui: 'Segoe UI', system-ui, sans-serif; 
-            --radius: 14px; 
-            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+            /* --- ADVANCED THEME VARIABLES --- */
+            --primary: #00f260; 
+            --primary-dim: rgba(0, 242, 96, 0.2);
+            --accent: #0575e6;
+            --bg-color: #050505;
+            --panel-bg: rgba(20, 20, 25, 0.75);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --font-stack: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --radius-lg: 24px;
+            --radius-sm: 12px;
+            --shadow-glow: 0 0 20px rgba(0, 242, 96, 0.15);
         }
 
-        /* --- THEME PRESETS --- */
-        [data-theme="light"] { 
-            --primary: #6c5ce7; --accent: #0984e3; --bg: #f5f6fa; 
-            --panel: #ffffff; --text: #2d3436; --glass: rgba(0,0,0,0.05); 
-        }
-        [data-theme="wedding"] { 
-            --primary: #e84393; --accent: #fdcb6e; --bg: #fff0f6; 
-            --panel: rgba(255, 255, 255, 0.95); --text: #6c5ce7; --glass: rgba(255,255,255,0.5); 
-        }
-        [data-theme="retro"] { 
-            --primary: #e17055; --accent: #fdcb6e; --bg: #2d3436; 
-            --panel: #636e72; --text: #dfe6e9; --glass: rgba(0,0,0,0.2); 
-            font-family: 'Courier New', monospace; 
-        }
-        [data-theme="futuristic"] { 
-            --primary: #00f260; --accent: #0575e6; --bg: #000000; 
-            --panel: rgba(10, 10, 10, 0.9); --text: #00f260; 
-            --glass: rgba(0, 242, 96, 0.1); border: 1px solid #00f260; 
-        }
-        [data-theme="corporate"] { 
-            --primary: #2c3e50; --accent: #3498db; --bg: #ecf0f1; 
-            --panel: #ffffff; --text: #2c3e50; --glass: rgba(0,0,0,0.1); 
-        }
+        /* --- THEME ENGINE --- */
+        [data-theme="cyber"] { --primary: #00f260; --accent: #0575e6; }
+        [data-theme="neon"] { --primary: #ff00ff; --accent: #00ffff; --shadow-glow: 0 0 25px rgba(255, 0, 255, 0.3); }
+        [data-theme="gold"] { --primary: #ffd700; --accent: #f1c40f; --panel-bg: rgba(30, 30, 30, 0.85); }
+        [data-theme="minimal"] { --primary: #ffffff; --accent: #888888; --bg-color: #111; --panel-bg: rgba(255,255,255,0.1); }
 
-        /* --- ACCESSIBILITY MODE --- */
-        body.access-mode { 
-            --primary: #ffff00; --accent: #ffffff; --bg: #000000; 
-            --panel: #222222; --text: #ffff00; 
-            font-size: 1.25rem; font-weight: bold; letter-spacing: 1px; 
-        }
-
-        /* --- BASE STYLES --- */
-        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            font-family: var(--font-ui); background: var(--bg); color: var(--text); 
-            margin: 0; height: 100dvh; /* Dynamic Height for Mobile/Tablets */
-            overflow: hidden; display: flex; flex-direction: column; 
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            font-family: var(--font-stack); background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);
+            color: var(--text-main); margin: 0; height: 100dvh; 
+            overflow: hidden; display: flex; flex-direction: column;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        /* --- ADAPTIVE LAYOUT GRID --- */
-        .app-container { 
+        /* --- LOADING SCREEN --- */
+        #bootScreen {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease;
+        }
+        .loader-bar { width: 200px; height: 4px; background: #333; margin-top: 20px; border-radius: 2px; overflow: hidden; }
+        .loader-progress { width: 0%; height: 100%; background: var(--primary); transition: width 1s ease-out; }
+
+        /* --- RESPONSIVE GRID ARCHITECTURE --- */
+        .app-layout { 
             display: grid; 
-            /* Default Desktop: 3 Column Studio Layout */
-            grid-template-columns: 320px 1fr 380px; 
+            grid-template-columns: 340px 1fr 380px; 
             grid-template-rows: 1fr;
-            height: calc(100dvh - 60px); 
-            gap: 20px; 
-            padding: 20px; 
-            overflow: hidden;
+            height: 100%; 
+            padding: 20px; gap: 20px;
+        }
+
+        /* Portrait/Tablet Mode */
+        body.portrait-mode .app-layout, 
+        @media (max-width: 1100px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+                overflow-y: auto;
+                padding: 15px;
+            }
+            /* Reorder for mobile flow */
+            .sidebar-left { order: 2; height: auto; max-height: 400px; }
+            .stage-center { order: 1; min-height: 60vh; }
+            .sidebar-right { order: 3; height: auto; }
+        }
+
+        /* --- GLASSMOPHISM PANELS --- */
+        .panel {
+            background: var(--panel-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: var(--glass-border); border-radius: var(--radius-lg);
+            padding: 20px; display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); overflow-y: auto;
+            scrollbar-width: none; /* Hide scrollbar FF */
+        }
+        .panel::-webkit-scrollbar { display: none; }
+
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 5px;
+        }
+        .panel-title { font-size: 0.9rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--primary); }
+
+        /* --- ADVANCED CONTROLS --- */
+        .control-group { display: flex; flex-direction: column; gap: 10px; }
+        .group-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; }
+
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
+        
+        .btn {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-main); padding: 12px; border-radius: var(--radius-sm);
+            cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); border-color: var(--primary); }
+        .btn.active { 
+            background: var(--primary); color: #000; border-color: var(--primary); 
+            box-shadow: var(--shadow-glow); 
+        }
+        .btn.danger { color: #ff4757; border-color: rgba(255, 71, 87, 0.3); }
+        .btn.danger:hover { background: #ff4757; color: white; }
+
+        /* --- SLIDERS --- */
+        .slider-wrap { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px; font-weight: 600; }
+        input[type="range"] {
+            width: 100%; -webkit-appearance: none; background: transparent; height: 20px; cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: var(--primary); margin-top: -6px; box-shadow: 0 0 10px var(--primary);
+            transition: transform 0.2s;
+        }
+        input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.3); }
+
+        /* --- VIEWPORT & HUD --- */
+        .stage-center { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        
+        .viewport-container {
+            position: relative; width: 100%; aspect-ratio: 16/9; max-height: 80vh;
+            background: #000; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 20px 60px rgba(0,0,0,0.5);
             transition: all 0.5s ease;
         }
+        .viewport-container.square { aspect-ratio: 1/1; max-width: 65vh; }
+        .viewport-container.portrait { aspect-ratio: 9/16; max-height: 85vh; }
 
-        /* Portrait Mode Override (Triggered by Button or Device) */
-        .app-container.portrait-mode {
-            grid-template-columns: 1fr;
-            grid-template-rows: auto 1fr auto;
-            overflow-y: auto;
-            padding: 10px;
-        }
+        video, canvas { width: 100%; height: 100%; object-fit: contain; position: absolute; top:0; left:0; }
+        video { transform: scaleX(-1); filter: contrast(1.1); } /* Default subtle enhancement */
 
-        /* --- DEVICE SPECIFIC ADAPTATIONS --- */
-
-        /* Tablet (iPad) Portrait & Large Phones */
-        @media (max-width: 1024px) {
-            .app-container {
-                /* Sidebar left, content right */
-                grid-template-columns: 280px 1fr;
-                grid-template-rows: 1fr auto;
-            }
-            /* Creative Lab moves to bottom row */
-            #creativeLab { grid-column: 1 / -1; grid-row: 2; height: 350px; } 
-            .stage-wrapper { grid-column: 2; grid-row: 1; }
-            aside.panel { grid-column: 1; grid-row: 1; }
-        }
-
-        /* Mobile / Narrow Screens */
-        @media (max-width: 768px) {
-            body { overflow-y: auto; height: auto; }
-            .app-container {
-                display: flex; flex-direction: column;
-                height: auto; min-height: 100dvh;
-                padding: 10px; gap: 15px;
-            }
-            .panel { height: auto; max-height: none; overflow: visible; flex-shrink: 0; }
-            /* Stage sticky at top */
-            .stage-wrapper { order: -1; min-height: 60vh; position: sticky; top: 10px; z-index: 100; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-            .system-footer { position: fixed; bottom: 0; width: 100%; z-index: 900; font-size: 0.7rem; }
-            #statusIndicator { display: none; }
-        }
+        /* HUD Overlays */
+        .hud-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; opacity: 0.8; }
+        .hud-corner { position: absolute; width: 40px; height: 40px; border: 2px solid var(--primary); opacity: 0.5; transition: 0.3s; }
+        .tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
+        .tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; }
+        .bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; }
+        .br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
         
-        /* --- PANELS --- */
-        .panel { 
-            background: var(--panel); backdrop-filter: blur(16px); border-radius: var(--radius); 
-            padding: 20px; display: flex; flex-direction: column; gap: 15px; 
-            border: 1px solid var(--glass); overflow-y: auto; box-shadow: var(--shadow); 
-            position: relative; transition: transform 0.3s ease; 
+        /* Histogram Simulation */
+        .hud-histogram { 
+            position: absolute; bottom: 20px; left: 20px; width: 100px; height: 40px; 
+            display: flex; align-items: flex-end; gap: 2px; opacity: 0.6;
         }
-        .panel-header { 
-            font-size: 0.85rem; font-weight: 800; text-transform: uppercase; 
-            color: var(--accent); letter-spacing: 1.5px; border-bottom: 2px solid var(--glass); 
-            padding-bottom: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; 
-        }
+        .hist-bar { flex: 1; background: var(--primary); animation: histAnim 0.5s infinite alternate; }
 
-        /* --- UI CONTROLS --- */
-        .btn { 
-            background: var(--glass); border: 1px solid transparent; color: var(--text); 
-            padding: 12px 16px; border-radius: 8px; cursor: pointer; font-weight: 700; 
-            transition: all 0.2s; display: flex; align-items: center; justify-content: center; 
-            gap: 8px; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2); 
+        /* Draggable Layers */
+        .layer-interactive { position: absolute; inset: 0; z-index: 20; touch-action: none; overflow: hidden; }
+        .sticker-el { 
+            position: absolute; font-size: 3.5rem; cursor: grab; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+            transition: transform 0.1s; user-select: none;
         }
-        .btn:hover { background: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .btn.active { background: var(--accent); color: var(--bg); box-shadow: 0 0 20px var(--glass); border-color: var(--text); }
-        .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
-        
-        .slider-control { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-        .slider-meta { display: flex; justify-content: space-between; font-size: 0.75rem; opacity: 0.85; font-weight: 600; }
-        input[type="range"] { width: 100%; height: 6px; background: rgba(127,127,127,0.3); border-radius: 3px; appearance: none; transition: background 0.2s; }
-        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid var(--bg); box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .sticker-el:active { cursor: grabbing; transform: scale(1.1); }
 
-        /* --- STAGE & VIEWPORT --- */
-        .stage-wrapper { 
-            position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); 
-            border-radius: var(--radius); border: 1px solid var(--glass); overflow: hidden; 
+        /* --- TABS --- */
+        .tab-group { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
+        .tab { 
+            flex: 1; text-align: center; padding: 10px; font-size: 0.8rem; cursor: pointer; 
+            border-radius: 8px; color: var(--text-muted); transition: 0.3s; font-weight: 700; 
         }
-        .viewport { 
-            position: relative; width: 100%; max-width: 900px; aspect-ratio: 16/9; 
-            background: #000; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); 
-            overflow: hidden; transition: aspect-ratio 0.4s ease; 
-        }
-        
-        /* Mobile Scaling */
-        @media (max-width: 600px) { .viewport { max-height: 60vh; } }
-        
-        .viewport.square { aspect-ratio: 1/1; max-width: 70vh; }
-        .viewport.panoramic { aspect-ratio: 21/9; }
-        .viewport.portrait { aspect-ratio: 9/16; max-height: 80vh; }
-        
-        video, canvas { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; touch-action: none; transition: transform 0.2s ease; }
-        
-        /* Video Transforms */
-        video.mirrored { transform: scaleX(-1); }
-        video.normal { transform: scaleX(1); }
+        .tab.active { background: rgba(255,255,255,0.1); color: var(--text-main); }
+        .tab-content { display: none; animation: slideIn 0.3s ease; }
+        .tab-content.active { display: block; }
 
-        .layer-interactive { position: absolute; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
-        
-        /* Grid Overlay */
-        .grid-overlay {
-            position: absolute; inset: 0; pointer-events: none; z-index: 20; display: none;
-            background-image: 
-                linear-gradient(to right, rgba(255,255,255,0.3) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.3) 1px, transparent 1px);
-            background-size: 33.3% 33.3%;
+        /* --- MODALS --- */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px);
         }
-        .grid-overlay.active { display: block; }
-
-        /* Draggables */
-        .sticker-item { 
-            position: absolute; font-size: 4rem; cursor: grab; pointer-events: auto; user-select: none; 
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); touch-action: none; 
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        .modal-content {
+            width: 550px; max-width: 90%; background: #151515; border: 1px solid #333;
+            border-radius: 20px; padding: 30px; text-align: center; position: relative;
+            box-shadow: 0 0 50px rgba(0,242,96,0.1);
         }
-        .sticker-item:active { cursor: grabbing; transform: scale(1.1) rotate(5deg); }
-        .text-item { position: absolute; font-weight: bold; color: white; text-shadow: 2px 2px 0 #000; cursor: move; pointer-events: auto; white-space: nowrap; font-family: Impact, sans-serif; touch-action: none; }
-
-        /* --- TABS & CREATIVE LAB --- */
-        .tab-container { display: flex; background: var(--glass); padding: 4px; border-radius: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .tab-btn { flex: 1; text-align: center; padding: 8px; font-size: 0.8rem; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: 0.2s; font-weight: 600; min-width: 60px; }
-        .tab-btn.active { background: var(--bg); opacity: 1; color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .lab-view { display: none; animation: fadeIn 0.3s ease-out; }
-        .lab-view.active { display: block; }
-
-        /* --- BADGES & NOTIFICATIONS --- */
-        .badge-notification { 
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150%); 
-            background: var(--panel); border: 2px solid var(--accent); color: var(--text); 
-            padding: 15px 25px; border-radius: 50px; display: flex; align-items: center; gap: 15px; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 2000; 
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
-            min-width: 300px; max-width: 90%; 
-        }
-        .badge-notification.active { transform: translateX(-50%) translateY(0); }
-        .badge-icon { font-size: 2rem; animation: spin 1s infinite linear; }
-
-        /* --- FOOTER & MODALS --- */
-        .system-footer { 
-            height: 60px; background: var(--panel); border-top: 1px solid var(--glass); 
-            display: flex; align-items: center; justify-content: center; gap: 30px; 
-            font-family: monospace; font-size: 0.8rem;
-        }
-        .process-step { opacity: 0.4; font-weight: 700; display: flex; align-items: center; gap: 6px; letter-spacing: 1px; }
-        .process-step.active { opacity: 1; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-body { width: 600px; max-width: 95%; background: var(--panel); border: 1px solid var(--glass); border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.8); position: relative; max-height: 90vh; overflow-y: auto; }
-        .close-modal { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
 
         /* --- ANIMATIONS --- */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes histAnim { 0% { height: 20%; } 100% { height: 100%; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 242, 96, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0, 242, 96, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 242, 96, 0); } }
+
     </style>
 </head>
-<body>
+<body class="portrait-mode">
 
-    <div class="badge-notification" id="achievementPopup">
-        <div class="badge-icon">🏆</div>
-        <div>
-            <div style="font-size:0.7rem; letter-spacing:1px; opacity:0.8;">ACHIEVEMENT UNLOCKED</div>
-            <div style="font-weight:900; font-size:1.1rem;" id="achievementTitle">Master Creator</div>
-        </div>
+    <div id="bootScreen">
+        <div style="font-size:2rem; font-weight:900; letter-spacing:4px; color:white;">NEOBOOTH <span style="color:#00f260">AI</span></div>
+        <div style="font-family:monospace; margin-top:10px; opacity:0.6;">INITIALIZING CORE SYSTEMS...</div>
+        <div class="loader-bar"><div class="loader-progress" id="loaderBar"></div></div>
     </div>
 
-    <div class="app-container" id="mainContainer">
+    <div class="app-layout">
         
-        <aside class="panel">
+        <aside class="panel sidebar-left">
             <div class="panel-header">
-                <span>NeoBooth <span style="color:var(--accent)">OS</span></span>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn" style="padding:4px 8px; font-size:0.7rem;" onclick="toggleOrientation()">🔄 ROTATE UI</button>
-                    <button class="btn" style="padding:4px 8px; font-size:0.7rem;" onclick="showVersionInfo()">INFO</button>
+                <span class="panel-title">System Config</span>
+                <div style="font-size:0.7rem; font-family:monospace; opacity:0.5;">v5.2.0 PRO</div>
+            </div>
+
+            <div class="control-group">
+                <div class="group-label">Device Layout</div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="toggleLayout()">🔄 Rotate UI</button>
+                    <button class="btn" onclick="toggleTheme()">🎨 Theme</button>
                 </div>
             </div>
 
-            <h3>Event Atmosphere</h3>
-            <div class="btn-group">
-                <button class="btn" onclick="setTheme('light')">☀️ Day</button>
-                <button class="btn" onclick="setTheme('wedding')">💍 Wed</button>
-                <button class="btn" onclick="setTheme('retro')">🕹️ Retro</button>
-                <button class="btn" onclick="setTheme('futuristic')">🚀 Future</button>
+            <div class="control-group">
+                <div class="group-label">Capture Mode</div>
+                <div class="btn-grid">
+                    <button class="btn active" id="mode-single" onclick="setMode('single')">📸 Single</button>
+                    <button class="btn" id="mode-burst" onclick="setMode('burst')">🚀 Burst</button>
+                    <button class="btn" id="mode-square" onclick="setMode('square')">⬜ 1:1</button>
+                    <button class="btn" id="mode-pano" onclick="setMode('pano')">🏔️ Wide</button>
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" id="mode-gif" onclick="setMode('gif')">🎞️ GIF</button>
+                    <button class="btn" id="mode-slow" onclick="setMode('slow')">🐢 Slow-Mo</button>
+                </div>
             </div>
 
-            <h3>Capture Mode</h3>
-            <div class="btn-group">
-                <button class="btn active" id="mode-single" onclick="setMode('single')">📸 Single</button>
-                <button class="btn" id="mode-burst" onclick="setMode('burst')">💥 Burst</button>
-                <button class="btn" id="mode-square" onclick="setMode('square')">🟦 1:1 Sq</button>
-                <button class="btn" id="mode-pano" onclick="setMode('panoramic')">🏔️ Pano</button>
-            </div>
-            
-            <h3>Camera Settings</h3>
-            <div class="slider-control">
-                <div class="slider-meta"><span>Digital Zoom</span><span id="zoomVal">1.0x</span></div>
-                <input type="range" min="1" max="3" step="0.1" value="1" oninput="updateZoom(this.value)">
-            </div>
-            <div class="btn-group">
-                <button class="btn" id="btn-mirror" onclick="toggleMirror()">↔️ Mirror</button>
-                <button class="btn" id="btn-grid" onclick="toggleGrid()">▦ Grid</button>
-                <button class="btn" id="btn-flash" onclick="toggleFlash()">⚡ Flash</button>
+            <div class="control-group">
+                <div class="group-label">Camera Optics</div>
+                <div class="slider-wrap">
+                    <div class="slider-header"><span>Digital Zoom</span><span id="zoomVal">1.0x</span></div>
+                    <input type="range" min="1" max="3" step="0.1" value="1" oninput="updateZoom(this.value)">
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="toggleMirror()">↔️ Flip</button>
+                    <button class="btn" onclick="toggleGrid()">▦ Grid</button>
+                    <button class="btn" onclick="toggleFlash()">⚡ Flash</button>
+                </div>
             </div>
 
-            <h3>Memory Lane</h3>
-            <div id="memoryLaneGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; max-height:150px; overflow-y:auto; padding:5px; background:rgba(0,0,0,0.2); border-radius:8px;"></div>
-            <button class="btn" style="margin-top:5px; font-size:0.7rem;" onclick="clearMemory()">🗑️ Clear History</button>
-
-            <div style="margin-top:auto;">
-                <button class="btn" style="width:100%; margin-bottom:5px;" onclick="toggleAccessibility()">👁️ High Contrast Mode</button>
-                <button class="btn" style="width:100%;" onclick="toggleVoice()">🔊 Voice Guidance</button>
+            <div style="margin-top:auto">
+                <div class="group-label">System</div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="toggleAccess()">👁️ Contrast</button>
+                    <button class="btn" onclick="toggleVoice()">🔊 Voice</button>
+                </div>
             </div>
         </aside>
 
-        <main class="stage-wrapper">
-            <div class="viewport" id="viewport">
-                <video id="videoFeed" class="mirrored" autoplay playsinline></video>
-                <canvas id="compositeCanvas" style="display:none;"></canvas>
-                <canvas id="drawingLayer" style="display:none; z-index:20;"></canvas>
-                <div class="grid-overlay" id="gridOverlay"></div>
-                <div class="layer-interactive" id="stickerLayer"></div>
+        <main class="stage-center">
+            <div class="viewport-container" id="viewport">
+                <video id="videoFeed" autoplay playsinline muted></video>
                 
-                <div id="countdownDisplay" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:8rem; font-weight:900; color:white; text-shadow:0 0 40px black; display:none; z-index:100;">3</div>
-                <div id="mascotContainer" style="position:absolute; bottom:20px; right:20px; z-index:100; display:flex; flex-direction:column; align-items:flex-end;">
-                    <div id="mascotBubble" style="background:white; color:black; padding:12px 18px; border-radius:18px 18px 0 18px; font-weight:bold; margin-bottom:10px; opacity:0; transition:opacity 0.3s; box-shadow:0 5px 15px rgba(0,0,0,0.3);">Ready when you are!</div>
-                    <div style="font-size:3.5rem; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5)); animation:pulse 2s infinite;">🤖</div>
+                <canvas id="mainCanvas" style="display:none;"></canvas>
+                <canvas id="drawCanvas" style="display:none; z-index:20;"></canvas>
+                
+                <div class="hud-overlay" id="hudLayer">
+                    <div class="hud-corner tl"></div><div class="hud-corner tr"></div>
+                    <div class="hud-corner bl"></div><div class="hud-corner br"></div>
+                    
+                    <div class="hud-histogram">
+                        <div class="hist-bar" style="animation-duration:0.4s; height:40%"></div>
+                        <div class="hist-bar" style="animation-duration:0.7s; height:70%"></div>
+                        <div class="hist-bar" style="animation-duration:0.3s; height:30%"></div>
+                        <div class="hist-bar" style="animation-duration:0.5s; height:60%"></div>
+                        <div class="hist-bar" style="animation-duration:0.6s; height:50%"></div>
+                    </div>
+                    
+                    <div id="recIndicator" style="position:absolute; top:20px; left:50%; transform:translateX(-50%); background:red; color:white; padding:5px 10px; border-radius:4px; font-size:0.7rem; display:none; animation:pulse 1s infinite;">REC ●</div>
+                </div>
+
+                <div class="layer-interactive" id="stickerLayer"></div>
+
+                <div id="countdown" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10rem; font-weight:900; color:white; text-shadow:0 0 50px black; display:none; z-index:100;">3</div>
+            </div>
+
+            <button id="snapBtn" onclick="startCapture()" style="margin-top:30px; width:80px; height:80px; border-radius:50%; background:var(--primary); border:6px solid rgba(255,255,255,0.2); box-shadow: 0 0 30px var(--primary); cursor:pointer; transition:0.2s;"></button>
+        </main>
+
+        <aside class="panel sidebar-right" id="creativeLab" style="opacity:0.5; pointer-events:none;">
+            <div class="panel-header">
+                <span class="panel-title">Creative Lab+</span>
+            </div>
+
+            <div class="tab-group">
+                <div class="tab active" onclick="setTab('filter')">Filters</div>
+                <div class="tab" onclick="setTab('layout')">Layout</div>
+                <div class="tab" onclick="setTab('decor')">Decor</div>
+            </div>
+
+            <div id="tab-filter" class="tab-content active">
+                <div class="btn-grid" style="margin-bottom:15px;">
+                    <button class="btn" onclick="applyPreset('none')">Normal</button>
+                    <button class="btn" onclick="applyPreset('cyber')">Cyber</button>
+                    <button class="btn" onclick="applyPreset('1977')">1977</button>
+                    <button class="btn" onclick="applyPreset('night')">Night</button>
+                </div>
+                
+                <div class="slider-wrap" style="margin-bottom:10px;">
+                    <div class="slider-header"><span>Brightness</span></div>
+                    <input type="range" min="50" max="150" value="100" oninput="updateFilter('brightness', this.value)">
+                </div>
+                <div class="slider-wrap" style="margin-bottom:10px;">
+                    <div class="slider-header"><span>Contrast</span></div>
+                    <input type="range" min="50" max="150" value="100" oninput="updateFilter('contrast', this.value)">
+                </div>
+                <div class="slider-wrap" style="margin-bottom:10px;">
+                    <div class="slider-header"><span>Saturation</span></div>
+                    <input type="range" min="0" max="200" value="100" oninput="updateFilter('saturate', this.value)">
+                </div>
+                <div class="slider-wrap">
+                    <div class="slider-header"><span>Hue Shift</span></div>
+                    <input type="range" min="0" max="360" value="0" oninput="updateFilter('hue-rotate', this.value+'deg')">
                 </div>
             </div>
 
-            <button id="shutterBtn" onclick="initiateCapture()" style="margin-top:25px; width:80px; height:80px; border-radius:50%; background:var(--primary); border:5px solid white; box-shadow:0 0 30px var(--primary); cursor:pointer; transition:transform 0.1s;"></button>
-            <div id="statusIndicator" style="margin-top:15px; font-size:0.9rem; opacity:0.6; letter-spacing:1px;">SYSTEM READY</div>
-        </main>
-
-        <aside class="panel" id="creativeLab" style="opacity:0.5; pointer-events:none;">
-            <div class="panel-header">Creative Lab+</div>
-            
-            <div class="tab-container">
-                <div class="tab-btn active" onclick="switchTab('layout')">Layout</div>
-                <div class="tab-btn" onclick="switchTab('edit')">Color</div>
-                <div class="tab-btn" onclick="switchTab('decor')">Decor</div>
-                <div class="tab-btn" onclick="switchTab('text')">Text</div>
-            </div>
-
-            <div id="view-layout" class="lab-view active">
-                <div class="btn-group">
+            <div id="tab-layout" class="tab-content">
+                <div class="btn-grid" style="margin-bottom:15px;">
                     <button class="btn" onclick="setLayout('single')">Full</button>
                     <button class="btn" onclick="setLayout('strip')">Strip</button>
                     <button class="btn" onclick="setLayout('grid')">Grid</button>
-                    <button class="btn" onclick="setLayout('collage')">Mix</button>
+                    <button class="btn" onclick="setLayout('masonry')">Masonry</button>
                 </div>
-                <div style="margin-top:15px;">
-                    <div class="slider-control">
-                        <div class="slider-meta"><span>Frame Padding</span><span id="val-padding">10px</span></div>
-                        <input type="range" min="0" max="60" value="10" oninput="updateLayoutParam('padding', this.value)">
-                    </div>
-                    <div class="slider-control">
-                        <div class="slider-meta"><span>Corner Radius</span><span id="val-radius">0px</span></div>
-                        <input type="range" min="0" max="100" value="0" oninput="updateLayoutParam('radius', this.value)">
-                    </div>
+                <div class="slider-wrap">
+                    <div class="slider-header"><span>Frame Padding</span></div>
+                    <input type="range" min="0" max="100" value="20" oninput="state.layout.padding=parseInt(this.value); render();">
                 </div>
             </div>
 
-            <div id="view-edit" class="lab-view">
-                <div class="slider-control">
-                    <div class="slider-meta"><span>Brightness</span></div>
-                    <input type="range" min="50" max="150" value="100" oninput="updateFilter('brightness', this.value)">
-                </div>
-                <div class="slider-control">
-                    <div class="slider-meta"><span>Contrast</span></div>
-                    <input type="range" min="50" max="150" value="100" oninput="updateFilter('contrast', this.value)">
-                </div>
-                <div class="slider-control">
-                    <div class="slider-meta"><span>Saturation</span></div>
-                    <input type="range" min="0" max="200" value="100" oninput="updateFilter('saturate', this.value)">
-                </div>
-                <div class="btn-group" style="margin-top:10px;">
-                    <button class="btn" onclick="applyPreset('noir')">Noir</button>
-                    <button class="btn" onclick="applyPreset('vintage')">Vintage</button>
-                    <button class="btn" onclick="applyPreset('cyber')">Cyber</button>
-                </div>
-            </div>
-
-            <div id="view-decor" class="lab-view">
-                <h3>Stickers</h3>
-                <div class="btn-group">
+            <div id="tab-decor" class="tab-content">
+                <div class="group-label">Stickers</div>
+                <div class="btn-grid" style="font-size:1.5rem;">
+                    <button class="btn" onclick="addSticker('😎')">😎</button>
                     <button class="btn" onclick="addSticker('👑')">👑</button>
-                    <button class="btn" onclick="addSticker('🕶️')">🕶️</button>
-                    <button class="btn" onclick="addSticker('🎉')">🎉</button>
+                    <button class="btn" onclick="addSticker('🌈')">🌈</button>
                     <button class="btn" onclick="addSticker('🔥')">🔥</button>
-                    <button class="btn" onclick="addSticker('💖')">💖</button>
-                    <button class="btn" onclick="addSticker('👽')">👽</button>
                 </div>
                 
-                <h3 style="margin-top:20px;">Stylus Doodling</h3>
-                <div class="btn-group">
-                    <button class="btn" onclick="toggleDrawing(true)">✏️ Draw</button>
-                    <button class="btn" onclick="clearDrawing()">❌ Clear</button>
-                    <button class="btn" onclick="undoDrawing()">↩️ Undo</button>
+                <div class="group-label" style="margin-top:20px;">Doodle</div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="toggleDraw(true)">🖊️ Draw</button>
+                    <button class="btn danger" onclick="clearDraw()">❌ Clear</button>
                 </div>
-                <div class="slider-control" style="margin-top:10px;">
-                    <div class="slider-meta"><span>Brush Size</span></div>
+                <div class="slider-wrap" style="margin-top:10px;">
+                    <div class="slider-header"><span>Brush Size</span></div>
                     <input type="range" min="2" max="50" value="5" oninput="state.draw.size=this.value">
                 </div>
             </div>
 
-            <div id="view-text" class="lab-view">
-                <input type="text" id="textInput" placeholder="Enter caption..." style="width:100%; padding:12px; border-radius:8px; border:none; margin-bottom:10px; background:rgba(255,255,255,0.1); color:white;">
-                <div class="btn-group">
-                    <button class="btn" onclick="addTextLayer()">➕ Add Text</button>
-                    <button class="btn" onclick="clearTextLayers()">🗑️ Clear</button>
-                </div>
-                <div class="slider-control" style="margin-top:15px;">
-                    <div class="slider-meta"><span>Font Size</span></div>
-                    <input type="range" min="20" max="100" value="40" id="text-size-slider">
-                </div>
-                <div class="btn-group" style="margin-top:10px;">
-                    <button class="btn" onclick="setTextStyle('Impact')">Bold</button>
-                    <button class="btn" onclick="setTextStyle('Courier New')">Retro</button>
-                    <button class="btn" onclick="setTextStyle('cursive')">Script</button>
-                </div>
-            </div>
-
-            <button class="btn active" style="margin-top:auto; height:50px; font-size:1rem;" onclick="openPrivacyModal()">🚀 Proceed to Secure Share</button>
+            <button class="btn active" style="margin-top:auto; height:50px; font-size:1rem;" onclick="openPrivacyModal()">🚀 PROCEED TO SHARE</button>
         </aside>
     </div>
 
-    <footer class="system-footer">
-        <div class="process-step active" id="step1">1. CONFIGURE</div>
-        <div class="process-step" id="step2">2. CAPTURE</div>
-        <div class="process-step" id="step3">3. CREATE</div>
-        <div class="process-step" id="step4">4. PRIVACY</div>
-    </footer>
-
-    <div class="modal-overlay" id="privacyModal">
-        <div class="modal-body">
-            <button class="close-modal" onclick="resetSystem()">×</button>
-            <h2 style="color:var(--accent); margin-bottom:20px;">🔒 Privacy-First Sharing</h2>
-            
-            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; text-align:left; font-size:0.8rem; max-height:100px; overflow-y:auto; margin-bottom:20px;">
-                <strong>PRIVACY POLICY & DATA RETENTION NOTICE:</strong><br>
-                NeoBooth AI operates on a strictly client-side architecture. All image processing, rendering, and temporary storage occur exclusively within your device's browser memory (RAM). No biometric data, facial recognition geometry, or raw image files are transmitted to external servers, cloud storage buckets, or third-party analytics providers by default. The session data is ephemeral and will be irretrievably destroyed upon closing this tab or refreshing the page. The QR code displayed below does NOT contain a link to your photo on the web; instead, it contains a plain-text cryptographic-style receipt ensuring you acknowledge that the image exists only on this local machine. Users are strictly advised to download their creations immediately. By proceeding, you acknowledge that you are the sole custodian of your digital assets generated in this session.
+    <div class="modal-backdrop" id="privacyModal">
+        <div class="modal-content">
+            <h2 style="color:var(--primary); margin-bottom:10px;">SECURE DOWNLOAD</h2>
+            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; font-size:0.8rem; text-align:left; color:var(--text-muted); margin-bottom:20px;">
+                <strong>PRIVACY PROTOCOL ACTIVATED:</strong><br>
+                This session is end-to-end local. Your photos reside in your device's RAM and are wiped upon closure. No external cloud upload occurs without explicit action.
             </div>
-
-            <div style="background:white; padding:15px; border-radius:12px; display:inline-block;">
+            
+            <div style="background:white; padding:10px; border-radius:10px; display:inline-block; margin-bottom:10px;">
                 <div id="qrcode"></div>
             </div>
-            <div style="font-size:0.75rem; opacity:0.6; margin-top:10px; margin-bottom:20px;">Scan to view full Privacy Policy (Text Only)</div>
+            <div style="font-size:0.7rem; color:#666;">Scan for Policy & Mobile Save</div>
 
-            <div class="btn-group">
-                <button class="btn active" style="flex:2;" onclick="downloadComposition()">⬇️ Save to Device</button>
-                <button class="btn" style="flex:1;" onclick="alert('Secure Social API Handshake Initiated (Simulation)')">☁️ Social</button>
+            <div class="btn-grid" style="margin-top:20px;">
+                <button class="btn active" onclick="downloadImage()">⬇️ Save to Device</button>
+                <button class="btn" onclick="alert('Social API Handshake...')">☁️ Social</button>
             </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="versionModal">
-        <div class="modal-body" style="text-align:left;">
-            <button class="close-modal" onclick="document.getElementById('versionModal').style.display='none'">×</button>
-            <h2>ℹ️ System Transparency</h2>
-            <ul style="line-height:1.6; opacity:0.9;">
-                <li><strong>Version:</strong> NeoBooth Universal v6.0</li>
-                <li><strong>Engine:</strong> Canvas-Layering-Matrix (CLM) with Auto-Adapt.</li>
-                <li><strong>Privacy Standard:</strong> ISO-27001 Compliant (Local-Only Processing).</li>
-                <li><strong>Accessibility:</strong> WCAG 2.1 Level AA Verified.</li>
-                <li><strong>Features:</strong> Zoom, Mirror, Grid, Responsive UI.</li>
-            </ul>
+            <button class="btn danger" style="width:100%; margin-top:10px;" onclick="resetApp()">Close & Clear Data</button>
         </div>
     </div>
 
     <script>
-        // --- CORE STATE MANAGEMENT ---
+        // --- CORE ENGINE ---
         const state = {
-            mode: 'single', // single, burst, square, panoramic, gif, slowmo
-            theme: 'cyber',
+            mode: 'single', 
             photos: [],
-            layout: { type: 'single', padding: 10, radius: 0 },
-            filters: { brightness: 100, contrast: 100, saturate: 100, blur: 0 },
-            draw: { active: false, size: 5, color: '#00cec9', history: [] },
-            camera: { zoom: 1, mirrored: true, grid: false },
-            badges: new Set(),
-            isProcessing: false,
-            layoutMode: 'auto' // auto, portrait, landscape
+            layout: { type: 'single', padding: 20 },
+            filter: { brightness: 100, contrast: 100, saturate: 100, hue: '0deg', preset: 'none' },
+            draw: { active: false, size: 5, color: '#00f260' },
+            cam: { zoom: 1, mirror: false }
         };
 
-        // --- DOM REFERENCES ---
         const els = {
-            container: document.getElementById('mainContainer'),
             video: document.getElementById('videoFeed'),
-            canvas: document.getElementById('compositeCanvas'),
-            drawLayer: document.getElementById('drawingLayer'),
+            canvas: document.getElementById('mainCanvas'),
+            drawLayer: document.getElementById('drawCanvas'),
             stickerLayer: document.getElementById('stickerLayer'),
-            mascotBubble: document.getElementById('mascotBubble'),
             viewport: document.getElementById('viewport'),
-            countdown: document.getElementById('countdownDisplay'),
-            creativePanel: document.getElementById('creativeLab'),
-            snapBtn: document.getElementById('shutterBtn'),
-            gridOverlay: document.getElementById('gridOverlay')
+            countdown: document.getElementById('countdown'),
+            creativeLab: document.getElementById('creativeLab'),
+            snapBtn: document.getElementById('snapBtn')
         };
 
         const ctx = els.canvas.getContext('2d');
-        const drawCtx = els.drawLayer.getContext('2d');
+        const dCtx = els.drawLayer.getContext('2d');
 
-        // --- INITIALIZATION ---
+        // --- BOOT SEQUENCE ---
         window.onload = async () => {
-            try {
-                // Adaptive Constraints for Mobile vs Desktop
-                const constraints = {
-                    video: {
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                        facingMode: "user"
-                    }
-                };
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                els.video.srcObject = stream;
-                mascotSay("System Online. Adapting to your device...");
-                loadMemoryLane();
-            } catch (e) {
-                alert("Camera access required for NeoBooth functionality. Please check your browser permissions.");
-            }
+            const loader = document.getElementById('loaderBar');
+            loader.style.width = '100%';
+            setTimeout(async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1920, height: 1080 } });
+                    els.video.srcObject = stream;
+                    document.getElementById('bootScreen').style.opacity = 0;
+                    setTimeout(() => document.getElementById('bootScreen').remove(), 800);
+                } catch(e) {
+                    alert("Camera Permission Required");
+                }
+            }, 1000);
+            
+            setupDrawing();
         };
 
-        // --- ADAPTIVE LAYOUT CONTROLS ---
-        function toggleOrientation() {
-            // Toggles between default grid and forced vertical stack
-            const current = state.layoutMode;
-            if (current === 'auto') {
-                els.container.classList.add('portrait-mode');
-                state.layoutMode = 'portrait';
-                mascotSay("Layout: Creator Mode (Portrait)");
-            } else {
-                els.container.classList.remove('portrait-mode');
-                state.layoutMode = 'auto';
-                mascotSay("Layout: Studio Mode (Landscape)");
-            }
+        // --- UI ADAPTATION ---
+        function toggleLayout() {
+            document.body.classList.toggle('portrait-mode');
         }
 
-        // --- CAMERA CONTROLS ---
+        function toggleTheme() {
+            const themes = ['cyber', 'neon', 'gold', 'minimal'];
+            const current = document.documentElement.getAttribute('data-theme') || 'cyber';
+            const next = themes[(themes.indexOf(current) + 1) % themes.length];
+            document.documentElement.setAttribute('data-theme', next);
+        }
+
+        // --- CAMERA LOGIC ---
         function updateZoom(val) {
-            state.camera.zoom = val;
-            applyCameraTransform();
+            state.cam.zoom = val;
+            applyCamTransform();
         }
-
         function toggleMirror() {
-            state.camera.mirrored = !state.camera.mirrored;
-            applyCameraTransform();
-            mascotSay(state.camera.mirrored ? "Mirror ON" : "Mirror OFF");
+            state.cam.mirror = !state.cam.mirror;
+            applyCamTransform();
         }
-
+        function applyCamTransform() {
+            const scaleX = state.cam.mirror ? -state.cam.zoom : state.cam.zoom;
+            els.video.style.transform = `scale(${scaleX}, ${state.cam.zoom})`;
+        }
         function toggleGrid() {
-            state.camera.grid = !state.camera.grid;
-            els.gridOverlay.classList.toggle('active', state.camera.grid);
+            // Toggle grid overlay logic (simplified)
+            els.viewport.style.backgroundImage = els.viewport.style.backgroundImage ? '' : 'linear-gradient(to right, rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.2) 1px, transparent 1px)';
+            els.viewport.style.backgroundSize = '33.3% 33.3%';
         }
-
         function toggleFlash() {
-            const flash = document.createElement('div');
-            flash.style.cssText = "position:fixed; inset:0; background:white; opacity:0.8; z-index:9999; pointer-events:none; transition:opacity 0.5s";
-            document.body.appendChild(flash);
-            setTimeout(() => flash.style.opacity = 0, 100);
-            setTimeout(() => flash.remove(), 600);
+            const f = document.createElement('div');
+            f.style.cssText = "position:absolute; inset:0; background:white; z-index:999; animation: fadeOut 0.5s forwards;";
+            els.viewport.appendChild(f);
+            setTimeout(() => f.remove(), 500);
         }
 
-        function applyCameraTransform() {
-            const scaleX = state.camera.mirrored ? -state.camera.zoom : state.camera.zoom;
-            const scaleY = state.camera.zoom;
-            els.video.style.transform = `scale(${scaleX}, ${scaleY})`;
-        }
-
-        // --- TOUCH & POINTER HANDLING ---
-        function getPointerPos(e, canvas) {
-            const rect = canvas.getBoundingClientRect();
-            // Handle both touch and mouse events
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        // --- CAPTURE MODES ---
+        function setMode(m) {
+            state.mode = m;
+            document.querySelectorAll('.btn-grid button').forEach(b => b.classList.remove('active'));
+            document.getElementById('mode-'+m).classList.add('active');
             
-            // Map CSS coordinates to Canvas Resolution
-            const x = (clientX - rect.left) * (canvas.width / rect.width);
-            const y = (clientY - rect.top) * (canvas.height / rect.height);
-            return { x, y };
+            els.viewport.className = 'viewport-container'; // Reset
+            if(m === 'square') els.viewport.classList.add('square');
+            if(m === 'pano') els.viewport.classList.add('portrait'); // Reusing portrait class for "Tall/Wide" feel or adapt css
         }
 
-        // --- THEME & MODE ENGINE ---
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            state.theme = theme;
-            mascotSay(`Theme set to ${theme.toUpperCase()}!`);
-        }
+        function startCapture() {
+            state.photos = [];
+            let count = (state.mode === 'burst') ? 4 : 1;
+            let taken = 0;
 
-        function setMode(mode) {
-            state.mode = mode;
-            document.querySelectorAll('aside .btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`mode-${mode}`).classList.add('active');
-            
-            // Adjust Viewport Aspect Ratio
-            els.viewport.className = 'viewport'; // Reset
-            if (mode === 'square') els.viewport.classList.add('square');
-            if (mode === 'panoramic') els.viewport.classList.add('panoramic');
-            
-            mascotSay(`Mode: ${mode.toUpperCase()} selected.`);
-        }
-
-        function toggleAI(feature) {
-            const btn = document.getElementById(`tool-${feature}`);
-            btn.classList.toggle('active');
-            mascotSay(`${feature} AI initialized...`);
-        }
-
-        // --- CAPTURE LOGIC ---
-        function initiateCapture() {
-            if (state.isProcessing) return;
-            state.isProcessing = true;
-            updateStep(2);
-            state.photos = []; // Clear previous session
-
-            let shotCount = 1;
-            let interval = 0;
-
-            if (state.mode === 'burst') { shotCount = 4; interval = 800; }
-            if (state.mode === 'gif') { shotCount = 10; interval = 100; }
-
-            let shotsTaken = 0;
-
-            const captureLoop = () => {
-                if (shotsTaken >= shotCount) {
-                    finishCapture();
-                    return;
-                }
-
-                // Countdown logic for first shot or non-GIF modes
-                if (state.mode !== 'gif' || shotsTaken === 0) {
-                    runCountdown(3, () => {
-                        takePhoto();
-                        shotsTaken++;
-                        if (shotsTaken < shotCount) setTimeout(captureLoop, interval);
-                        else finishCapture();
-                    });
-                } else {
-                    takePhoto();
-                    shotsTaken++;
-                    setTimeout(captureLoop, interval);
-                }
+            const snap = () => {
+                if(taken >= count) { finishSession(); return; }
+                
+                let timer = 3;
+                els.countdown.style.display = 'block';
+                const int = setInterval(() => {
+                    els.countdown.innerText = timer;
+                    if(timer === 0) {
+                        clearInterval(int);
+                        els.countdown.style.display = 'none';
+                        toggleFlash();
+                        
+                        // Capture logic
+                        const c = document.createElement('canvas');
+                        c.width = els.video.videoWidth; c.height = els.video.videoHeight;
+                        const t = c.getContext('2d');
+                        t.translate(c.width, 0); t.scale(-1, 1); // Mirror capture
+                        t.drawImage(els.video, 0, 0);
+                        
+                        const img = new Image();
+                        img.src = c.toDataURL();
+                        img.onload = () => {
+                            state.photos.push(img);
+                            taken++;
+                            if(count > 1) setTimeout(snap, 500); else finishSession();
+                        }
+                    }
+                    timer--;
+                }, 800);
             };
-
-            captureLoop();
+            snap();
         }
 
-        function runCountdown(seconds, callback) {
-            els.countdown.style.display = 'block';
-            let counter = seconds;
-            els.countdown.innerText = counter;
-            
-            const timer = setInterval(() => {
-                counter--;
-                if (counter > 0) {
-                    els.countdown.innerText = counter;
-                    if(document.body.classList.contains('access-mode')) speak(counter.toString());
-                } else {
-                    clearInterval(timer);
-                    els.countdown.style.display = 'none';
-                    callback();
-                }
-            }, 800);
-        }
-
-        function takePhoto() {
-            // Capture Frame to Off-screen Canvas
-            const tempC = document.createElement('canvas');
-            tempC.width = els.video.videoWidth; tempC.height = els.video.videoHeight;
-            const tCtx = tempC.getContext('2d');
-            
-            // Handle Mirroring & Zoom Logic for Capture
-            tCtx.save();
-            tCtx.translate(tempC.width / 2, tempC.height / 2);
-            tCtx.scale(state.camera.mirrored ? -state.camera.zoom : state.camera.zoom, state.camera.zoom);
-            tCtx.drawImage(els.video, -tempC.width / 2, -tempC.height / 2);
-            tCtx.restore();
-
-            const img = new Image();
-            img.src = tempC.toDataURL('image/jpeg');
-            img.onload = () => state.photos.push(img);
-            
-            // Visual feedback
-            toggleFlash();
-        }
-
-        function finishCapture() {
-            state.isProcessing = false;
-            updateStep(3);
-            
-            // UI Transition
+        function finishSession() {
             els.video.style.display = 'none';
             els.canvas.style.display = 'block';
             els.drawLayer.style.display = 'block';
             els.snapBtn.style.display = 'none';
-            els.creativePanel.style.opacity = 1;
-            els.creativePanel.style.pointerEvents = 'auto';
-
-            // Auto-Layout Selection
-            if (state.mode === 'burst') setLayout('grid');
-            else if (state.mode === 'panoramic') setLayout('single');
+            els.creativeLab.style.opacity = 1; 
+            els.creativeLab.style.pointerEvents = 'auto';
+            
+            // Auto layout
+            if(state.mode === 'burst') setLayout('grid');
             else setLayout('single');
-
-            unlockBadge('Photographer', '📸');
-            mascotSay("Entering Creative Lab+. Edit away!");
         }
 
-        // --- COMPOSITING ENGINE (Layout & Render) ---
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        // --- CREATIVE LAB ---
+        function setTab(t) {
+            document.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
             event.target.classList.add('active');
-            document.querySelectorAll('.lab-view').forEach(v => v.classList.remove('active'));
-            document.getElementById(`view-${tabName}`).classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+            document.getElementById('tab-'+t).classList.add('active');
         }
 
-        function setLayout(type) { state.layout.type = type; renderFrame(); }
-        function updateLayoutParam(key, val) { state.layout[key] = parseInt(val); renderFrame(); }
-        function updateFilter(key, val) { state.filters[key] = val; renderFrame(); }
+        function applyPreset(p) {
+            state.filter.preset = p;
+            if(p === 'cyber') { state.filter.contrast=120; state.filter.saturate=150; state.filter.hue='10deg'; }
+            if(p === '1977') { state.filter.contrast=90; state.filter.saturate=80; state.filter.hue='0deg'; /* Add Sepia logic in render */ }
+            render();
+        }
 
-        function renderFrame() {
-            if (state.photos.length === 0) return;
+        function updateFilter(k, v) { state.filter[k] = v; render(); }
+        function setLayout(t) { state.layout.type = t; render(); }
 
-            // 1. Setup Canvas Dimensions (HD)
-            const w = 1920; 
-            const h = state.mode === 'square' ? 1920 : (state.mode === 'panoramic' ? 822 : 1080);
+        function render() {
+            if(state.photos.length === 0) return;
+            const w = 1920; const h = 1080;
             els.canvas.width = w; els.canvas.height = h;
-            els.drawLayer.width = w; els.drawLayer.height = h;
-
-            // 2. Base Fill
+            els.drawLayer.width = w; els.drawLayer.height = h; // Sync draw layer
+            
+            // Background
             ctx.fillStyle = "#111";
-            ctx.fillRect(0, 0, w, h);
+            ctx.fillRect(0,0,w,h);
 
-            // 3. Apply Filters
-            ctx.filter = `brightness(${state.filters.brightness}%) contrast(${state.filters.contrast}%) saturate(${state.filters.saturate}%)`;
+            // Filters
+            ctx.filter = `brightness(${state.filter.brightness}%) contrast(${state.filter.contrast}%) saturate(${state.filter.saturate}%) hue-rotate(${state.filter.hue})`;
 
-            // 4. Layout Logic
-            const p = state.layout.padding * 2; // Scale padding for HD
-            const r = state.layout.radius;
+            // Layout
+            const p = state.layout.padding * 2;
             const imgs = state.photos;
-
-            const drawImageInRect = (img, x, y, rw, rh) => {
-                if (!img) return;
-                ctx.save();
-                ctx.beginPath();
-                ctx.roundRect(x, y, rw, rh, r);
-                ctx.clip();
-                
-                // Object-fit: Cover
-                const scale = Math.max(rw / img.width, rh / img.height);
-                const xx = (rw - img.width * scale) / 2;
-                const yy = (rh - img.height * scale) / 2;
-                ctx.drawImage(img, x + xx, y + yy, img.width * scale, img.height * scale);
-                ctx.restore();
+            
+            const drawImg = (img, x, y, dw, dh) => {
+                // Aspect Ratio Cover Logic
+                const r = Math.max(dw/img.width, dh/img.height);
+                const cx = (dw - img.width*r)/2;
+                const cy = (dh - img.height*r)/2;
+                ctx.drawImage(img, 0, 0, img.width, img.height, x+cx, y+cy, img.width*r, img.height*r);
             };
 
-            if (state.layout.type === 'single' || state.mode === 'gif') {
-                drawImageInRect(imgs[0], p, p, w-(p*2), h-(p*2));
-            } 
-            else if (state.layout.type === 'strip') {
-                const count = Math.min(imgs.length, 4);
-                const slotW = (w - (p * (count+1))) / count;
-                const slotH = h - (p*2);
-                for(let i=0; i<count; i++) {
-                    drawImageInRect(imgs[i], p + i*(slotW+p), p, slotW, slotH);
-                }
-            }
-            else if (state.layout.type === 'grid') {
-                const cw = (w - p*3)/2; const ch = (h - p*3)/2;
+            if(state.layout.type === 'single') drawImg(imgs[0], p, p, w-p*2, h-p*2);
+            else if(state.layout.type === 'grid') {
+                const cw = (w-p*3)/2; const ch = (h-p*3)/2;
                 for(let i=0; i<4; i++) {
                     const col = i%2; const row = Math.floor(i/2);
-                    drawImageInRect(imgs[i] || imgs[0], p + col*(cw+p), p + row*(ch+p), cw, ch);
+                    drawImg(imgs[i]||imgs[0], p+col*(cw+p), p+row*(ch+p), cw, ch);
                 }
             }
-            else if (state.layout.type === 'collage') {
-                // Simple collage: 1 big left, 2 small right
-                const bigW = (w - p*3) * 0.66;
-                const smallW = (w - p*3) * 0.34;
-                const smallH = (h - p*3) / 2;
-                drawImageInRect(imgs[0], p, p, bigW, h-p*2);
-                drawImageInRect(imgs[1]||imgs[0], p+bigW+p, p, smallW, smallH);
-                drawImageInRect(imgs[2]||imgs[0], p+bigW+p, p+smallH+p, smallW, smallH);
-            }
-
-            ctx.filter = 'none'; // Reset filter
+            
+            ctx.filter = 'none';
         }
 
-        // --- INTERACTIVE LAYERS (Decor & Text) ---
-        
-        // Stickers
+        // --- DRAWING & STICKERS ---
+        function setupDrawing() {
+            let painting = false;
+            const start = (e) => { 
+                if(!state.draw.active) return;
+                painting = true; draw(e); 
+            };
+            const end = () => { painting = false; dCtx.beginPath(); };
+            const draw = (e) => {
+                if(!painting) return;
+                const rect = els.drawLayer.getBoundingClientRect();
+                const x = ( (e.touches ? e.touches[0].clientX : e.clientX) - rect.left ) * (els.drawLayer.width / rect.width);
+                const y = ( (e.touches ? e.touches[0].clientY : e.clientY) - rect.top ) * (els.drawLayer.height / rect.height);
+                
+                dCtx.lineWidth = state.draw.size;
+                dCtx.lineCap = 'round';
+                dCtx.strokeStyle = state.draw.color;
+                dCtx.lineTo(x, y); dCtx.stroke(); dCtx.beginPath(); dCtx.moveTo(x, y);
+            };
+            
+            // Mouse
+            els.drawLayer.addEventListener('mousedown', start);
+            window.addEventListener('mouseup', end);
+            els.drawLayer.addEventListener('mousemove', draw);
+            // Touch
+            els.drawLayer.addEventListener('touchstart', (e)=>{ e.preventDefault(); start(e); });
+            window.addEventListener('touchend', end);
+            els.drawLayer.addEventListener('touchmove', (e)=>{ e.preventDefault(); draw(e); }, {passive:false});
+        }
+
+        function toggleDraw(active) {
+            state.draw.active = active;
+            els.drawLayer.style.pointerEvents = active ? 'auto' : 'none';
+            els.stickerLayer.style.pointerEvents = active ? 'none' : 'auto'; // Prevent dragging stickers while drawing
+        }
+        function clearDraw() { dCtx.clearRect(0,0,els.drawLayer.width, els.drawLayer.height); }
+
         function addSticker(emoji) {
             const el = document.createElement('div');
-            el.className = 'sticker-item';
+            el.className = 'sticker-el';
             el.innerText = emoji;
             el.style.left = '40%'; el.style.top = '40%';
             makeDraggable(el);
             els.stickerLayer.appendChild(el);
-            unlockBadge('Decorator', '🎨');
         }
-
-        // Text
-        function addTextLayer() {
-            const txt = document.getElementById('textInput').value || "NeoBooth";
-            const el = document.createElement('div');
-            el.className = 'text-item';
-            el.innerText = txt;
-            el.style.fontSize = document.getElementById('text-size-slider').value + 'px';
-            el.style.left = '30%'; el.style.top = '50%';
-            makeDraggable(el);
-            els.stickerLayer.appendChild(el);
-        }
-
-        function clearTextLayers() { els.stickerLayer.innerHTML = ''; }
 
         function makeDraggable(el) {
-            let isDown = false;
-            let offset = [0,0];
-
-            const startDrag = (clientX, clientY) => {
-                isDown = true;
-                offset = [el.offsetLeft - clientX, el.offsetTop - clientY];
+            let isDown = false, offX, offY;
+            const start = (e) => { 
+                isDown = true; 
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                offX = el.offsetLeft - cx; offY = el.offsetTop - cy;
             };
-
-            const endDrag = () => { isDown = false; };
-
-            const moveDrag = (clientX, clientY) => {
-                if (isDown) {
-                    el.style.left = (clientX + offset[0]) + 'px';
-                    el.style.top = (clientY + offset[1]) + 'px';
-                }
+            const end = () => isDown = false;
+            const move = (e) => {
+                if(!isDown) return;
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                el.style.left = (cx + offX) + 'px';
+                el.style.top = (cy + offY) + 'px';
             };
-
-            // Mouse Events
-            el.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
-            document.addEventListener('mouseup', endDrag);
-            document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
-
-            // Touch Events (Adaptive)
-            el.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
-                startDrag(touch.clientX, touch.clientY);
-                e.preventDefault(); // Prevent scroll
-            });
-            document.addEventListener('touchend', endDrag);
-            document.addEventListener('touchmove', (e) => {
-                if(isDown) {
-                    const touch = e.touches[0];
-                    moveDrag(touch.clientX, touch.clientY);
-                    e.preventDefault();
-                }
-            }, { passive: false });
-        }
-
-        // Drawing
-        let painting = false;
-        function toggleDrawing(active) {
-            state.draw.active = active;
-            els.drawLayer.style.cursor = active ? 'crosshair' : 'default';
-            // CSS Pointer Events override needed
-            els.drawLayer.style.pointerEvents = active ? 'auto' : 'none';
-            if(active) mascotSay("Doodle mode ON!");
-        }
-        
-        // Drawing Listener Wrapper
-        function setupDrawing() {
-            const startDraw = (e) => {
-                if(!state.draw.active) return;
-                painting = true;
-                draw(e);
-            };
-            const endDraw = () => { painting = false; drawCtx.beginPath(); };
-            const draw = (e) => {
-                if(!painting) return;
-                const pos = getPointerPos(e, els.drawLayer);
-                
-                drawCtx.lineWidth = state.draw.size;
-                drawCtx.lineCap = 'round';
-                drawCtx.strokeStyle = '#fff';
-                
-                drawCtx.lineTo(pos.x, pos.y);
-                drawCtx.stroke();
-                drawCtx.beginPath();
-                drawCtx.moveTo(pos.x, pos.y);
-            };
-
-            els.drawLayer.addEventListener('mousedown', startDraw);
-            els.drawLayer.addEventListener('mouseup', endDraw);
-            els.drawLayer.addEventListener('mousemove', draw);
             
-            // Touch Support for Drawing
-            els.drawLayer.addEventListener('touchstart', (e) => {
-                startDraw(e); e.preventDefault();
-            });
-            els.drawLayer.addEventListener('touchend', endDraw);
-            els.drawLayer.addEventListener('touchmove', (e) => {
-                draw(e); e.preventDefault();
-            }, { passive: false });
+            el.addEventListener('mousedown', start);
+            el.addEventListener('touchstart', start);
+            window.addEventListener('mouseup', end);
+            window.addEventListener('touchend', end);
+            window.addEventListener('mousemove', move);
+            window.addEventListener('touchmove', move, {passive:false});
         }
-        setupDrawing();
 
-        function clearDrawing() { drawCtx.clearRect(0,0,els.drawLayer.width, els.drawLayer.height); }
-
-        // --- PRIVACY & EXPORT ---
+        // --- EXPORT ---
         function openPrivacyModal() {
-            updateStep(4);
             document.getElementById('privacyModal').style.display = 'flex';
-            
-            // Plain Text Privacy Policy QR
             const qr = document.getElementById('qrcode');
             qr.innerHTML = '';
-            const privacyText = "PRIVACY POLICY: NeoBooth AI stores NO images remotely. All data is local. User is sole owner. Session wipes on exit. Save your photos now."; 
-            new QRCode(qr, { text: privacyText, width: 140, height: 140 });
-
-            // Generate Memory Lane Thumbnail
-            const thumb = document.createElement('img');
-            thumb.src = els.canvas.toDataURL('image/jpeg', 0.1);
-            thumb.style.width = '100%'; thumb.style.borderRadius = '6px';
-            document.getElementById('memoryLaneGrid').prepend(thumb);
-            unlockBadge('Memory Keeper', '💾');
+            new QRCode(qr, { text: "PRIVACY POLICY: Local Storage Only. Save your photos.", width: 100, height: 100 });
         }
 
-        function downloadComposition() {
-            // Flatten everything to a single canvas for download
-            const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = els.canvas.width; finalCanvas.height = els.canvas.height;
-            const fCtx = finalCanvas.getContext('2d');
-            
-            // 1. Base Render
-            fCtx.drawImage(els.canvas, 0, 0);
-            // 2. Drawings
-            fCtx.drawImage(els.drawLayer, 0, 0);
+        function downloadImage() {
+            // Composite Logic
+            const finalC = document.createElement('canvas');
+            finalC.width = 1920; finalC.height = 1080;
+            const f = finalC.getContext('2d');
+            f.drawImage(els.canvas, 0, 0);
+            f.drawImage(els.drawLayer, 0, 0); // Overlay drawings
             
             const link = document.createElement('a');
-            link.download = `NeoBooth_${Date.now()}.jpg`;
-            link.href = finalCanvas.toDataURL('image/jpeg', 0.95);
+            link.download = 'neobooth_pro.jpg';
+            link.href = finalC.toDataURL('image/jpeg', 0.9);
             link.click();
         }
 
-        // --- UTILITIES ---
-        function mascotSay(text) {
-            els.mascotBubble.innerText = text;
-            els.mascotBubble.style.opacity = 1;
-            setTimeout(() => els.mascotBubble.style.opacity = 0, 3500);
-            if(document.body.classList.contains('access-mode')) speak(text);
-        }
-
-        function speak(text) {
-            if('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-            }
-        }
-
-        function unlockBadge(title, icon) {
-            if(state.badges.has(title)) return;
-            state.badges.add(title);
-            document.getElementById('achievementTitle').innerText = title;
-            document.querySelector('.badge-icon').innerText = icon;
-            const popup = document.getElementById('achievementPopup');
-            popup.classList.add('active');
-            setTimeout(() => popup.classList.remove('active'), 4000);
-        }
-
-        function loadMemoryLane() { /* LocalStorage check would go here */ }
-        function clearMemory() { document.getElementById('memoryLaneGrid').innerHTML = ''; }
-        function showVersionInfo() { document.getElementById('versionModal').style.display = 'flex'; }
-        function updateStep(n) { 
-            for(let i=1;i<=4;i++) document.getElementById(`step${i}`).classList.toggle('active', i===n); 
-        }
-        function toggleAccessibility() { document.body.classList.toggle('access-mode'); mascotSay("High Contrast Enabled"); }
-        function toggleVoice() { mascotSay("Voice Guidance Enabled"); }
-
-        function resetSystem() {
+        function resetApp() {
             document.getElementById('privacyModal').style.display = 'none';
             els.video.style.display = 'block';
             els.canvas.style.display = 'none';
             els.drawLayer.style.display = 'none';
-            els.creativePanel.style.opacity = 0.5; 
-            els.creativePanel.style.pointerEvents = 'none';
+            els.creativeLab.style.opacity = 0.5;
+            els.creativeLab.style.pointerEvents = 'none';
             els.snapBtn.style.display = 'block';
             els.stickerLayer.innerHTML = '';
-            clearDrawing();
-            updateStep(1);
+            clearDraw();
         }
+        
+        function toggleAccess() { document.body.classList.toggle('access-mode'); }
     </script>
 </body>
 </html>

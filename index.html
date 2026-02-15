@@ -3,560 +3,551 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoBooth AI | Smart Photo System</title>
+    <title>NeoBooth AI | Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --primary: #6c5ce7;
-            --secondary: #00cec9;
+            --accent: #00cec9;
             --bg: #0f1014;
-            --surface: #1e2129;
+            --panel: rgba(30, 33, 41, 0.95);
+            --glass: rgba(255, 255, 255, 0.05);
             --text: #ffffff;
-            --accent: #fd79a8;
-            --font-main: 'Inter', system-ui, sans-serif;
+            --font-ui: 'Segoe UI', system-ui, sans-serif;
+            --border-radius: 16px;
         }
 
-        [data-theme="light"] {
-            --primary: #5f27cd;
-            --secondary: #00d2d3;
-            --bg: #f5f6fa;
-            --surface: #ffffff;
-            --text: #2d3436;
+        /* Accessibility: High Contrast Mode */
+        body.access-mode {
+            --primary: #ffd700;
+            --accent: #ffffff;
+            --bg: #000000;
+            --panel: #222222;
+            --text: #ffff00;
+            font-size: 1.2rem;
         }
 
-        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        * { box-sizing: border-box; outline: none; user-select: none; }
 
         body {
-            font-family: var(--font-main);
+            font-family: var(--font-ui);
             background: var(--bg);
             color: var(--text);
             margin: 0;
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- DASHBOARD GRID --- */
+        .dashboard {
             display: grid;
-            grid-template-columns: 300px 1fr 300px;
-        }
-
-        /* --- LEFT SIDEBAR: CONTROLS --- */
-        .sidebar {
-            background: var(--surface);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
+            grid-template-columns: 280px 1fr 320px;
+            height: calc(100vh - 60px); /* Minus footer */
             gap: 20px;
-            border-right: 1px solid rgba(255,255,255,0.1);
-            overflow-y: auto;
+            padding: 20px;
         }
 
-        .branding { font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .branding span { color: var(--secondary); }
-
-        .control-group { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; }
-        [data-theme="light"] .control-group { background: rgba(0,0,0,0.05); }
-        
-        h3 { margin: 0 0 10px 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
-
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-        button {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid transparent;
-            color: var(--text);
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        button:hover { background: var(--primary); color: white; transform: translateY(-2px); }
-        button.active { background: var(--primary); box-shadow: 0 0 15px var(--primary); }
-
-        /* --- CENTER: STAGE --- */
-        .stage {
-            position: relative;
+        /* --- PANELS --- */
+        .panel {
+            background: var(--panel);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            gap: 15px;
+            border: 1px solid var(--glass);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        h2, h3 { margin: 0; font-weight: 700; letter-spacing: 0.5px; }
+        h3 { font-size: 0.9rem; color: var(--accent); text-transform: uppercase; margin-top: 10px; }
+
+        /* --- LEFT: THEMES --- */
+        .theme-card {
+            background: linear-gradient(45deg, #2d3436, #000);
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .theme-card:hover { transform: scale(1.02); }
+        .theme-card.active { border-color: var(--primary); box-shadow: 0 0 15px var(--primary); }
+        
+        /* --- CENTER: STAGE --- */
+        .stage-container {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
         }
 
         .viewport {
             position: relative;
             width: 100%;
-            max-width: 800px;
-            aspect-ratio: 4/3;
-            border-radius: 20px;
+            max-width: 900px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: var(--border-radius);
             overflow: hidden;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border: 4px solid var(--surface);
+            border: 2px solid var(--glass);
         }
 
-        video, canvas {
-            width: 100%;
-            height: 100%;
+        video, .drawing-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             object-fit: cover;
-            transform: scaleX(-1); /* Mirror */
+            transform: scaleX(-1); /* Mirror effect */
         }
 
-        /* Overlays */
-        .overlay-layer {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            pointer-events: none;
-            z-index: 10;
-            border: 0px solid transparent;
-            transition: border 0.3s;
-        }
+        .drawing-layer { pointer-events: auto; z-index: 5; cursor: crosshair; }
+
+        /* --- RIGHT: CUSTOMIZATION --- */
+        .tool-row { display: flex; gap: 10px; flex-wrap: wrap; }
         
-        /* Simulated Face Tracking UI */
-        .face-tracker {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 150px; height: 150px;
-            border: 2px dashed var(--secondary);
-            border-radius: 20px;
-            transform: translate(-50%, -50%);
-            opacity: 0.5;
-            transition: top 2s, left 2s; /* Lazy follow effect */
+        .btn {
+            background: var(--glass);
+            border: none;
+            color: var(--text);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            flex: 1;
+            transition: 0.2s;
         }
-        .face-tracker::after { content: 'FOCUS LOCKED'; position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--secondary); background: black; padding: 2px 5px; }
+        .btn:hover { background: var(--primary); }
+        .btn.active { background: var(--accent); color: #000; }
 
-        /* Countdown */
-        .countdown {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 10rem;
-            font-weight: 900;
-            color: white;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 20;
-            display: none;
+        .slider-group { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+        input[type="range"] { flex: 1; accent-color: var(--primary); }
+
+        /* --- CREATIVE LAB --- */
+        .creative-lab {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 10px;
+            border-left: 3px solid var(--primary);
         }
 
-        /* --- RIGHT SIDEBAR: MASCOT & GALLERY --- */
-        .info-panel {
-            background: var(--surface);
-            border-left: 1px solid rgba(255,255,255,0.1);
-            padding: 20px;
+        /* --- CAPTURE BUTTON --- */
+        .capture-area {
+            margin-top: 20px;
             display: flex;
-            flex-direction: column;
+            gap: 20px;
+            align-items: center;
         }
 
-        .mascot-container {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: var(--bg);
-            border-radius: 15px;
-            border: 1px solid var(--primary);
+        #snapBtn {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 4px solid white;
+            box-shadow: 0 0 30px var(--primary);
+            cursor: pointer;
+            transition: transform 0.1s;
         }
+        #snapBtn:active { transform: scale(0.9); }
 
-        .mascot-avatar { font-size: 3rem; animation: bounce 2s infinite; display: inline-block; }
-        .mascot-bubble { 
-            background: var(--surface); padding: 10px; border-radius: 10px; 
-            margin-top: 10px; font-size: 0.9rem; border-left: 3px solid var(--accent);
-            min-height: 60px; display: flex; align-items: center; justify-content: center;
+        /* --- PROGRESS TRACKER (BOTTOM) --- */
+        .progress-bar {
+            height: 60px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 50px;
+            border-top: 1px solid var(--glass);
         }
+        .step { opacity: 0.4; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .step.active { opacity: 1; color: var(--primary); text-shadow: 0 0 10px var(--primary); }
+        .step-dot { width: 10px; height: 10px; background: currentColor; border-radius: 50%; }
 
-        .stats { font-size: 0.8rem; opacity: 0.7; margin-top: auto; }
-        
-        /* Modal */
+        /* --- MASCOT --- */
+        .mascot-overlay {
+            position: absolute;
+            bottom: 20px; right: 20px;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .mascot-char { font-size: 4rem; animation: float 3s ease-in-out infinite; }
+        .mascot-bubble {
+            background: white; color: black; padding: 15px;
+            border-radius: 20px 20px 0 20px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-width: 200px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: 0.3s;
+        }
+        .mascot-bubble.visible { opacity: 1; transform: translateY(0); }
+
+        /* --- MODAL --- */
         .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100;
-            display: none; justify-content: center; align-items: center; flex-direction: column;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 100; display: none;
+            justify-content: center; align-items: center;
         }
-        .modal-content { background: var(--surface); padding: 30px; border-radius: 20px; text-align: center; max-width: 500px; width: 90%; }
-        .modal img { max-width: 100%; border-radius: 10px; margin-bottom: 20px; }
-        #qrcode { margin: 20px auto; display: flex; justify-content: center; }
-
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
-
-        .flash-screen { position: fixed; inset: 0; background: white; z-index: 99; pointer-events: none; opacity: 0; }
-
-        /* Responsive */
-        @media(max-width: 900px) {
-            body { grid-template-columns: 1fr; height: auto; overflow-y: auto; }
-            .sidebar, .info-panel { order: 2; }
-            .stage { order: 1; }
+        .modal-inner {
+            background: var(--panel); width: 90%; max-width: 1000px;
+            border-radius: 20px; padding: 30px;
+            display: grid; grid-template-columns: 2fr 1fr; gap: 30px;
         }
+        .preview-img { width: 100%; border-radius: 10px; border: 2px solid white; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes cheer { 0%, 100% { transform: scale(1) rotate(0); } 25% { transform: scale(1.2) rotate(-10deg); } 75% { transform: scale(1.2) rotate(10deg); } }
+
     </style>
 </head>
 <body>
 
-    <div class="flash-screen" id="flash"></div>
-
-    <div class="sidebar">
-        <div class="branding">📸 NeoBooth<span>AI</span></div>
+    <div class="dashboard">
         
-        <div class="control-group">
-            <h3>Mode</h3>
-            <div class="btn-grid">
-                <button class="mode-btn active" data-mode="single">Single</button>
-                <button class="mode-btn" data-mode="burst">Burst</button>
-                <button class="mode-btn" data-mode="collage">Collage</button>
+        <aside class="panel">
+            <div class="branding">
+                <h2 style="color:white">NeoBooth <span style="color:var(--primary)">Pro</span></h2>
             </div>
-        </div>
 
-        <div class="control-group">
-            <h3>Filters</h3>
-            <select id="filterSelect" style="width: 100%; padding: 10px; border-radius: 8px;">
-                <option value="none">Normal</option>
-                <option value="grayscale(100%) contrast(1.2)">Noir</option>
-                <option value="sepia(100%)">Vintage</option>
-                <option value="hue-rotate(90deg) contrast(1.5)">Cyber</option>
-                <option value="saturate(200%) brightness(1.1)">Pop</option>
-                <option value="blur(2px) brightness(1.2)">Dreamy</option>
-            </select>
-        </div>
+            <h3>Select Theme</h3>
+            <div class="theme-card active" onclick="setTheme('default')">
+                <strong>📸 Studio Default</strong>
+                <div style="font-size:0.8rem; opacity:0.7">Clean & Minimal</div>
+            </div>
+            <div class="theme-card" onclick="setTheme('wedding')">
+                <strong>💍 Wedding Bliss</strong>
+                <div style="font-size:0.8rem; opacity:0.7">Soft, Warm, Romantic</div>
+            </div>
+            <div class="theme-card" onclick="setTheme('cyber')">
+                <strong>🤖 Cyberpunk</strong>
+                <div style="font-size:0.8rem; opacity:0.7">Neon, Glitch, Cool</div>
+            </div>
 
-        <div class="control-group">
+            <h3>Capture Mode</h3>
+            <div class="tool-row">
+                <button class="btn active" id="modeSingle" onclick="setMode('single')">Single</button>
+                <button class="btn" id="modeBurst" onclick="setMode('burst')">Burst</button>
+            </div>
+            <div class="tool-row">
+                <button class="btn" id="modeGif" onclick="setMode('gif')">GIF Loop</button>
+                <button class="btn" id="modeCollage" onclick="setMode('collage')">Collage</button>
+            </div>
+
             <h3>Accessibility</h3>
-            <div class="btn-grid">
-                <button id="toggleVoice">🔊 Voice</button>
-                <button id="toggleTheme">🌗 Theme</button>
-            </div>
-        </div>
+            <button class="btn" onclick="toggleAccessMode()">👁️ High Contrast / Large Text</button>
+            <button class="btn" onclick="toggleVoice()">🔊 Voice Guidance</button>
+        </aside>
 
-        <div class="control-group">
-            <h3>Stickers</h3>
-            <div class="btn-grid">
-                <button onclick="addSticker('😎')">😎</button>
-                <button onclick="addSticker('👑')">👑</button>
-                <button onclick="addSticker('🔥')">🔥</button>
-                <button onclick="addSticker('🎉')">🎉</button>
+        <main class="panel stage-container">
+            <div class="viewport" id="viewport">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="drawingCanvas" class="drawing-layer"></canvas>
+                
+                <div id="countdown" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10rem; font-weight:900; display:none; z-index:20; text-shadow: 0 0 30px black;">3</div>
+                
+                <div class="mascot-overlay">
+                    <div class="mascot-bubble" id="mascotBubble">Ready to start? Select a mode!</div>
+                    <div class="mascot-char" id="mascotChar">🤖</div>
+                </div>
             </div>
-            <button onclick="clearStickers()" style="width:100%; margin-top:5px; color: #ff7675;">Clear All</button>
-        </div>
+
+            <div class="capture-area">
+                <button id="snapBtn" aria-label="Take Photo"></button>
+            </div>
+        </main>
+
+        <aside class="panel">
+            <h3>Lighting & Filters</h3>
+            <div class="slider-group">
+                <span>Brightness</span>
+                <input type="range" min="50" max="150" value="100" oninput="updateFilter(this, 'brightness')">
+            </div>
+            <div class="slider-group">
+                <span>Contrast</span>
+                <input type="range" min="50" max="150" value="100" oninput="updateFilter(this, 'contrast')">
+            </div>
+            <div class="tool-row" style="margin-top:10px">
+                <button class="btn" onclick="applyPreset('none')">Normal</button>
+                <button class="btn" onclick="applyPreset('sepia')">Vintage</button>
+                <button class="btn" onclick="applyPreset('grayscale')">B&W</button>
+            </div>
+
+            <h3>Creative Lab 🎨</h3>
+            <div class="creative-lab">
+                <div style="font-size:0.8rem; margin-bottom:5px;">Draw on screen:</div>
+                <div class="tool-row">
+                    <button class="btn" onclick="setPenColor('#ff4757')">🔴</button>
+                    <button class="btn" onclick="setPenColor('#2ed573')">🟢</button>
+                    <button class="btn" onclick="setPenColor('#1e90ff')">🔵</button>
+                    <button class="btn" onclick="setPenColor('#ffffff')">⚪</button>
+                </div>
+                <button class="btn" style="width:100%; margin-top:5px" onclick="clearDrawing()">Clear Drawing</button>
+            </div>
+
+            <div style="margin-top:auto; font-size:0.7rem; opacity:0.5; text-align:center;">
+                NeoBooth Core v3.0.1<br>Build 2023-X1
+            </div>
+        </aside>
     </div>
 
-    <div class="stage">
-        <div class="viewport" id="viewport">
-            <video id="video" autoplay playsinline></video>
-            <div class="overlay-layer" id="overlay">
-                <div class="face-tracker"></div>
+    <footer class="progress-bar">
+        <div class="step active" id="stepReady"><div class="step-dot"></div> READY</div>
+        <div class="step" id="stepCapture"><div class="step-dot"></div> CAPTURE</div>
+        <div class="step" id="stepEdit"><div class="step-dot"></div> EDIT / SHARE</div>
+    </footer>
+
+    <div class="modal" id="shareModal">
+        <div class="modal-inner">
+            <div style="display:flex; justify-content:center; align-items:center; background:#000; border-radius:10px;">
+                <img id="finalResult" class="preview-img">
             </div>
-            <div class="countdown" id="countdownDisplay">3</div>
-        </div>
-        
-        <button id="snapBtn" style="margin-top: 20px; width: 80px; height: 80px; border-radius: 50%; background: #ff4757; border: 4px solid white; box-shadow: 0 0 20px #ff4757;"></button>
-    </div>
-
-    <div class="info-panel">
-        <div class="mascot-container">
-            <div class="mascot-avatar" id="mascotAvatar">🤖</div>
-            <div class="mascot-bubble" id="mascotText">Hello! I'm SnapBot. Ready to take some awesome photos?</div>
-        </div>
-
-        <div class="control-group">
-            <h3>Session Stats</h3>
-            <div id="statsBox">
-                Photos taken: <span id="photoCount">0</span><br>
-                Favorite Mode: <span id="favMode">-</span>
-            </div>
-        </div>
-
-        <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid #333;">
-            <small style="display:block; color: gray;">System v2.4.0</small>
-            <a href="#" onclick="alert('Version 2.4.0 Updates:\n- Added Voice Guidance\n- New Cyber Filter\n- Faster QR Generation')" style="color: var(--secondary); font-size: 0.8rem;">View Changelog</a>
-        </div>
-    </div>
-
-    <div class="modal" id="resultModal">
-        <div class="modal-content">
-            <h2>Great Shot!</h2>
-            <div id="resultContainer"></div> <div id="qrcode"></div>
-            <p style="font-size: 0.8rem; color: gray;">Scan to share on mobile</p>
-            <div class="btn-grid">
-                <button onclick="downloadImage()">Download</button>
-                <button onclick="closeModal()">Close</button>
+            <div class="panel">
+                <h2>Your Photo is Ready!</h2>
+                <p>Scan the QR code to download to your phone instantly.</p>
+                <div id="qrcode" style="background:white; padding:10px; width:fit-content; border-radius:10px; margin: 0 auto;"></div>
+                
+                <div style="margin-top:auto; display:flex; gap:10px;">
+                    <button class="btn active" onclick="downloadImage()">Download</button>
+                    <button class="btn" onclick="closeModal()">New Session</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIG & STATE ---
-        const state = {
+        // --- CORE SYSTEM ---
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const snapBtn = document.getElementById('snapBtn');
+        const mascotChar = document.getElementById('mascotChar');
+        const mascotBubble = document.getElementById('mascotBubble');
+        
+        let state = {
             mode: 'single',
-            voiceEnabled: false,
-            photoCount: 0,
-            stickers: [],
-            theme: 'dark'
+            voice: false,
+            filter: { brightness: 100, contrast: 100, preset: '' },
+            isDrawing: false,
+            penColor: '#ffffff'
         };
 
-        // --- DOM ELEMENTS ---
-        const video = document.getElementById('video');
-        const overlay = document.getElementById('overlay');
-        const snapBtn = document.getElementById('snapBtn');
-        const mascotText = document.getElementById('mascotText');
-        const mascotAvatar = document.getElementById('mascotAvatar');
-        const countdownDisplay = document.getElementById('countdownDisplay');
-        const filterSelect = document.getElementById('filterSelect');
-        const resultModal = document.getElementById('resultModal');
-        const resultContainer = document.getElementById('resultContainer');
-        const qrContainer = document.getElementById('qrcode');
-        
-        // Canvas for processing
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // --- INITIALIZATION ---
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+        // --- CAMERA INIT ---
+        navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false })
+            .then(stream => {
                 video.srcObject = stream;
-                speak("Camera system online. Please adjust your lighting.");
-            } catch (e) {
-                updateMascot("😵", "Oh no! I can't find your camera.");
+                resizeCanvas();
+                mascotSay("Camera connected! Let's make magic.");
+            })
+            .catch(err => mascotSay("Error: Camera not found!", "😵"));
+
+        function resizeCanvas() {
+            canvas.width = video.clientWidth;
+            canvas.height = video.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- MASCOT SYSTEM ---
+        function mascotSay(text, emoji = "🤖") {
+            mascotChar.innerText = emoji;
+            mascotBubble.innerText = text;
+            mascotBubble.classList.add('visible');
+            
+            // Animation
+            mascotChar.style.animation = 'cheer 0.5s';
+            setTimeout(() => mascotChar.style.animation = 'float 3s ease-in-out infinite', 500);
+
+            // Voice
+            if (state.voice) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                window.speechSynthesis.speak(u);
             }
+
+            // Hide bubble after 4s
+            setTimeout(() => mascotBubble.classList.remove('visible'), 4000);
         }
 
-        // --- MASCOT & VOICE SYSTEM ---
-        function updateMascot(emoji, text) {
-            mascotAvatar.innerText = emoji;
-            mascotText.innerText = text;
-            speak(text);
+        function toggleVoice() {
+            state.voice = !state.voice;
+            mascotSay(state.voice ? "Voice guidance on." : "Voice guidance off.");
         }
 
-        function speak(text) {
-            if (!state.voiceEnabled) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.1;
-            utterance.pitch = 1.2;
-            window.speechSynthesis.speak(utterance);
+        // --- DRAWING SYSTEM (CREATIVE LAB) ---
+        // Note: Coordinates must be reversed on X because CSS scales X by -1 for mirror effect
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            // Invert X calculation because of CSS mirror
+            return {
+                x: rect.width - (evt.clientX - rect.left), 
+                y: evt.clientY - rect.top
+            };
         }
 
-        // --- UI INTERACTIONS ---
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                state.mode = e.target.dataset.mode;
-                updateMascot("⚙️", `Switched to ${state.mode} mode.`);
-            });
+        canvas.addEventListener('mousedown', (e) => {
+            state.isDrawing = true;
+            const pos = getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
         });
 
-        filterSelect.addEventListener('change', (e) => {
-            video.style.filter = e.target.value;
-            updateMascot("🎨", "Nice filter choice!");
+        canvas.addEventListener('mousemove', (e) => {
+            if (!state.isDrawing) return;
+            const pos = getMousePos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.strokeStyle = state.penColor;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.stroke();
         });
 
-        document.getElementById('toggleVoice').addEventListener('click', () => {
-            state.voiceEnabled = !state.voiceEnabled;
-            updateMascot(state.voiceEnabled ? "🔊" : "🔇", `Voice guidance ${state.voiceEnabled ? 'enabled' : 'disabled'}.`);
-        });
+        canvas.addEventListener('mouseup', () => state.isDrawing = false);
+        
+        function setPenColor(c) { state.penColor = c; mascotSay("Pen color changed!"); }
+        function clearDrawing() { ctx.clearRect(0, 0, canvas.width, canvas.height); mascotSay("Canvas cleared."); }
 
-        document.getElementById('toggleTheme').addEventListener('click', () => {
-            state.theme = state.theme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', state.theme);
-        });
-
-        // --- STICKER SYSTEM ---
-        function addSticker(emoji) {
-            // Random position near center
-            const x = 30 + Math.random() * 40; 
-            const y = 30 + Math.random() * 40;
-            state.stickers.push({ emoji, x, y });
-            renderStickers();
+        // --- FILTERS ---
+        function updateFilter(input, type) {
+            state.filter[type] = input.value;
+            applyFilters();
         }
-
-        function clearStickers() {
-            state.stickers = [];
-            renderStickers();
+        function applyPreset(name) {
+            state.filter.preset = name === 'none' ? '' : name;
+            if(name === 'sepia') state.filter.preset = 'sepia(100%)';
+            if(name === 'grayscale') state.filter.preset = 'grayscale(100%)';
+            applyFilters();
         }
-
-        function renderStickers() {
-            // Remove old stickers from DOM overlay
-            const old = overlay.querySelectorAll('.sticker-dom');
-            old.forEach(el => el.remove());
-
-            // Add new ones
-            state.stickers.forEach(s => {
-                const el = document.createElement('div');
-                el.className = 'sticker-dom';
-                el.innerText = s.emoji;
-                el.style.position = 'absolute';
-                el.style.left = s.x + '%';
-                el.style.top = s.y + '%';
-                el.style.fontSize = '3rem';
-                el.style.textShadow = '0 5px 10px rgba(0,0,0,0.5)';
-                overlay.appendChild(el);
-            });
+        function applyFilters() {
+            const f = `brightness(${state.filter.brightness}%) contrast(${state.filter.contrast}%) ${state.filter.preset}`;
+            video.style.filter = f;
+            mascotSay("Filters updated!");
         }
 
         // --- CAPTURE LOGIC ---
-        snapBtn.addEventListener('click', startCountdown);
+        function setMode(m) {
+            state.mode = m;
+            document.querySelectorAll('#modeSingle, #modeBurst, #modeGif, #modeCollage').forEach(b => b.classList.remove('active'));
+            // Simplified selector logic for demo
+            if(m === 'single') document.getElementById('modeSingle').classList.add('active');
+            if(m === 'burst') document.getElementById('modeBurst').classList.add('active');
+            if(m === 'gif') document.getElementById('modeGif').classList.add('active');
+            if(m === 'collage') document.getElementById('modeCollage').classList.add('active');
+            mascotSay(`${m.toUpperCase()} mode selected.`);
+        }
 
-        function startCountdown() {
+        snapBtn.addEventListener('click', () => {
+            updateProgress('capture');
             let count = 3;
-            countdownDisplay.style.display = 'block';
-            snapBtn.disabled = true;
+            const counter = document.getElementById('countdown');
+            counter.style.display = 'block';
             
-            updateMascot("📸", "Get ready! Strike a pose!");
-
             const timer = setInterval(() => {
-                countdownDisplay.innerText = count;
-                speak(count.toString());
+                counter.innerText = count;
+                if(state.voice) { let u = new SpeechSynthesisUtterance(count); window.speechSynthesis.speak(u); }
+                
                 if (count === 0) {
                     clearInterval(timer);
-                    countdownDisplay.style.display = 'none';
-                    triggerCapture();
+                    counter.style.display = 'none';
+                    takePicture();
                 }
                 count--;
             }, 1000);
-        }
+        });
 
-        function triggerCapture() {
+        function takePicture() {
             // Flash effect
-            const flash = document.getElementById('flash');
-            flash.style.animation = 'flash 0.5s';
-            setTimeout(() => flash.style.animation = '', 500);
+            const flash = document.createElement('div');
+            flash.style.cssText = "position:fixed; inset:0; background:white; z-index:999; animation: fadeOut 0.5s forwards";
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
 
-            // Audio Click
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.frequency.value = 800;
-            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.1);
-            osc.start();
-            osc.stop(0.1);
+            // Create High-Res Render Canvas
+            const renderCanvas = document.createElement('canvas');
+            renderCanvas.width = video.videoWidth;
+            renderCanvas.height = video.videoHeight;
+            const rCtx = renderCanvas.getContext('2d');
 
-            if (state.mode === 'collage') {
-                processCollage();
-            } else {
-                processSingleShot();
-            }
+            // Apply Filters to Context
+            rCtx.filter = getComputedStyle(video).filter;
+
+            // Handle Mirroring & Drawing Video
+            rCtx.translate(renderCanvas.width, 0);
+            rCtx.scale(-1, 1);
+            rCtx.drawImage(video, 0, 0, renderCanvas.width, renderCanvas.height);
             
-            updateStats();
-        }
+            // Draw the overlay drawing layer (Need to scale it up from screen size to video resolution)
+            rCtx.drawImage(canvas, 0, 0, renderCanvas.width, renderCanvas.height);
 
-        function captureFrameToCanvas() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            // Filters
-            ctx.filter = getComputedStyle(video).filter;
-            
-            // Mirror & Draw Video
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
-
-            // Draw Stickers
-            state.stickers.forEach(s => {
-                ctx.font = '100px serif';
-                // Calculate position relative to canvas size (mirroring x)
-                const xPos = canvas.width - (s.x / 100 * canvas.width); 
-                const yPos = s.y / 100 * canvas.height;
-                ctx.fillText(s.emoji, xPos - 50, yPos + 35);
-            });
-
-            return canvas.toDataURL('image/png');
-        }
-
-        function processSingleShot() {
-            const dataURL = captureFrameToCanvas();
-            showResult(dataURL);
-            updateMascot("✨", "Lookin' good! Do you want to save this?");
-        }
-
-        function processCollage() {
-            // Simplified collage logic: Take 1 shot, replicate it 4 times in a grid
-            // In a real app, this would loop capture 4 times.
-            const rawFrame = captureFrameToCanvas();
-            const img = new Image();
-            img.src = rawFrame;
-            img.onload = () => {
-                const w = canvas.width;
-                const h = canvas.height;
-                // Resize canvas for 2x2 grid
-                const finalCanvas = document.createElement('canvas');
-                finalCanvas.width = w;
-                finalCanvas.height = h;
-                const fCtx = finalCanvas.getContext('2d');
-                
-                // Draw 4 times
-                fCtx.drawImage(img, 0, 0, w/2, h/2);
-                fCtx.drawImage(img, w/2, 0, w/2, h/2);
-                fCtx.drawImage(img, 0, h/2, w/2, h/2);
-                fCtx.drawImage(img, w/2, h/2, w/2, h/2);
-
-                // Add border
-                fCtx.strokeStyle = "white";
-                fCtx.lineWidth = 20;
-                fCtx.strokeRect(0,0,w,h);
-                fCtx.moveTo(w/2, 0); fCtx.lineTo(w/2, h);
-                fCtx.moveTo(0, h/2); fCtx.lineTo(w, h/2);
-                fCtx.stroke();
-
-                showResult(finalCanvas.toDataURL('image/png'));
-                updateMascot("🖼️", "Collage complete!");
-            }
-        }
-
-        // --- RESULTS & SHARING ---
-        function showResult(dataUrl) {
-            resultContainer.innerHTML = '';
-            const img = document.createElement('img');
-            img.src = dataUrl;
-            img.id = "finalImage";
-            resultContainer.appendChild(img);
+            // Show Result
+            const finalData = renderCanvas.toDataURL('image/png');
+            document.getElementById('finalResult').src = finalData;
             
             // Generate QR
-            qrContainer.innerHTML = "";
-            new QRCode(qrContainer, {
-                text: "https://example.com/share/" + Date.now(), // Simulated link
-                width: 100,
-                height: 100
-            });
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById('qrcode'), { text: "http://example.com/photo/" + Date.now(), width: 128, height: 128 });
 
-            resultModal.style.display = 'flex';
-            snapBtn.disabled = false;
+            document.getElementById('shareModal').style.display = 'flex';
+            updateProgress('edit');
+            mascotSay("Wow! Look at that masterpiece!", "🤩");
+        }
+
+        // --- UTILS ---
+        function updateProgress(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            if(step === 'ready') document.getElementById('stepReady').classList.add('active');
+            if(step === 'capture') document.getElementById('stepCapture').classList.add('active');
+            if(step === 'edit') document.getElementById('stepEdit').classList.add('active');
         }
 
         function closeModal() {
-            resultModal.style.display = 'none';
+            document.getElementById('shareModal').style.display = 'none';
+            updateProgress('ready');
+            clearDrawing();
+            mascotSay("Ready for the next one?");
         }
 
         function downloadImage() {
             const link = document.createElement('a');
             link.download = `neobooth_${Date.now()}.png`;
-            link.href = document.getElementById('finalImage').src;
+            link.href = document.getElementById('finalResult').src;
             link.click();
-            updateMascot("💾", "Saved to your device!");
         }
 
-        // --- ANALYTICS ---
-        function updateStats() {
-            state.photoCount++;
-            localStorage.setItem('neobooth_count', state.photoCount);
-            document.getElementById('photoCount').innerText = state.photoCount;
-            document.getElementById('favMode').innerText = state.mode.toUpperCase();
+        function setTheme(theme) {
+            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            const root = document.documentElement.style;
+            if(theme === 'default') {
+                root.setProperty('--primary', '#6c5ce7');
+                root.setProperty('--accent', '#00cec9');
+            } else if (theme === 'wedding') {
+                root.setProperty('--primary', '#ff7675');
+                root.setProperty('--accent', '#fab1a0');
+            } else if (theme === 'cyber') {
+                root.setProperty('--primary', '#00ff00');
+                root.setProperty('--accent', '#ff00ff');
+            }
+            mascotSay("Theme updated!");
         }
 
-        // Load stats on start
-        const savedCount = localStorage.getItem('neobooth_count');
-        if (savedCount) state.photoCount = parseInt(savedCount);
-        document.getElementById('photoCount').innerText = state.photoCount;
-
-        // Start
-        initCamera();
-        
-        // Random Face Tracking Movement (Simulation)
-        setInterval(() => {
-            const tracker = document.querySelector('.face-tracker');
-            const top = 30 + Math.random() * 40;
-            const left = 30 + Math.random() * 40;
-            tracker.style.top = top + "%";
-            tracker.style.left = left + "%";
-        }, 3000);
+        function toggleAccessMode() {
+            document.body.classList.toggle('access-mode');
+        }
 
     </script>
 </body>

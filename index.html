@@ -1,476 +1,760 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio X Pro - Advanced</title>
+    <title>Studio X - iOS Edition</title>
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <style>
-        /* --- CORE LAYOUT --- */
-        html, body { height: 100%; margin: 0; background: #111827; }
-        
-        .app-shell {
-            display: flex;
-            flex-direction: column;
-            height: 100vh; /* Fallback */
-            height: 100dvh; /* Dynamic Viewport Height for Mobile */
-            overflow: hidden;
+        /* --- CORE THEME --- */
+        :root {
+            --ios-bg: #F2F2F7;
+            --ios-card: #FFFFFF;
+            --ios-blue: #007AFF;
+            --ios-glass: rgba(255, 255, 255, 0.75);
+            --ios-border: rgba(0, 0, 0, 0.08);
         }
 
-        /* Desktop: Row layout */
-        @media (min-width: 768px) {
+        body { 
+            background-color: var(--ios-bg); 
+            color: #1c1c1e; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            height: 100%; 
+            margin: 0; 
+            overflow: hidden; 
+        }
+
+        .font-brand { font-family: 'Instrument Serif', serif; }
+
+        /* --- LAYOUT SHELL --- */
+        .app-shell { display: flex; flex-direction: column; height: 100dvh; }
+
+        /* Desktop: Landscape Split */
+        @media (min-width: 1024px) {
             .app-shell { flex-direction: row; }
-            .stage-area { flex: 1; height: 100%; overflow: hidden; display: flex; flex-direction: column; }
-            .sidebar-area { width: 320px; height: 100%; border-left: 1px solid #374151; }
+            .stage-area { 
+                flex: 1; 
+                height: 100%; 
+                padding: 40px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                background: #E5E5EA; /* Darker grey for contrast */
+            }
+            .controls-area { 
+                width: 420px; 
+                height: 100%; 
+                background: var(--ios-card); 
+                border-left: 1px solid var(--ios-border); 
+                display: flex; 
+                flex-direction: column;
+                z-index: 20;
+            }
         }
 
-        /* Mobile: Column layout with scroll if needed */
-        @media (max-width: 767px) {
-            .app-shell { overflow-y: auto; } /* Allow body scroll on small phones */
-            .stage-area { height: auto; min-height: 60vh; }
-            .sidebar-area { height: auto; min-height: 40vh; }
+        /* Mobile: Portrait Stack */
+        @media (max-width: 1023px) {
+            .app-shell { overflow-y: auto; display: block; }
+            .stage-area { 
+                height: 70vh; 
+                min-height: 500px; 
+                position: relative; 
+                background: #000; /* Immersive video on mobile */
+            }
+            .controls-area { 
+                min-height: 50vh; 
+                background: var(--ios-card); 
+                border-radius: 24px 24px 0 0; 
+                transform: translateY(-20px); /* Overlap effect */
+                padding-bottom: 80px;
+                position: relative;
+                z-index: 20;
+            }
         }
 
-        /* --- FONTS & ANIMATION --- */
-        .font-main { font-family: 'Space Grotesk', sans-serif; }
-        .font-display { font-family: 'Playfair Display', serif; }
+        /* --- VIDEO & CANVAS --- */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 1400px;
+            max-height: 90vh;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: translateZ(0); /* Hardware accel */
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: filter 0.15s ease-out;
+        }
+
+        .video-mirror { transform: scaleX(-1); }
+
+        /* --- UI COMPONENTS --- */
         
-        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); } }
-        @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
-        
-        .btn-capture {
-            animation: pulse-ring 2s infinite;
+        /* Glass Panels */
+        .glass {
+            background: var(--ios-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        /* Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: #E5E5EA;
+            border-radius: 10px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+            margin-top: -9px;
             transition: transform 0.1s;
         }
-        .btn-capture:active { transform: scale(0.95); animation: none; }
-        
-        .animate-flash { animation: flash 0.15s ease-out forwards; }
+        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
+
+        /* Segmented Control */
+        .segmented-control {
+            background: #E5E5EA;
+            padding: 4px;
+            border-radius: 12px;
+            display: flex;
+        }
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8E8E93;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #FFFFFF;
+            color: #000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        /* Shutter Button */
+        .shutter-ring {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .shutter-inner {
+            width: 56px; height: 56px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .shutter-btn:active .shutter-ring { transform: scale(0.95); }
+        .shutter-btn:active .shutter-inner { transform: scale(0.9); opacity: 0.8; }
 
         /* --- UTILS --- */
-        .video-mirror { transform: scaleX(-1); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .tab-active { background: rgba(255,255,255,0.1); color: white; border-bottom: 2px solid #8b5cf6; }
-        .tab-inactive { color: #9ca3af; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         
-        /* Filters & Frames Classes (Dynamic) */
-        .f-sepia { filter: sepia(0.8); }
-        .f-bw { filter: grayscale(1); }
-        .f-vivid { filter: saturate(2); }
-        .f-vintage { filter: sepia(0.4) contrast(1.2) brightness(0.9); }
-        .fr-classic { border: 12px solid white; }
-        .fr-film { border-left: 20px solid black; border-right: 20px solid black; }
-        .fr-polaroid { border: 10px solid white; border-bottom: 50px solid white; }
+        @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .flash-active { animation: flash 0.15s ease-out forwards; }
+
     </style>
 </head>
-<body class="font-main text-white">
+<body>
 
-    <div class="app-shell">
-        
-        <div class="stage-area bg-gray-900 relative">
+<div class="app-shell">
+
+    <div class="stage-area">
+        <div class="video-wrapper group">
             
-            <header class="p-4 flex justify-between items-center z-20 bg-gradient-to-b from-black/80 to-transparent absolute top-0 w-full pointer-events-none">
-                <div class="pointer-events-auto flex items-center gap-2">
-                    <div class="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center font-bold text-lg">X</div>
-                    <span class="font-bold tracking-wide">Studio Pro</span>
+            <div class="absolute top-6 left-6 right-6 z-20 flex justify-between items-start pointer-events-none">
+                <div class="glass px-4 py-2 rounded-full flex items-center gap-2 shadow-sm pointer-events-auto">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-bold tracking-wide uppercase text-gray-700">Studio Live</span>
                 </div>
-                <div class="pointer-events-auto bg-black/50 backdrop-blur rounded-full px-3 py-1 text-xs font-mono flex gap-3">
-                    <span id="stat-count">📸 0</span>
-                    <span id="stat-time" class="text-violet-400">00:00</span>
-                </div>
-            </header>
 
-            <div class="flex-1 relative flex items-center justify-center overflow-hidden bg-black group">
-                <video id="video" autoplay playsinline class="video-mirror w-full h-full object-cover"></video>
-                
-                <div id="flash" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-30"></div>
-                <div id="countdown" class="absolute inset-0 flex items-center justify-center text-9xl font-black text-white drop-shadow-2xl z-30 hidden">3</div>
-                
-                <div class="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-8">
-                    <div id="sticker-display" class="self-end text-6xl drop-shadow-lg hidden">✨</div>
-                    <div id="text-display" class="self-center font-display text-4xl text-center drop-shadow-lg hidden"></div>
-                    <div class="h-10"></div> </div>
-
-                <div id="cam-error" class="absolute inset-0 bg-gray-900 z-40 flex flex-col items-center justify-center hidden p-6 text-center">
-                    <p class="text-red-400 mb-4 text-xl">Camera Blocked</p>
-                    <p class="text-sm text-gray-400 mb-6">Please enable camera permissions and ensure you are using HTTPS or localhost.</p>
-                    <button onclick="initCamera()" class="px-6 py-2 bg-violet-600 rounded-full hover:bg-violet-500">Retry</button>
+                <div class="flex gap-3 pointer-events-auto">
+                    <button onclick="toggleMirror()" id="btn-mirror" class="glass w-10 h-10 rounded-full flex items-center justify-center text-gray-700 hover:bg-white transition shadow-sm active:scale-95" title="Mirror View">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                    </button>
+                    <button onclick="toggleCountdown()" id="btn-timer" class="glass w-10 h-10 rounded-full flex items-center justify-center text-gray-700 hover:bg-white transition shadow-sm active:scale-95">
+                        <span class="text-xs font-bold" id="timer-display">OFF</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="bg-gray-900/90 backdrop-blur border-t border-gray-700 p-4 pb-6 flex justify-between items-center z-20">
-                
-                <div class="flex gap-2">
-                    <button onclick="toggleMirror()" id="btn-mirror" class="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-lg transition-colors text-violet-400" title="Mirror Flip">
-                        ⟷
-                    </button>
-                    <div class="relative">
-                        <select id="timer-select" class="appearance-none w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-center text-xs font-bold focus:outline-none cursor-pointer">
-                            <option value="0">0s</option>
-                            <option value="3">3s</option>
-                            <option value="5">5s</option>
-                        </select>
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-xs">⏱️</div>
-                    </div>
-                </div>
+            <video id="video" autoplay playsinline class="video-mirror"></video>
+            
+            <div class="absolute inset-0 z-10 pointer-events-none p-12 flex flex-col justify-between">
+                <div id="sticker-layer" class="text-8xl self-end filter drop-shadow-lg transform transition-all duration-300 hidden"></div>
+                <div id="text-layer" class="text-6xl font-brand italic text-white text-center drop-shadow-xl break-words w-full hidden" style="text-shadow: 0 4px 30px rgba(0,0,0,0.5);"></div>
+                <div class="h-10"></div> </div>
 
-                <button id="shutter-btn" class="btn-capture w-20 h-20 rounded-full border-4 border-gray-200 bg-white flex items-center justify-center shadow-lg relative -top-6 hover:bg-gray-100">
-                    <div class="w-16 h-16 rounded-full border-2 border-gray-400"></div>
+            <div id="flash-overlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-50"></div>
+            <div id="countdown-display" class="absolute inset-0 flex items-center justify-center text-[12rem] font-bold text-white drop-shadow-2xl z-40 hidden font-brand">3</div>
+
+            <div id="cam-error" class="absolute inset-0 bg-gray-100 z-[60] flex flex-col items-center justify-center hidden p-8 text-center">
+                <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4 text-3xl">✕</div>
+                <h3 class="text-xl font-bold text-gray-900">Camera Access Denied</h3>
+                <p class="text-gray-500 mt-2 mb-6 max-w-xs mx-auto">Please allow camera access in your browser settings. This app requires a secure context (HTTPS or localhost).</p>
+                <button onclick="init()" class="px-8 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:bg-blue-700 transition">Try Again</button>
+            </div>
+
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-10">
+                
+                <button onclick="toggleGallery()" class="group relative">
+                    <div class="w-12 h-12 bg-gray-200 rounded-xl overflow-hidden border-2 border-white shadow-lg transition transform group-hover:scale-105 group-active:scale-95">
+                        <img id="last-photo-preview" class="w-full h-full object-cover opacity-60" />
+                    </div>
+                    <span id="gallery-badge" class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm hidden">0</span>
                 </button>
 
-                <div class="flex gap-2">
-                    <button onclick="toggleSidebar('effects')" class="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-lg">
-                        ✨
-                    </button>
-                    <button onclick="toggleSidebar('gallery')" class="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-lg relative">
-                        🖼️
-                        <div id="gallery-badge" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center hidden">0</div>
-                    </button>
-                </div>
+                <button id="shutter-btn" class="shutter-btn">
+                    <div class="shutter-ring">
+                        <div class="shutter-inner"></div>
+                    </div>
+                </button>
+
+                <button class="w-12 h-12 rounded-full glass flex items-center justify-center text-white shadow-lg hover:bg-white/20 transition active:scale-95">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-area hide-scrollbar overflow-y-auto">
+        
+        <div class="px-8 pt-8 pb-4">
+            <h1 class="font-brand text-4xl italic text-gray-900 mb-1">Studio X</h1>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Pro Photo Booth</p>
+        </div>
+
+        <div class="px-8 mb-8">
+            <div class="segmented-control">
+                <button onclick="switchTab('adjust')" id="tab-adjust" class="tab-btn active">Adjust</button>
+                <button onclick="switchTab('filters')" id="tab-filters" class="tab-btn">Filters</button>
+                <button onclick="switchTab('overlay')" id="tab-overlay" class="tab-btn">Decor</button>
             </div>
         </div>
 
-        <div class="sidebar-area bg-gray-800 flex flex-col">
+        <div class="px-8 pb-24 space-y-10">
             
-            <div class="flex border-b border-gray-700">
-                <button onclick="switchTab('effects')" id="tab-effects" class="flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-active transition-colors">Studio</button>
-                <button onclick="switchTab('gallery')" id="tab-gallery" class="flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-inactive transition-colors">Gallery</button>
+            <div id="panel-adjust" class="space-y-8 animate-fade-in">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Color & Light</h3>
+                    <button onclick="resetAdjustments()" class="text-xs font-bold text-blue-500 hover:text-blue-600 transition">Reset All</button>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm font-semibold text-gray-700">
+                            <span>Brightness</span>
+                            <span id="val-brightness" class="text-gray-400 font-mono">100%</span>
+                        </div>
+                        <input type="range" id="in-brightness" min="50" max="200" value="100" oninput="updateLiveFeed()">
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm font-semibold text-gray-700">
+                            <span>Contrast</span>
+                            <span id="val-contrast" class="text-gray-400 font-mono">100%</span>
+                        </div>
+                        <input type="range" id="in-contrast" min="50" max="200" value="100" oninput="updateLiveFeed()">
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm font-semibold text-gray-700">
+                            <span>Saturation</span>
+                            <span id="val-saturate" class="text-gray-400 font-mono">100%</span>
+                        </div>
+                        <input type="range" id="in-saturate" min="0" max="200" value="100" oninput="updateLiveFeed()">
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm font-semibold text-gray-700">
+                            <span>Warmth (Sepia)</span>
+                            <span id="val-sepia" class="text-gray-400 font-mono">0%</span>
+                        </div>
+                        <input type="range" id="in-sepia" min="0" max="100" value="0" oninput="updateLiveFeed()">
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm font-semibold text-gray-700">
+                            <span>Soft Focus</span>
+                            <span id="val-blur" class="text-gray-400 font-mono">0px</span>
+                        </div>
+                        <input type="range" id="in-blur" min="0" max="10" value="0" step="0.5" oninput="updateLiveFeed()">
+                    </div>
+                </div>
             </div>
 
-            <div id="content-effects" class="flex-1 overflow-y-auto p-5 space-y-8">
-                
-                <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Color Filters</h3>
-                    <div class="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-                        <button onclick="applyFilter('')" class="flex-shrink-0 w-16 h-16 bg-gray-700 rounded-lg hover:bg-gray-600 border-2 border-transparent focus:border-violet-500 text-xs">Normal</button>
-                        <button onclick="applyFilter('f-bw')" class="flex-shrink-0 w-16 h-16 bg-gray-700 rounded-lg hover:bg-gray-600 grayscale flex items-center justify-center text-xs">B&W</button>
-                        <button onclick="applyFilter('f-sepia')" class="flex-shrink-0 w-16 h-16 bg-[#704214] rounded-lg hover:opacity-80 text-xs mix-blend-screen flex items-center justify-center">Sepia</button>
-                        <button onclick="applyFilter('f-vivid')" class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-400 to-pink-500 rounded-lg text-xs font-bold flex items-center justify-center text-black">Vivid</button>
-                        <button onclick="applyFilter('f-vintage')" class="flex-shrink-0 w-16 h-16 bg-yellow-900 rounded-lg text-xs text-yellow-100 flex items-center justify-center">1980s</button>
+            <div id="panel-filters" class="hidden animate-fade-in">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Color Grades</h3>
+                <div class="grid grid-cols-2 gap-4" id="filters-container">
                     </div>
-                </section>
-
-                <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Frames</h3>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="applyFrame('')" class="py-2 bg-gray-700 rounded text-xs">None</button>
-                        <button onclick="applyFrame('fr-classic')" class="py-2 bg-gray-700 rounded text-xs border border-white">Classic</button>
-                        <button onclick="applyFrame('fr-polaroid')" class="py-2 bg-gray-700 rounded text-xs border-b-4 border-white">Polaroid</button>
-                        <button onclick="applyFrame('fr-film')" class="py-2 bg-gray-700 rounded text-xs border-x-4 border-black">Film</button>
-                    </div>
-                </section>
-
-                <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Overlays</h3>
-                    <input type="text" id="caption-input" placeholder="Type a caption..." oninput="updateCaption(this.value)" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-sm focus:border-violet-500 outline-none mb-3">
-                    <div class="flex gap-2">
-                        <button onclick="toggleSticker('✨')" class="flex-1 py-2 bg-gray-700 rounded text-xl">✨</button>
-                        <button onclick="toggleSticker('🔥')" class="flex-1 py-2 bg-gray-700 rounded text-xl">🔥</button>
-                        <button onclick="toggleSticker('💖')" class="flex-1 py-2 bg-gray-700 rounded text-xl">💖</button>
-                        <button onclick="toggleSticker('')" class="flex-1 py-2 bg-red-900/50 text-red-300 rounded text-sm font-bold">Clear</button>
-                    </div>
-                </section>
             </div>
 
-            <div id="content-gallery" class="hidden flex-1 overflow-y-auto p-5">
-                <div class="flex justify-between items-end mb-4">
-                    <h2 class="text-xl font-bold">Session</h2>
-                    <button onclick="clearGallery()" class="text-xs text-red-400 hover:text-red-300 underline">Clear All</button>
+            <div id="panel-overlay" class="hidden space-y-8 animate-fade-in">
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Caption</h3>
+                    <input type="text" id="in-text" placeholder="Add a caption..." oninput="updateOverlays()" class="w-full bg-gray-100 border-none rounded-xl px-4 py-3 text-base text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white transition outline-none">
                 </div>
                 
-                <div id="gallery-grid" class="grid grid-cols-2 gap-3">
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Stickers</h3>
+                    <div class="grid grid-cols-4 gap-3">
+                        <button onclick="setSticker('✨')" class="bg-gray-50 border border-gray-200 aspect-square rounded-xl text-3xl hover:bg-white hover:shadow-md hover:-translate-y-1 transition">✨</button>
+                        <button onclick="setSticker('🔥')" class="bg-gray-50 border border-gray-200 aspect-square rounded-xl text-3xl hover:bg-white hover:shadow-md hover:-translate-y-1 transition">🔥</button>
+                        <button onclick="setSticker('💖')" class="bg-gray-50 border border-gray-200 aspect-square rounded-xl text-3xl hover:bg-white hover:shadow-md hover:-translate-y-1 transition">💖</button>
+                        <button onclick="setSticker('👑')" class="bg-gray-50 border border-gray-200 aspect-square rounded-xl text-3xl hover:bg-white hover:shadow-md hover:-translate-y-1 transition">👑</button>
+                        <button onclick="setSticker('😎')" class="bg-gray-50 border border-gray-200 aspect-square rounded-xl text-3xl hover:bg-white hover:shadow-md hover:-translate-y-1 transition">😎</button>
+                        <button onclick="setSticker('🍑')" class="bg-gray-50 border border-gray-200 aspect-square rounded-xl text-3xl hover:bg-white hover:shadow-md hover:-translate-y-1 transition">🍑</button>
+                        <button onclick="setSticker('')" class="col-span-2 bg-red-50 border border-red-100 text-red-500 rounded-xl text-xs font-bold hover:bg-red-100 transition">Remove</button>
                     </div>
-                
-                <button onclick="downloadAll()" id="btn-download-all" class="w-full mt-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 hidden">
-                    Download All
-                </button>
-                
-                <div id="empty-state" class="text-center py-10 text-gray-500">
-                    <p class="text-4xl mb-2">📷</p>
-                    <p>No photos yet</p>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <canvas id="canvas" class="hidden"></canvas>
+</div>
 
-    <script>
-        // --- LOGIC ---
+<canvas id="proc-canvas" class="hidden"></canvas>
+
+<div id="gallery-modal" class="fixed inset-0 bg-white/80 backdrop-blur-xl z-[100] hidden flex flex-col animate-fade-in transition-all duration-300">
+    <div class="px-6 py-4 flex justify-between items-center border-b border-gray-200 bg-white/50">
+        <h2 class="font-brand italic text-3xl font-bold text-gray-900">Gallery</h2>
+        <div class="flex gap-3">
+            <button onclick="downloadAll()" class="bg-black text-white px-5 py-2.5 rounded-full text-xs font-bold hover:scale-105 transition shadow-lg">Save All</button>
+            <button onclick="closeGallery()" class="w-10 h-10 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-300 transition text-xl">&times;</button>
+        </div>
+    </div>
+    <div id="gallery-grid" class="flex-1 overflow-y-auto p-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        </div>
+    <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none hidden">
+        <span class="text-6xl mb-4">📷</span>
+        <p class="text-gray-400 font-bold">No photos yet</p>
+    </div>
+</div>
+
+<script>
+    /**
+     * STUDIO X CORE LOGIC
+     * -------------------
+     * 1. Data Persistence (Local Storage)
+     * 2. Live Filter Engine (CSS -> Canvas translation)
+     * 3. Robust Capture Pipeline
+     */
+
+    // --- 1. LOCAL DATA STORE ---
+    class PhotoDB {
+        constructor() {
+            this.KEY = 'studio_x_v4_photos';
+            this.photos = this.load();
+        }
+        load() {
+            try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); } 
+            catch { return []; }
+        }
+        save() {
+            try { localStorage.setItem(this.KEY, JSON.stringify(this.photos)); } catch(e) {}
+        }
+        add(dataUrl) {
+            this.photos.unshift({ id: Date.now(), src: dataUrl });
+            this.save();
+            return this.photos;
+        }
+        getAll() { return this.photos; }
+        clear() { this.photos = []; this.save(); }
+        remove(id) {
+            this.photos = this.photos.filter(p => p.id !== id);
+            this.save();
+        }
+    }
+    const DB = new PhotoDB();
+
+    // --- 2. CONFIG & STATE ---
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('proc-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Reactive State
+    const state = {
+        mirror: true,
+        timer: 0,
+        brightness: 100,
+        contrast: 100,
+        saturate: 100,
+        sepia: 0,
+        blur: 0,
+        preset: 'none',
+        sticker: '',
+        text: ''
+    };
+
+    // --- 3. INITIALIZATION ---
+    async function init() {
+        try {
+            // Constraints for HD quality
+            const constraints = { 
+                video: { 
+                    width: { ideal: 1920 }, 
+                    height: { ideal: 1080 }, 
+                    facingMode: "user" 
+                }, 
+                audio: false 
+            };
+            
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            document.getElementById('cam-error').classList.add('hidden');
+            
+            // UI Setup
+            generateFilterButtons();
+            updateGalleryBadge();
+            
+        } catch (e) {
+            console.error("Camera Error:", e);
+            document.getElementById('cam-error').classList.remove('hidden');
+        }
+    }
+
+    // --- 4. THE FILTER ENGINE (CRITICAL FIX) ---
+    // This function generates the standard CSS filter string used by both 
+    // the live Video element AND the Canvas 2D context.
+    function getFilterString() {
+        const filters = [];
         
-        // 1. Data Store (Local Storage)
-        const DB = {
-            key: 'studio_x_v3_photos',
-            get: () => {
-                try { return JSON.parse(localStorage.getItem(DB.key) || '[]'); } 
-                catch { return []; }
-            },
-            add: (dataUrl) => {
-                const photos = DB.get();
-                photos.unshift({ id: Date.now(), src: dataUrl });
-                localStorage.setItem(DB.key, JSON.stringify(photos));
-                return photos;
-            },
-            clear: () => localStorage.removeItem(DB.key)
-        };
+        // Manual Adjustments
+        filters.push(`brightness(${state.brightness}%)`);
+        filters.push(`contrast(${state.contrast}%)`);
+        filters.push(`saturate(${state.saturate}%)`);
+        filters.push(`sepia(${state.sepia}%)`);
+        if (state.blur > 0) filters.push(`blur(${state.blur}px)`);
 
-        // 2. State & Elements
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const shutterBtn = document.getElementById('shutter-btn');
-        let stream = null;
-        let activeFilter = '';
-        let activeFrame = '';
-        let isMirrored = true;
-        let activeSticker = '';
-        let activeText = '';
-        let sessionStart = Date.now();
+        // Presets (Additive)
+        if (state.preset === 'bw') filters.push('grayscale(100%)');
+        if (state.preset === 'warm') filters.push('sepia(40%) saturate(120%)');
+        if (state.preset === 'cool') filters.push('hue-rotate(180deg) saturate(80%)');
+        if (state.preset === 'cyber') filters.push('hue-rotate(90deg) contrast(120%)');
+        if (state.preset === 'vivid') filters.push('saturate(150%) contrast(110%)');
 
-        // 3. Initialization
-        async function initCamera() {
-            try {
-                // Request 720p or best available
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-                    audio: false
-                });
-                video.srcObject = stream;
-                document.getElementById('cam-error').classList.add('hidden');
-                
-                // Start Timer
-                setInterval(() => {
-                    const diff = Math.floor((Date.now() - sessionStart)/1000);
-                    const m = Math.floor(diff/60).toString().padStart(2, '0');
-                    const s = (diff%60).toString().padStart(2, '0');
-                    document.getElementById('stat-time').innerText = `${m}:${s}`;
-                }, 1000);
+        return filters.join(' ');
+    }
 
-            } catch (err) {
-                console.error(err);
-                document.getElementById('cam-error').classList.remove('hidden');
+    function updateLiveFeed() {
+        // Read DOM inputs
+        state.brightness = document.getElementById('in-brightness').value;
+        state.contrast = document.getElementById('in-contrast').value;
+        state.saturate = document.getElementById('in-saturate').value;
+        state.sepia = document.getElementById('in-sepia').value;
+        state.blur = document.getElementById('in-blur').value;
+
+        // Update Labels
+        document.getElementById('val-brightness').innerText = state.brightness + '%';
+        document.getElementById('val-contrast').innerText = state.contrast + '%';
+        document.getElementById('val-saturate').innerText = state.saturate + '%';
+        document.getElementById('val-sepia').innerText = state.sepia + '%';
+        document.getElementById('val-blur').innerText = state.blur + 'px';
+
+        // Apply to Video
+        video.style.filter = getFilterString();
+        video.classList.toggle('video-mirror', state.mirror);
+    }
+
+    // --- 5. CAPTURE LOGIC ---
+    document.getElementById('shutter-btn').onclick = async () => {
+        const btn = document.getElementById('shutter-btn');
+        btn.disabled = true; // Prevent double click
+
+        // Countdown Sequence
+        if (state.timer > 0) {
+            const cd = document.getElementById('countdown-display');
+            cd.classList.remove('hidden');
+            for(let i = state.timer; i > 0; i--) {
+                cd.innerText = i;
+                // Pulse animation
+                cd.style.transform = "scale(1.5)";
+                setTimeout(() => cd.style.transform = "scale(1)", 100);
+                await new Promise(r => setTimeout(r, 1000));
             }
-            renderGallery();
+            cd.classList.add('hidden');
         }
 
-        // 4. Capture Engine
-        shutterBtn.addEventListener('click', async () => {
-            if(!stream) return;
-            shutterBtn.disabled = true;
+        // Flash Effect
+        const flash = document.getElementById('flash-overlay');
+        flash.classList.add('flash-active');
+        setTimeout(() => flash.classList.remove('flash-active'), 200);
 
-            // Countdown Logic
-            const delay = parseInt(document.getElementById('timer-select').value);
-            if(delay > 0) {
-                const cdEl = document.getElementById('countdown');
-                cdEl.classList.remove('hidden');
-                for(let i=delay; i>0; i--) {
-                    cdEl.innerText = i;
-                    await new Promise(r => setTimeout(r, 1000));
-                }
-                cdEl.classList.add('hidden');
+        // --- RENDER PIPELINE ---
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        ctx.save();
+        
+        // 1. Handle Mirroring
+        if (state.mirror) {
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+        }
+
+        // 2. APPLY FILTERS (The Magic Step)
+        ctx.filter = getFilterString();
+        
+        // 3. Draw Video Frame
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // 4. Reset Context for Overlays (Text shouldn't be mirrored or blurred)
+        ctx.restore(); 
+
+        // 5. Draw Overlays
+        drawOverlays();
+
+        // 6. Generate & Save
+        const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+        DB.add(dataURL);
+        
+        // 7. Update UI
+        updateGalleryBadge();
+        
+        btn.disabled = false;
+    };
+
+    function drawOverlays() {
+        if (state.text) {
+            const fontSize = Math.floor(canvas.width / 20); // Responsive font
+            ctx.font = `italic bold ${fontSize}px 'Instrument Serif'`;
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0,0,0,0.6)";
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 4;
+            // Position: Bottom center with padding
+            ctx.fillText(state.text, canvas.width / 2, canvas.height - (fontSize));
+        }
+        if (state.sticker) {
+            const size = Math.floor(canvas.width / 6);
+            ctx.font = `${size}px serif`;
+            // Position: Bottom Right
+            ctx.fillText(state.sticker, canvas.width - (size * 1.2), size * 1.2);
+        }
+    }
+
+    // --- 6. UI ACTIONS ---
+    
+    function toggleMirror() {
+        state.mirror = !state.mirror;
+        const btn = document.getElementById('btn-mirror');
+        if(state.mirror) {
+            btn.classList.add('bg-blue-100', 'text-blue-600');
+            btn.classList.remove('text-gray-700');
+        } else {
+            btn.classList.remove('bg-blue-100', 'text-blue-600');
+            btn.classList.add('text-gray-700');
+        }
+        updateLiveFeed();
+    }
+
+    function toggleCountdown() {
+        const states = [0, 3, 5];
+        let idx = states.indexOf(state.timer);
+        idx = (idx + 1) % states.length;
+        state.timer = states[idx];
+        
+        const label = state.timer === 0 ? 'OFF' : state.timer + 's';
+        document.getElementById('timer-display').innerText = label;
+        
+        const btn = document.getElementById('btn-timer');
+        if(state.timer > 0) {
+            btn.classList.add('bg-blue-100', 'text-blue-600');
+        } else {
+            btn.classList.remove('bg-blue-100', 'text-blue-600');
+        }
+    }
+
+    function setPreset(name) {
+        state.preset = name;
+        // Visual Selection
+        document.querySelectorAll('.preset-card').forEach(b => {
+            if(b.dataset.name === name) {
+                b.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+            } else {
+                b.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
             }
-
-            // Flash
-            const flash = document.getElementById('flash');
-            flash.classList.remove('animate-flash');
-            void flash.offsetWidth; // Trigger reflow
-            flash.classList.add('animate-flash');
-
-            // Process Image
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            // Draw Background (White for Polaroids)
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0,0,canvas.width, canvas.height);
-
-            // Calculate Video Dimensions based on Frame
-            let dx = 0, dy = 0, dw = canvas.width, dh = canvas.height;
-            
-            if(activeFrame === 'fr-polaroid') {
-                dx = 40; dy = 40; dw = canvas.width - 80; dh = canvas.height - 200; // Leave space at bottom
-            } else if(activeFrame === 'fr-classic') {
-                dx = 40; dy = 40; dw = canvas.width - 80; dh = canvas.height - 80;
-            } else if (activeFrame === 'fr-film') {
-                dx = 80; dw = canvas.width - 160; // Side bars
-            }
-
-            // Mirror & Filter Context
-            ctx.save();
-            if(isMirrored) {
-                ctx.translate(canvas.width, 0); // Move right
-                ctx.scale(-1, 1); // Flip
-                // Adjust dx for mirrored coordinate system
-                if (activeFrame === 'fr-polaroid' || activeFrame === 'fr-classic' || activeFrame === 'fr-film') {
-                     // Since we flipped, drawing at x=40 goes to the far right. 
-                     // We need to draw at -width + 40? No, standard logic:
-                     // The context is flipped. Drawing at 0,0 draws at top-right.
-                     // Drawing at dx, dy should work relatively if calculated from the new origin.
-                     // Complex. Easier approach: Draw video full, THEN draw frame on top.
-                     // Let's revert specific dx/dy for video drawing for simplicity in this Robust version
-                     // and just draw the frame overlay ON TOP.
-                     dx = 0; dy = 0; dw = canvas.width; dh = canvas.height;
-                }
-            }
-
-            // Apply CSS Filters to Canvas
-            if(activeFilter === 'f-bw') ctx.filter = 'grayscale(100%)';
-            if(activeFilter === 'f-sepia') ctx.filter = 'sepia(100%)';
-            if(activeFilter === 'f-vivid') ctx.filter = 'saturate(200%)';
-            if(activeFilter === 'f-vintage') ctx.filter = 'sepia(40%) contrast(120%)';
-
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            ctx.restore(); // Remove mirror/filter for overlays
-
-            // Draw Overlays (Text/Stickers/Frames)
-            drawOverlays(ctx, canvas.width, canvas.height);
-
-            // Save
-            const url = canvas.toDataURL('image/jpeg', 0.95);
-            DB.add(url);
-            renderGallery();
-            
-            shutterBtn.disabled = false;
         });
+        updateLiveFeed();
+    }
 
-        function drawOverlays(ctx, w, h) {
-            // Frames (Manual Drawing)
-            ctx.lineWidth = 0;
-            if(activeFrame === 'fr-classic') {
-                ctx.strokeStyle = "white"; ctx.lineWidth = 50; ctx.strokeRect(0,0,w,h);
-            }
-            if(activeFrame === 'fr-polaroid') {
-                ctx.fillStyle = "white";
-                ctx.fillRect(0, h-150, w, 150); // Bottom
-                ctx.lineWidth = 40; ctx.strokeStyle="white"; ctx.strokeRect(0,0,w,h);
-            }
-            if(activeFrame === 'fr-film') {
-                ctx.fillStyle = "black";
-                ctx.fillRect(0,0, 60, h); // Left
-                ctx.fillRect(w-60, 0, 60, h); // Right
-            }
+    function resetAdjustments() {
+        document.getElementById('in-brightness').value = 100;
+        document.getElementById('in-contrast').value = 100;
+        document.getElementById('in-saturate').value = 100;
+        document.getElementById('in-sepia').value = 0;
+        document.getElementById('in-blur').value = 0;
+        
+        setPreset('none');
+        updateLiveFeed();
+    }
 
-            // Text
-            if(activeText) {
-                ctx.font = "italic bold 60px serif";
-                ctx.fillStyle = "white";
-                ctx.textAlign = "center";
-                ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 10;
-                ctx.fillText(activeText, w/2, h - 80);
-            }
+    function updateOverlays() {
+        state.text = document.getElementById('in-text').value;
+        const textLayer = document.getElementById('text-layer');
+        textLayer.innerText = state.text;
+        textLayer.classList.toggle('hidden', !state.text);
+    }
 
-            // Sticker
-            if(activeSticker) {
-                ctx.font = "150px serif";
-                ctx.textAlign = "right";
-                ctx.fillText(activeSticker, w - 50, 150);
-            }
-        }
+    function setSticker(val) {
+        state.sticker = val;
+        const layer = document.getElementById('sticker-layer');
+        layer.innerText = val;
+        layer.classList.toggle('hidden', !val);
+    }
 
-        // 5. UI Helpers
-        function toggleMirror() {
-            isMirrored = !isMirrored;
-            video.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
-            document.getElementById('btn-mirror').classList.toggle('text-violet-400', isMirrored);
-        }
+    function switchTab(tabId) {
+        ['adjust', 'filters', 'overlay'].forEach(t => {
+            document.getElementById(`panel-${t}`).classList.add('hidden');
+            document.getElementById(`tab-${t}`).classList.remove('active');
+        });
+        document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
 
-        function applyFilter(cls) {
-            activeFilter = cls;
-            video.className = `w-full h-full object-cover transition-all ${isMirrored ? 'video-mirror' : ''} ${cls}`;
-        }
+    function generateFilterButtons() {
+        const container = document.getElementById('filters-container');
+        // Preset Definitions
+        const presets = [
+            { id: 'none', label: 'Normal', color: '#f3f4f6' },
+            { id: 'bw', label: 'Noir', color: '#1f2937' },
+            { id: 'warm', label: 'Sunset', color: '#fb923c' },
+            { id: 'cool', label: 'Ocean', color: '#60a5fa' },
+            { id: 'vivid', label: 'Punch', color: '#f472b6' },
+            { id: 'cyber', label: 'Cyber', color: '#c084fc' },
+        ];
 
-        function applyFrame(cls) {
-            activeFrame = cls;
-            // Remove existing frame classes
-            video.classList.remove('fr-classic', 'fr-polaroid', 'fr-film');
-            if(cls) video.classList.add(cls);
-        }
-
-        function updateCaption(val) {
-            activeText = val;
-            const el = document.getElementById('text-display');
-            el.innerText = val;
-            el.classList.toggle('hidden', !val);
-        }
-
-        function toggleSticker(emoji) {
-            activeSticker = emoji;
-            const el = document.getElementById('sticker-display');
-            el.innerText = emoji;
-            el.classList.toggle('hidden', !emoji);
-        }
-
-        function switchTab(tab) {
-            // Header
-            document.getElementById('tab-effects').className = tab === 'effects' ? 'flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-active transition-colors' : 'flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-inactive transition-colors';
-            document.getElementById('tab-gallery').className = tab === 'gallery' ? 'flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-active transition-colors' : 'flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-inactive transition-colors';
+        presets.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = `preset-card h-20 rounded-xl flex flex-col items-center justify-center gap-1 shadow-sm transition hover:scale-105 active:scale-95`;
+            btn.style.backgroundColor = p.color;
+            btn.dataset.name = p.id;
             
-            // Content
-            document.getElementById('content-effects').classList.toggle('hidden', tab !== 'effects');
-            document.getElementById('content-gallery').classList.toggle('hidden', tab !== 'gallery');
+            // Text color logic
+            const textColor = (p.id === 'bw' || p.id === 'cyber') ? 'text-white' : 'text-gray-800';
             
-            // Layout Shift for Mobile (Auto-scroll to bottom if gallery selected)
-            if(window.innerWidth < 768 && tab === 'gallery') {
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            }
-        }
+            btn.innerHTML = `<span class="text-xs font-bold uppercase tracking-wider ${textColor}">${p.label}</span>`;
+            if(p.id === 'none') btn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+            
+            btn.onclick = () => setPreset(p.id);
+            container.appendChild(btn);
+        });
+    }
 
-        // 6. Gallery Logic
-        function renderGallery() {
-            const photos = DB.get();
-            const grid = document.getElementById('gallery-grid');
-            const empty = document.getElementById('empty-state');
-            const btn = document.getElementById('btn-download-all');
-            const stat = document.getElementById('stat-count');
-            const badge = document.getElementById('gallery-badge');
-
-            stat.innerText = `📸 ${photos.length}`;
+    // --- 7. GALLERY & DATA ---
+    function updateGalleryBadge() {
+        const photos = DB.getAll();
+        const badge = document.getElementById('gallery-badge');
+        const preview = document.getElementById('last-photo-preview');
+        
+        if (photos.length > 0) {
             badge.innerText = photos.length;
-            badge.classList.toggle('hidden', photos.length === 0);
-
-            grid.innerHTML = '';
-            
-            if(photos.length === 0) {
-                empty.classList.remove('hidden');
-                btn.classList.add('hidden');
-                return;
-            }
-
-            empty.classList.add('hidden');
-            btn.classList.remove('hidden');
-
-            photos.forEach((p, idx) => {
-                const div = document.createElement('div');
-                div.className = 'relative group aspect-square rounded-lg overflow-hidden border border-gray-700 bg-gray-800';
-                div.innerHTML = `
-                    <img src="${p.src}" class="w-full h-full object-cover">
-                    <a href="${p.src}" download="studio-x-${p.id}.jpg" class="absolute bottom-2 right-2 bg-white text-black p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">⬇</a>
-                `;
-                grid.appendChild(div);
-            });
+            badge.classList.remove('hidden');
+            preview.src = photos[0].src;
+            preview.classList.remove('opacity-60');
+        } else {
+            badge.classList.add('hidden');
+            preview.removeAttribute('src');
+            preview.classList.add('opacity-60');
         }
+    }
 
-        function clearGallery() {
-            if(confirm('Delete all photos?')) {
-                DB.clear();
-                renderGallery();
-            }
+    function toggleGallery() {
+        const modal = document.getElementById('gallery-modal');
+        modal.classList.remove('hidden');
+        renderGalleryGrid();
+    }
+    function closeGallery() {
+        document.getElementById('gallery-modal').classList.add('hidden');
+    }
+
+    function renderGalleryGrid() {
+        const photos = DB.getAll();
+        const grid = document.getElementById('gallery-grid');
+        const empty = document.getElementById('empty-state');
+        
+        grid.innerHTML = '';
+        
+        if (photos.length === 0) {
+            empty.classList.remove('hidden');
+            return;
         }
+        empty.classList.add('hidden');
 
-        function downloadAll() {
-            const photos = DB.get();
-            photos.forEach(p => {
-                const a = document.createElement('a');
-                a.href = p.src;
-                a.download = `photo-${p.id}.jpg`;
-                a.click();
-            });
+        photos.forEach((p) => {
+            const div = document.createElement('div');
+            div.className = "relative group aspect-square rounded-2xl overflow-hidden bg-gray-100 shadow-md transition hover:shadow-xl";
+            div.innerHTML = `
+                <img src="${p.src}" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                    <button onclick="downloadPhoto('${p.src}', ${p.id})" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-900 hover:scale-110 transition">⬇</button>
+                    <button onclick="deletePhoto(${p.id})" class="w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition">✕</button>
+                </div>
+            `;
+            grid.appendChild(div);
+        });
+    }
+
+    function downloadPhoto(src, id) {
+        const a = document.createElement('a');
+        a.href = src;
+        a.download = `studio-x-${id}.jpg`;
+        a.click();
+    }
+
+    function downloadAll() {
+        const photos = DB.getAll();
+        if(photos.length === 0) return;
+        
+        // Basic delay loop to prevent browser blocking
+        photos.forEach((p, i) => {
+            setTimeout(() => {
+                downloadPhoto(p.src, p.id);
+            }, i * 300);
+        });
+    }
+
+    function deletePhoto(id) {
+        if(confirm("Delete this photo?")) {
+            DB.remove(id);
+            renderGalleryGrid();
+            updateGalleryBadge();
         }
+    }
 
-        // On Load
-        window.onload = initCamera;
+    // Start
+    window.onload = init;
 
-    </script>
+</script>
 </body>
 </html>

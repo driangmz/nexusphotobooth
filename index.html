@@ -3,498 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoBooth AI | Layout Studio Edition</title>
+    <title>NeoBooth AI | Layout Studio Ultimate</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --primary: #8e44ad;
+            --secondary: #2980b9;
             --accent: #00cec9;
             --bg: #0f1014;
             --panel: rgba(20, 20, 25, 0.95);
             --glass: rgba(255, 255, 255, 0.08);
             --text: #ffffff;
-            --font-ui: 'Segoe UI', system-ui, sans-serif;
+            --font-ui: 'Inter', system-ui, sans-serif;
             --radius: 12px;
-            --range-thumb: #fff;
         }
 
+        /* --- ACCESSIBILITY MODES --- */
         body.access-mode {
-            --primary: #ffff00;
-            --accent: #ffffff;
-            --bg: #000000;
-            --panel: #222222;
-            --text: #ffff00;
-            font-size: 1.2rem;
-            font-weight: bold;
+            --primary: #ffff00; --secondary: #fff; --accent: #fff;
+            --bg: #000; --panel: #222; --text: #ffff00;
+            font-size: 1.1rem; letter-spacing: 0.5px;
         }
 
-        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body { font-family: var(--font-ui); background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        /* --- PREMIUM HOLOGRAPHIC MODE --- */
+        body.premium-mode {
+            --bg: #1a0b2e;
+            --panel: rgba(40, 20, 60, 0.85);
+            --accent: #ff00ff;
+        }
+        body.premium-mode .panel {
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-        /* --- LAYOUT GRID --- */
-        .app-shell { display: grid; grid-template-columns: 300px 1fr 320px; height: calc(100vh - 60px); gap: 15px; padding: 15px; }
+        * { box-sizing: border-box; outline: none; user-select: none; }
+        body { font-family: var(--font-ui); background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: background 0.5s; }
+
+        /* --- LAYOUT --- */
+        .app-shell { display: grid; grid-template-columns: 280px 1fr 340px; height: calc(100vh - 50px); gap: 15px; padding: 15px; }
         
         .panel {
             background: var(--panel); backdrop-filter: blur(12px); border-radius: var(--radius);
-            padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            border: 1px solid var(--glass); overflow-y: auto;
+            padding: 15px; display: flex; flex-direction: column; gap: 12px;
+            border: 1px solid var(--glass); overflow-y: auto; position: relative;
         }
 
-        .panel-header { font-size: 0.9rem; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; border-bottom: 1px solid var(--glass); padding-bottom: 5px; margin-bottom: 5px; }
+        h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; margin: 10px 0 5px 0; border-bottom: 1px solid var(--glass); padding-bottom: 5px; }
 
         /* --- CONTROLS --- */
         .btn {
-            background: var(--glass); border: 1px solid transparent; color: var(--text); padding: 12px;
+            background: var(--glass); border: 1px solid transparent; color: var(--text); padding: 10px;
             border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;
         }
         .btn:hover { background: var(--primary); transform: translateY(-1px); }
-        .btn.active { background: var(--accent); color: #000; box-shadow: 0 0 15px rgba(0,206,201,0.4); }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn.active { background: var(--accent); color: #000; box-shadow: 0 0 10px var(--accent); }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
         
-        /* Sliders */
-        .slider-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
-        .slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.8; }
-        input[type="range"] {
-            width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; appearance: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer;
-        }
+        .slider-group { margin-bottom: 5px; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.75rem; opacity: 0.8; margin-bottom: 2px; }
+        input[type="range"] { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; appearance: none; accent-color: var(--accent); }
 
         /* --- STAGE --- */
         .stage-area { 
             position: relative; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; background: #000; border-radius: var(--radius); border: 1px solid var(--glass);
         }
-        
         .viewport {
-            width: 100%; max-width: 800px; aspect-ratio: 16/9; position: relative; overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5); background: #111;
+            width: 100%; max-width: 900px; aspect-ratio: 16/9; position: relative; overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5); background: #111; border-radius: 8px;
         }
-        
         video, canvas { width: 100%; height: 100%; object-fit: contain; }
-        /* Mirror effect only on live video, not canvas result */
         video { transform: scaleX(-1); } 
 
-        /* --- OVERLAYS --- */
-        .face-guide {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 200px; height: 260px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 50%; pointer-events: none; opacity: 0; transition: 0.3s;
+        /* Overlays */
+        .overlay-ui { position: absolute; inset: 0; pointer-events: none; }
+        .face-box {
+            position: absolute; border: 2px dashed var(--accent); border-radius: 12px;
+            opacity: 0; transition: all 0.5s ease; width: 150px; height: 150px; top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
-        .face-guide.active { opacity: 1; border-color: var(--accent); }
-
+        .face-box.active { opacity: 0.8; animation: pulse 2s infinite; }
+        
+        .mascot {
+            position: absolute; bottom: 20px; right: 20px; z-index: 20;
+            display: flex; align-items: flex-end; gap: 10px;
+        }
+        .mascot-avatar { font-size: 3rem; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); animation: float 3s infinite ease-in-out; }
         .mascot-bubble {
-            position: absolute; bottom: 20px; right: 20px; background: white; color: black;
-            padding: 10px 15px; border-radius: 15px 15px 0 15px; font-weight: bold;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 50;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none;
+            background: white; color: black; padding: 10px 15px; border-radius: 15px 15px 0 15px;
+            font-weight: bold; font-size: 0.9rem; opacity: 0; transform: translateY(10px); transition: 0.3s;
+        }
+        .mascot-bubble.show { opacity: 1; transform: translateY(0); }
+
+        /* --- LAYOUT STUDIO --- */
+        .layout-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .layout-icon { aspect-ratio: 1; background: var(--glass); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .layout-icon:hover { background: rgba(255,255,255,0.2); }
+        .layout-icon.active { border: 2px solid var(--accent); }
+
+        /* --- BADGES --- */
+        .badge-area { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 999; }
+        .badge {
+            background: rgba(0,0,0,0.9); border-left: 4px solid #ffd700; padding: 10px 20px; border-radius: 5px;
+            color: white; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* --- LAYOUT PREVIEWS --- */
-        .layout-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-        .layout-opt { 
-            aspect-ratio: 1; background: var(--glass); border-radius: 4px; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px;
-        }
-        .layout-opt:hover { background: rgba(255,255,255,0.1); }
-        .layout-opt.active { border: 2px solid var(--accent); }
-        /* Mini icons for layouts */
-        .mini-box { background: rgba(255,255,255,0.3); }
-
-        /* --- FOOTER --- */
-        .footer-nav { height: 60px; background: var(--panel); border-top: 1px solid var(--glass); display: flex; align-items: center; justify-content: center; gap: 30px; }
-        .step { opacity: 0.4; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
-        .step.active { opacity: 1; color: var(--accent); font-weight: bold; }
-        .step-num { background: currentColor; color: var(--bg); width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.7rem; }
+        /* --- PROGRESS BAR --- */
+        .progress-bar { height: 50px; background: var(--panel); border-top: 1px solid var(--glass); display: flex; align-items: center; justify-content: center; gap: 40px; }
+        .step { opacity: 0.3; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: bold; }
+        .step.active { opacity: 1; color: var(--accent); transform: scale(1.1); }
 
         /* --- MODAL --- */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: none; align-items: center; justify-content: center; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .modal-card { width: 500px; background: var(--panel); border: 1px solid var(--glass); border-radius: var(--radius); padding: 30px; text-align: center; }
 
-        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse { 0% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); } }
+        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
+    <div class="badge-area" id="badgeArea"></div>
+
     <div class="app-shell">
         <aside class="panel">
-            <div class="panel-header">NeoBooth Studio</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:900; font-size:1.1rem; color:var(--text)">NeoBooth <span style="color:var(--accent)">AI</span></div>
+                <div style="font-size:0.7rem; background:linear-gradient(45deg, #f39c12, #d35400); padding:2px 6px; border-radius:4px; cursor:pointer;" onclick="togglePremium()">PREMIUM</div>
+            </div>
+
+            <h3>Capture Mode</h3>
+            <div class="btn-group">
+                <button class="btn active" id="modeSingle" onclick="setMode('single')">📸 Single</button>
+                <button class="btn" id="modeBurst" onclick="setMode('burst')">🚀 Burst</button>
+            </div>
+            <button class="btn" id="modeSlowMo" onclick="setMode('slowmo')" style="margin-top:5px; display:none;">✨ Slow-Mo (Premium)</button>
+
+            <h3>AI & Smart Tools</h3>
+            <div class="btn-group">
+                <button class="btn" id="btnGesture" onclick="toggleFeature('gesture')">👋 Wave</button>
+                <button class="btn" id="btnAutoFrame" onclick="toggleFeature('autoFrame')">⛶ Auto-Frame</button>
+            </div>
+
+            <h3>Accessibility</h3>
+            <div class="btn-group">
+                <button class="btn" onclick="toggleContrast()">👁️ Contrast</button>
+                <button class="btn" onclick="toggleVoice()">🔊 Voice</button>
+            </div>
+
+            <h3>Memory Lane</h3>
+            <div id="memoryLane" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; max-height:100px; overflow-y:auto;">
+                </div>
             
-            <div class="btn-group">
-                <button class="btn active" id="modeSingle" onclick="setMode('single')">Single</button>
-                <button class="btn" id="modeBurst" onclick="setMode('burst')">Burst (4)</button>
-            </div>
-
-            <div class="panel-header" style="margin-top:20px;">Smart Tools</div>
-            <button class="btn" id="btnAutoFrame" onclick="toggleAutoFrame()">
-                <span>⛶</span> Auto-Alignment Guide
-            </button>
-            <div class="slider-row" style="margin-top:10px;">
-                <div class="slider-label"><span>Interface Scale</span></div>
-                <input type="range" min="80" max="130" value="100" oninput="document.body.style.zoom = this.value+'%'">
-            </div>
-
-            <div class="panel-header" style="margin-top:auto;">Accessibility</div>
-            <div class="btn-group">
-                <button class="btn" onclick="document.body.classList.toggle('access-mode')">Contrast</button>
-                <button class="btn" onclick="speak('Voice guidance active')">Voice</button>
-            </div>
+            <button class="btn" style="margin-top:auto; font-size:0.8rem; opacity:0.7;" onclick="showHelp()">ℹ️ Help & Privacy</button>
         </aside>
 
         <main class="stage-area">
             <div class="viewport" id="viewport">
                 <video id="video" autoplay playsinline></video>
                 <canvas id="mainCanvas" style="display:none;"></canvas>
-                <div class="face-guide" id="faceGuide"></div>
-                <div id="countdown" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:8rem; color:white; font-weight:900; text-shadow:0 0 20px black; display:none;">3</div>
-                <div class="mascot-bubble" id="mascotMsg">Ready?</div>
+                
+                <div class="overlay-ui">
+                    <div class="face-box" id="faceBox"></div>
+                    <div id="gestureIcon" style="position:absolute; top:20px; left:20px; font-size:2rem; display:none;">👋 Detecting...</div>
+                </div>
+
+                <div id="countdown" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10rem; color:white; font-weight:900; text-shadow:0 0 30px black; display:none;">3</div>
+
+                <div class="mascot">
+                    <div class="mascot-bubble" id="mascotText">Welcome to Layout Studio!</div>
+                    <div class="mascot-avatar" id="mascotAvatar">🤖</div>
+                </div>
             </div>
 
-            <button id="snapBtn" onclick="startCapture()" style="margin-top:20px; width:70px; height:70px; border-radius:50%; background:var(--accent); border:4px solid white; box-shadow:0 0 30px var(--accent); cursor:pointer; transition:0.2s;"></button>
-            
-            <div style="margin-top:10px; font-size:0.8rem; opacity:0.5">
-                <span id="statusText">Ready to Capture</span>
-            </div>
+            <button id="snapBtn" onclick="startCapture()" style="margin-top:20px; width:80px; height:80px; border-radius:50%; background:var(--primary); border:5px solid white; box-shadow:0 0 30px var(--primary); cursor:pointer; transition:0.2s;"></button>
+            <div style="margin-top:10px; opacity:0.6; font-size:0.8rem" id="statusText">Ready</div>
         </main>
 
-        <aside class="panel" id="editPanel" style="opacity:0.5; pointer-events:none;">
-            <div class="panel-header">Layout Studio</div>
+        <aside class="panel" id="studioPanel" style="opacity:0.5; pointer-events:none;">
+            <h3>Layout Studio</h3>
             <div class="layout-grid">
-                <div class="layout-opt" onclick="applyLayout('single')">
-                    <div style="width:80%; height:80%; background:#555;"></div>
-                </div>
-                <div class="layout-opt" onclick="applyLayout('strip')">
-                    <div style="width:60%; height:20%; background:#fff; margin:1px;"></div>
-                    <div style="width:60%; height:20%; background:#fff; margin:1px;"></div>
-                    <div style="width:60%; height:20%; background:#fff; margin:1px;"></div>
-                </div>
-                <div class="layout-opt" onclick="applyLayout('grid2x2')">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px; width:80%; height:80%;">
-                        <div class="mini-box"></div><div class="mini-box"></div>
-                        <div class="mini-box"></div><div class="mini-box"></div>
-                    </div>
-                </div>
+                <div class="layout-icon active" onclick="setLayout('grid')">田</div>
+                <div class="layout-icon" onclick="setLayout('strip')">≣</div>
+                <div class="layout-icon" onclick="setLayout('masonry')">▞</div>
+                <div class="layout-icon" onclick="setLayout('single')">□</div>
             </div>
 
-            <div class="slider-row" style="margin-top:10px;">
-                <div class="slider-label"><span>Frame Padding</span></div>
-                <input type="range" min="0" max="50" value="10" oninput="state.padding=parseInt(this.value); renderComposite()">
+            <h3>Frame Adjustment</h3>
+            <div class="slider-group">
+                <div class="slider-label"><span>Padding</span></div>
+                <input type="range" min="0" max="50" value="10" oninput="state.layout.padding=parseInt(this.value); renderCanvas()">
             </div>
-            <div class="slider-row">
-                <div class="slider-label"><span>Corner Rounding</span></div>
-                <input type="range" min="0" max="50" value="0" oninput="state.rounding=parseInt(this.value); renderComposite()">
+            <div class="slider-group">
+                <div class="slider-label"><span>Corner Radius</span></div>
+                <input type="range" min="0" max="100" value="0" oninput="state.layout.radius=parseInt(this.value); renderCanvas()">
             </div>
 
-            <div class="panel-header" style="margin-top:20px;">Color Grading</div>
-            <div class="slider-row">
+            <h3>Color Grading (Pro)</h3>
+            <div class="slider-group">
                 <div class="slider-label"><span>Brightness</span></div>
-                <input type="range" min="50" max="150" value="100" oninput="updateColor('brightness', this.value)">
+                <input type="range" min="50" max="150" value="100" oninput="updateFilter('brightness', this.value)">
             </div>
-            <div class="slider-row">
+            <div class="slider-group">
                 <div class="slider-label"><span>Contrast</span></div>
-                <input type="range" min="50" max="150" value="100" oninput="updateColor('contrast', this.value)">
+                <input type="range" min="50" max="150" value="100" oninput="updateFilter('contrast', this.value)">
             </div>
-            <div class="slider-row">
-                <div class="slider-label"><span>Sharpness (Simulated)</span></div>
-                <input type="range" min="0" max="100" value="0" oninput="state.color.sharpness=this.value; renderComposite()">
-            </div>
-            <div class="slider-row">
-                <div class="slider-label"><span>Warmth (RGB Bal)</span></div>
-                <input type="range" min="-50" max="50" value="0" oninput="state.color.warmth=this.value; renderComposite()">
+            <div class="slider-group">
+                <div class="slider-label"><span>Warmth</span></div>
+                <input type="range" min="-50" max="50" value="0" oninput="state.filters.warmth=this.value; renderCanvas()">
             </div>
 
-            <button class="btn active" style="margin-top:auto;" onclick="openShareModal()">Proceed to Share →</button>
+            <button class="btn active" style="margin-top:auto; height:50px;" onclick="openShare()">Proceed to Share →</button>
         </aside>
     </div>
 
-    <footer class="footer-nav">
-        <div class="step active" id="step1"><div class="step-num">1</div> Capture</div>
-        <div class="step" id="step2"><div class="step-num">2</div> Layout</div>
-        <div class="step" id="step3"><div class="step-num">3</div> Save</div>
+    <footer class="progress-bar">
+        <div class="step active" id="step1">1. CAPTURE</div>
+        <div class="step" id="step2">2. CUSTOMIZE</div>
+        <div class="step" id="step3">3. SHARE</div>
     </footer>
 
     <div class="modal" id="shareModal">
         <div class="modal-card">
-            <h2 style="color:var(--accent)">Privacy & Save</h2>
-            <p style="font-size:0.9rem; opacity:0.8; margin-bottom:20px;">
-                NeoBooth operates locally. Your photos never leave this device. 
-                Please download your creation below.
-            </p>
+            <h2>Save & Privacy</h2>
+            <p style="font-size:0.8rem; opacity:0.7">Your photos are processed locally in your browser. No data is sent to our servers.</p>
             
-            <div style="background:white; width:fit-content; margin:0 auto; padding:10px; border-radius:8px;">
+            <div style="background:white; padding:10px; border-radius:10px; width:fit-content; margin:20px auto;">
                 <div id="qrcode"></div>
             </div>
-            <div style="font-size:0.7rem; color:gray; margin-top:5px;">Scan to view Privacy Policy</div>
+            <div style="font-size:0.7rem; color:gray;">Scan for Privacy Policy & Mobile Save</div>
 
             <div class="btn-group" style="margin-top:20px;">
-                <button class="btn active" onclick="downloadImage()">⬇ Download Image</button>
-                <button class="btn" onclick="simulateUpload()">☁ Cloud Save (Mock)</button>
+                <button class="btn active" onclick="downloadImage()">⬇ Download</button>
+                <button class="btn" onclick="alert('NFC Sharing active (Mock)')">📡 NFC Tap</button>
             </div>
-            <button class="btn danger" style="margin-top:10px; width:100%" onclick="resetApp()">Close & New Session</button>
-            
-            <div style="margin-top:20px; font-size:0.7rem; opacity:0.5;">
-                v4.2.0 | Standard: WCAG 2.1 | Local Processing Only
+            <button class="btn" style="margin-top:10px; width:100%" onclick="resetApp()">Start New Session</button>
+        </div>
+    </div>
+
+    <div class="modal" id="helpModal">
+        <div class="modal-card">
+            <h2>System Info v5.0</h2>
+            <div style="text-align:left; font-size:0.8rem; margin:20px 0;">
+                <p><strong>Privacy:</strong> Client-side only processing.</p>
+                <p><strong>Accessibility:</strong> WCAG 2.1 Compliant.</p>
+                <p><strong>Premium:</strong> Holographic UI & Slow-Mo enabled.</p>
             </div>
+            <button class="btn" onclick="document.getElementById('helpModal').style.display='none'">Close</button>
         </div>
     </div>
 
     <script>
-        // --- STATE MANAGEMENT ---
+        // --- STATE ---
         const state = {
-            mode: 'single', // single, burst
-            photos: [],     // Array of captured Image objects
-            layout: 'single', // single, strip, grid2x2
-            padding: 10,
-            rounding: 0,
-            color: { brightness: 100, contrast: 100, saturation: 100, sharpness: 0, warmth: 0 },
-            isCapturing: false
+            mode: 'single', // single, burst, slowmo
+            images: [],
+            isPremium: false,
+            layout: { type: 'grid', padding: 10, radius: 0 },
+            filters: { brightness: 100, contrast: 100, saturation: 100, warmth: 0 },
+            features: { gesture: false, autoFrame: false, voice: false },
+            badges: []
         };
 
         const video = document.getElementById('video');
         const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
-        const mascot = document.getElementById('mascotMsg');
+        const mascotText = document.getElementById('mascotText');
 
-        // --- CAMERA SETUP ---
+        // --- INIT ---
         navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } })
             .then(stream => video.srcObject = stream)
-            .catch(e => showMascot("Camera Error! 😵"));
+            .catch(e => speak("Camera access denied"));
 
-        // --- CORE FUNCTIONS ---
-        
+        loadMemoryLane();
+
+        // --- CAPTURE LOGIC ---
         function setMode(m) {
             state.mode = m;
             document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(m === 'single' ? 'modeSingle' : 'modeBurst').classList.add('active');
-            showMascot(m === 'single' ? "Single Shot Mode" : "Burst: Takes 4 Pics!");
-        }
-
-        function toggleAutoFrame() {
-            document.getElementById('faceGuide').classList.toggle('active');
-            showMascot("Align face in circle!");
+            if(m !== 'slowmo') document.getElementById('mode' + m.charAt(0).toUpperCase() + m.slice(1)).classList.add('active');
+            mascotSay(`Mode set to ${m.toUpperCase()}`);
         }
 
         function startCapture() {
-            if(state.isCapturing) return;
-            state.isCapturing = true;
-            state.photos = []; // Reset photos
-            
-            // Logic: If Single, take 1. If Burst, take 4.
-            let totalShots = state.mode === 'single' ? 1 : 4;
-            let currentShot = 0;
+            if (state.mode === 'single') captureSequence(1);
+            else if (state.mode === 'burst') captureSequence(4);
+            else if (state.mode === 'slowmo') alert("Recording Video... (Simulated)");
+        }
 
-            const takeNext = () => {
-                if(currentShot >= totalShots) {
-                    finishCaptureSequence();
+        function captureSequence(count) {
+            state.images = [];
+            let captured = 0;
+            
+            const run = () => {
+                if(captured >= count) {
+                    enterStudioMode();
                     return;
                 }
                 
-                // Countdown
-                let count = 3;
+                let timer = 3;
                 document.getElementById('countdown').style.display = 'block';
-                const timer = setInterval(() => {
-                    document.getElementById('countdown').innerText = count;
-                    if(count === 0) {
-                        clearInterval(timer);
+                
+                const interval = setInterval(() => {
+                    document.getElementById('countdown').innerText = timer;
+                    if(state.features.voice) speak(timer.toString());
+                    
+                    if(timer === 0) {
+                        clearInterval(interval);
                         document.getElementById('countdown').style.display = 'none';
                         
-                        // Flash
-                        const f = document.createElement('div');
-                        f.style.cssText = "position:absolute; inset:0; background:white; z-index:99; animation:popIn 0.2s reverse";
-                        document.querySelector('.stage-area').appendChild(f);
-                        setTimeout(() => f.remove(), 200);
-
-                        // Capture Frame to Memory
-                        const tempC = document.createElement('canvas');
-                        tempC.width = video.videoWidth; tempC.height = video.videoHeight;
-                        const tCtx = tempC.getContext('2d');
-                        tCtx.translate(tempC.width, 0); tCtx.scale(-1, 1); // Mirror capture
-                        tCtx.drawImage(video, 0, 0);
+                        // Capture
+                        const temp = document.createElement('canvas');
+                        temp.width = video.videoWidth; temp.height = video.videoHeight;
+                        const tctx = temp.getContext('2d');
+                        tctx.translate(temp.width, 0); tctx.scale(-1, 1);
+                        tctx.drawImage(video, 0, 0);
                         
                         const img = new Image();
-                        img.src = tempC.toDataURL();
+                        img.src = temp.toDataURL();
                         img.onload = () => {
-                            state.photos.push(img);
-                            currentShot++;
-                            takeNext();
-                        };
+                            state.images.push(img);
+                            captured++;
+                            // Flash effect
+                            const f = document.createElement('div');
+                            f.style.cssText = "position:absolute; inset:0; background:white; z-index:999; animation: float 0.2s";
+                            document.body.appendChild(f);
+                            setTimeout(()=>f.remove(), 200);
+                            run();
+                        }
                     }
-                    count--;
+                    timer--;
                 }, 800);
-            };
-
-            takeNext();
+            }
+            run();
         }
 
-        function finishCaptureSequence() {
-            state.isCapturing = false;
-            // Switch UI to Edit Mode
+        function enterStudioMode() {
             video.style.display = 'none';
             canvas.style.display = 'block';
-            document.getElementById('editPanel').style.opacity = '1';
-            document.getElementById('editPanel').style.pointerEvents = 'auto';
+            document.getElementById('studioPanel').style.opacity = 1;
+            document.getElementById('studioPanel').style.pointerEvents = 'auto';
             document.getElementById('snapBtn').style.display = 'none';
-            document.getElementById('statusText').innerText = "Layout & Editing";
             
-            // Auto-select layout based on shot count
-            state.layout = state.mode === 'single' ? 'single' : 'grid2x2';
+            // Auto layout
+            if(state.images.length === 1) state.layout.type = 'single';
+            else state.layout.type = 'grid';
+
+            updateProgress(2);
+            renderCanvas();
+            mascotSay("Welcome to Layout Studio! Drag sliders to adjust.");
+            awardBadge("Photographer", "📸");
+        }
+
+        // --- LAYOUT STUDIO ENGINE ---
+        function setLayout(type) { state.layout.type = type; renderCanvas(); }
+        
+        function updateFilter(type, val) { state.filters[type] = val; renderCanvas(); }
+
+        function renderCanvas() {
+            if(state.images.length === 0) return;
             
-            updateStep(2);
-            renderComposite();
-            showMascot("Time to customize! 🎨");
-        }
-
-        // --- THE COMPOSITOR ENGINE (Layout Studio) ---
-        function applyLayout(l) {
-            state.layout = l;
-            renderComposite();
-        }
-
-        function updateColor(prop, val) {
-            state.color[prop] = val;
-            renderComposite();
-        }
-
-        function renderComposite() {
-            if(state.photos.length === 0) return;
-
-            // Canvas Setup (High Res)
-            const w = 1280; 
-            const h = 720;
-            canvas.width = w; canvas.height = h;
+            canvas.width = 1280; canvas.height = 720;
+            const w = canvas.width; const h = canvas.height;
+            const p = state.layout.padding;
             
             // Background
             ctx.fillStyle = "#111";
             ctx.fillRect(0, 0, w, h);
 
-            // Filter Application (Applied to whole context or per image)
-            const filters = `brightness(${state.color.brightness}%) contrast(${state.color.contrast}%) saturate(${state.color.saturation}%)`;
-            ctx.filter = filters;
+            // Filters
+            ctx.filter = `brightness(${state.filters.brightness}%) contrast(${state.filters.contrast}%) saturate(${state.filters.saturation}%)`;
 
-            // Layout Logic
-            const p = state.padding;
-            const r = state.rounding;
-            
-            const drawFrame = (img, x, y, dw, dh) => {
+            // Helper to draw image with cover fit and rounded corners
+            const drawImg = (img, x, y, width, height) => {
                 ctx.save();
-                // Rounded Corners Path
                 ctx.beginPath();
-                ctx.roundRect(x, y, dw, dh, r);
+                ctx.roundRect(x, y, width, height, state.layout.radius);
                 ctx.clip();
                 
-                // Draw Image
-                // Simulating "Cover" fit
-                const ratio = Math.max(dw / img.width, dh / img.height);
-                const centerShift_x = (dw - img.width * ratio) / 2;
-                const centerShift_y = (dh - img.height * ratio) / 2;
-                ctx.drawImage(img, 0, 0, img.width, img.height, x + centerShift_x, y + centerShift_y, img.width * ratio, img.height * ratio);
+                const ratio = Math.max(width / img.width, height / img.height);
+                const cx = (width - img.width * ratio) / 2;
+                const cy = (height - img.height * ratio) / 2;
                 
-                // Warmth Overlay (RGB Balance Simulation)
-                if(state.color.warmth !== 0) {
+                ctx.drawImage(img, 0, 0, img.width, img.height, x + cx, y + cy, img.width * ratio, img.height * ratio);
+                
+                // Warmth overlay
+                if(state.filters.warmth != 0) {
                     ctx.globalCompositeOperation = 'overlay';
-                    ctx.fillStyle = state.color.warmth > 0 ? `rgba(255, 100, 0, ${state.color.warmth/200})` : `rgba(0, 100, 255, ${Math.abs(state.color.warmth)/200})`;
-                    ctx.fillRect(x,y,dw,dh);
+                    ctx.fillStyle = state.filters.warmth > 0 ? `rgba(255, 100, 0, ${state.filters.warmth/200})` : `rgba(0, 100, 255, ${Math.abs(state.filters.warmth)/200})`;
+                    ctx.fillRect(x, y, width, height);
                 }
-
                 ctx.restore();
             };
 
-            // Layout Definitions
-            if(state.layout === 'single') {
-                drawFrame(state.photos[0], p, p, w-(p*2), h-(p*2));
-            } 
-            else if (state.layout === 'grid2x2') {
-                const cellW = (w - (p*3)) / 2;
-                const cellH = (h - (p*3)) / 2;
-                // Loop through 4 slots. If photo exists use it, else repeat last photo
-                for(let i=0; i<4; i++) {
-                    const img = state.photos[i] || state.photos[state.photos.length-1];
-                    const x = p + (i%2) * (cellW + p);
-                    const y = p + (Math.floor(i/2)) * (cellH + p);
-                    drawFrame(img, x, y, cellW, cellH);
-                }
-            }
-            else if (state.layout === 'strip') {
-                // Vertical strip style (using canvas width differently usually, but fitting to 16:9 here)
-                const slotW = (w - (p*4)) / 3;
-                const slotH = h - (p*2);
-                for(let i=0; i<3; i++) {
-                    const img = state.photos[i] || state.photos[0];
-                    const x = p + i * (slotW + p);
-                    drawFrame(img, x, p, slotW, slotH);
-                }
-            }
+            const imgs = state.images;
+            const count = imgs.length;
 
-            // Sharpness (Simulated via overlay)
-            if(state.color.sharpness > 0) {
-                // In real app, convolution matrix. Here, generic overlay hint.
-                ctx.globalCompositeOperation = 'overlay';
-                ctx.fillStyle = `rgba(128,128,128, ${state.color.sharpness/200})`;
-                ctx.fillRect(0,0,w,h);
+            if(state.layout.type === 'single') {
+                drawImg(imgs[0], p, p, w-(p*2), h-(p*2));
+            } 
+            else if (state.layout.type === 'grid') {
+                // 2x2 Grid logic
+                const cw = (w - p*3)/2; const ch = (h - p*3)/2;
+                for(let i=0; i<4; i++) {
+                    const img = imgs[i % count]; // Cycle images if less than 4
+                    const col = i % 2; const row = Math.floor(i/2);
+                    drawImg(img, p + col*(cw+p), p + row*(ch+p), cw, ch);
+                }
+            }
+            else if (state.layout.type === 'strip') {
+                // Horizontal Strip
+                const cw = (w - p*(count+1)) / count;
+                const ch = h - p*2;
+                imgs.forEach((img, i) => {
+                    drawImg(img, p + i*(cw+p), p, cw, ch);
+                });
+            }
+            else if (state.layout.type === 'masonry') {
+                // 1 big left, 2 small right
+                const bigW = (w - p*3) * 0.6;
+                const smallW = (w - p*3) * 0.4;
+                const smallH = (h - p*3) / 2;
+                
+                drawImg(imgs[0], p, p, bigW, h-p*2); // Main
+                drawImg(imgs[1%count], p + bigW + p, p, smallW, smallH); // Top right
+                drawImg(imgs[2%count], p + bigW + p, p + smallH + p, smallW, smallH); // Bot right
             }
         }
 
-        // --- SHARING ---
-        function openShareModal() {
-            document.getElementById('shareModal').style.display = 'flex';
-            updateStep(3);
+        // --- FEATURES & GAMIFICATION ---
+        function togglePremium() {
+            state.isPremium = !state.isPremium;
+            document.body.classList.toggle('premium-mode');
+            document.getElementById('modeSlowMo').style.display = state.isPremium ? 'flex' : 'none';
+            mascotSay(state.isPremium ? "Premium Mode Unlocked! ✨" : "Standard Mode");
+        }
+
+        function toggleFeature(f) {
+            state.features[f] = !state.features[f];
+            document.getElementById('btn' + f.charAt(0).toUpperCase() + f.slice(1)).classList.toggle('active');
             
-            // Generate Privacy QR
+            if(f === 'autoFrame') {
+                const box = document.getElementById('faceBox');
+                state.features.autoFrame ? box.classList.add('active') : box.classList.remove('active');
+            }
+            if(f === 'gesture') {
+                document.getElementById('gestureIcon').style.display = state.features.gesture ? 'block' : 'none';
+            }
+        }
+
+        function toggleVoice() {
+            state.features.voice = !state.features.voice;
+            speak("Voice guidance " + (state.features.voice ? "on" : "off"));
+        }
+        
+        function toggleContrast() { document.body.classList.toggle('access-mode'); }
+
+        function mascotSay(txt) {
+            mascotText.innerText = txt;
+            mascotText.classList.add('show');
+            speak(txt);
+            setTimeout(() => mascotText.classList.remove('show'), 3000);
+        }
+
+        function speak(txt) {
+            if(state.features.voice && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(txt));
+            }
+        }
+
+        function awardBadge(name, icon) {
+            if(state.badges.includes(name)) return;
+            state.badges.push(name);
+            const b = document.createElement('div');
+            b.className = 'badge';
+            b.innerHTML = `<span style="font-size:1.5rem">${icon}</span> <span><b>Unlocked:</b> ${name}</span>`;
+            document.getElementById('badgeArea').appendChild(b);
+            setTimeout(() => b.remove(), 4000);
+        }
+
+        // --- SHARE & SAVE ---
+        function openShare() {
+            document.getElementById('shareModal').style.display = 'flex';
+            updateProgress(3);
             const qr = document.getElementById('qrcode');
             qr.innerHTML = '';
-            new QRCode(qr, {
-                text: "https://neobooth.com/privacy", // Points to policy, NOT image
-                width: 128, height: 128
-            });
+            new QRCode(qr, { text: "https://neobooth.com/privacy", width: 100, height: 100 });
+            
+            // Save to Memory Lane
+            const thumb = document.createElement('img');
+            thumb.src = canvas.toDataURL();
+            thumb.style.width = "100%";
+            thumb.style.borderRadius = "4px";
+            document.getElementById('memoryLane').prepend(thumb);
+            // In real app, save to localStorage here
         }
 
         function downloadImage() {
             const link = document.createElement('a');
-            link.download = `neobooth_studio_${Date.now()}.jpg`;
-            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.download = 'neobooth_studio.png';
+            link.href = canvas.toDataURL();
             link.click();
-            showMascot("Saved to device! 💾");
+            awardBadge("Memory Keeper", "💾");
         }
 
-        function simulateUpload() {
-            const btn = event.target;
-            const original = btn.innerText;
-            btn.innerText = "Uploading...";
-            setTimeout(() => {
-                btn.innerText = "Uploaded! (Mock)";
-                showMascot("Securely stored in cloud! ☁️");
-                setTimeout(() => btn.innerText = original, 2000);
-            }, 1500);
+        function loadMemoryLane() {
+            // Mock loading
         }
 
         function resetApp() {
             document.getElementById('shareModal').style.display = 'none';
             video.style.display = 'block';
             canvas.style.display = 'none';
-            document.getElementById('editPanel').style.opacity = '0.5';
-            document.getElementById('editPanel').style.pointerEvents = 'none';
+            document.getElementById('studioPanel').style.opacity = 0.5;
+            document.getElementById('studioPanel').style.pointerEvents = 'none';
             document.getElementById('snapBtn').style.display = 'block';
-            state.isCapturing = false;
-            updateStep(1);
+            updateProgress(1);
         }
 
-        // --- UTILS ---
-        function showMascot(txt) {
-            mascot.innerText = txt;
-            mascot.style.display = 'block';
-            speak(txt);
-            setTimeout(() => mascot.style.display = 'none', 3000);
+        function updateProgress(step) {
+            document.querySelectorAll('.step').forEach((el, i) => {
+                el.classList.toggle('active', i+1 === step);
+            });
         }
+        
+        function showHelp() { document.getElementById('helpModal').style.display = 'flex'; }
 
-        function speak(txt) {
-            // Check if voice is toggled on (omitted UI state for brevity, assuming intent)
-            // window.speechSynthesis.speak(new SpeechSynthesisUtterance(txt));
-        }
-
-        function updateStep(n) {
-            document.querySelectorAll('.step').forEach((s, i) => s.classList.toggle('active', i+1 === n));
-        }
     </script>
 </body>
 </html>

@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StudioOS Ultra - Production Build v3.0</title>
+    <title>StudioOS Ultra v4.0 - Reference Build</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script>
@@ -20,21 +20,20 @@
                         display: ['Space Grotesk', 'sans-serif'],
                     },
                     colors: {
-                        studio: {
-                            bg: '#050505',
-                            panel: '#111111',
-                            border: '#222222',
-                            accent: '#3b82f6',
-                            danger: '#ef4444',
-                            success: '#22c55e',
+                        ios: {
+                            bg: '#000000',
+                            card: '#1C1C1E',
+                            border: '#38383A',
+                            blue: '#0A84FF',
+                            text: '#FFFFFF',
+                            textSec: '#8E8E93'
                         }
                     },
                     animation: {
-                        'flash': 'flash 0.2s ease-out forwards',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flash': 'flashAnim 0.2s ease-out forwards',
                     },
                     keyframes: {
-                        flash: {
+                        flashAnim: {
                             '0%': { opacity: '1' },
                             '100%': { opacity: '0' },
                         }
@@ -47,36 +46,40 @@
     <style>
         /* CORE RESETS */
         :root {
-            --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --app-height: 100vh;
         }
         
         html, body {
             height: 100%;
             width: 100%;
-            background-color: #050505;
-            color: #fafafa;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
             overflow: hidden;
-            touch-action: none; /* Prevent Pull-to-refresh on mobile */
+            -webkit-user-select: none;
+            user-select: none;
+            font-family: 'Inter', sans-serif;
         }
 
-        /* LAYOUT ENGINE */
-        .app-grid {
+        /* APP SHELL GRID */
+        .app-shell {
             display: grid;
-            grid-template-columns: 1fr 360px;
-            grid-template-rows: 56px 1fr;
+            grid-template-columns: 1fr 380px;
+            grid-template-rows: 60px 1fr;
             height: 100dvh;
             width: 100vw;
         }
 
         @media (max-width: 1024px) {
-            .app-grid {
+            .app-shell {
                 grid-template-columns: 1fr;
-                grid-template-rows: 56px 1fr auto;
+                grid-template-rows: 60px 1fr auto;
             }
         }
 
         /* HEADER */
-        .header-bar {
+        .header {
             grid-column: 1 / -1;
             background: #111;
             border-bottom: 1px solid #222;
@@ -87,11 +90,11 @@
             z-index: 50;
         }
 
-        /* STAGE */
-        .stage-container {
+        /* VIEWPORT (CAMERA) */
+        .viewport {
             grid-column: 1;
             grid-row: 2 / -1;
-            background: #000;
+            background: #050505;
             position: relative;
             display: flex;
             align-items: center;
@@ -100,22 +103,22 @@
         }
 
         @media (max-width: 1024px) {
-            .stage-container {
+            .viewport {
                 grid-row: 2;
-                padding-bottom: 20px;
+                padding-bottom: 20px; /* Space for mobile shutter */
             }
         }
 
-        /* CANVAS */
-        canvas#main-canvas {
+        /* THE CANVAS (Source of Truth) */
+        canvas#render-canvas {
             display: block;
-            /* Object fit cover simulation via JS resizing */
             max-width: 100%;
             max-height: 100%;
-            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            object-fit: contain;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
-        /* CONTROLS SIDEBAR */
+        /* SIDEBAR */
         .sidebar {
             grid-column: 2;
             grid-row: 2 / -1;
@@ -123,7 +126,6 @@
             border-left: 1px solid #222;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
             z-index: 40;
         }
 
@@ -131,143 +133,157 @@
             .sidebar {
                 grid-column: 1;
                 grid-row: 3;
+                height: 45vh;
                 border-left: none;
                 border-top: 1px solid #222;
-                height: 40vh;
             }
         }
 
-        /* UI ELEMENTS */
+        /* UI CONTROLS */
         .tab-btn {
-            @apply flex-1 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-white transition-colors border-b-2 border-transparent;
+            @apply flex-1 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-white transition-colors border-b-2 border-transparent;
         }
         .tab-btn.active {
-            @apply text-white border-blue-500;
+            @apply text-blue-500 border-blue-500;
         }
 
+        /* Range Sliders (iOS Style) */
         input[type="range"] {
-            @apply w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer;
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
         }
         input[type="range"]::-webkit-slider-thumb {
-            @apply w-4 h-4 bg-white rounded-full appearance-none shadow-lg transform transition-transform duration-100;
-            margin-top: -6px;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            margin-top: -8px;
+            transition: transform 0.1s;
         }
         input[type="range"]::-webkit-slider-thumb:hover {
-            @apply scale-125;
+            transform: scale(1.1);
         }
         input[type="range"]::-webkit-slider-runnable-track {
-            @apply h-1 bg-gray-700 rounded-lg;
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 2px;
         }
 
-        /* SHUTTER BUTTON */
-        .shutter-outer {
-            @apply w-20 h-20 rounded-full border-4 border-white bg-transparent flex items-center justify-center cursor-pointer transition-transform duration-100 active:scale-95 hover:bg-white/5;
+        /* Shutter Button */
+        .shutter-btn {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s;
         }
         .shutter-inner {
-            @apply w-16 h-16 bg-white rounded-full transition-all duration-200;
+            width: 60px; height: 60px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.1s;
         }
-        .shutter-outer:active .shutter-inner {
-            @apply w-14 h-14 opacity-80;
-        }
+        .shutter-btn:active { transform: scale(0.95); }
+        .shutter-btn:active .shutter-inner { transform: scale(0.9); opacity: 0.8; }
 
-        /* OVERLAYS */
-        .draggable-item {
-            position: absolute;
-            cursor: grab;
-            user-select: none;
-            touch-action: none;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
-        }
-        .draggable-item:active { cursor: grabbing; }
-        .draggable-item.selected {
-            outline: 2px dashed #3b82f6;
-            outline-offset: 4px;
-        }
-
+        /* Overlays & Modals */
         .flash-overlay {
             position: fixed; inset: 0; background: white; z-index: 100; pointer-events: none; opacity: 0;
         }
+        
+        .gallery-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px);
+            z-index: 90; display: none; flex-direction: column;
+        }
+        .gallery-modal.open { display: flex; }
 
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #444; }
-
+        /* Utils */
+        .hidden { display: none !important; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        
+        /* Histogram Canvas */
+        #histogram-canvas {
+            width: 120px; height: 60px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
     </style>
 </head>
 <body>
 
     <div id="flash" class="flash-overlay"></div>
 
-    <div class="app-grid">
+    <div class="app-shell">
         
-        <header class="header-bar">
-            <div class="flex items-center gap-3">
+        <header class="header">
+            <div class="flex items-center gap-4">
                 <div class="flex gap-2">
                     <div class="w-3 h-3 rounded-full bg-red-500"></div>
                     <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
                     <div class="w-3 h-3 rounded-full bg-green-500"></div>
                 </div>
-                <h1 class="ml-4 font-display font-bold text-xl tracking-tight text-white">StudioOS <span class="text-blue-500">Ultra</span></h1>
+                <h1 class="font-display font-bold text-lg tracking-tight text-white">StudioOS <span class="text-blue-500">Ultra</span></h1>
             </div>
             
             <div class="flex items-center gap-4 text-xs font-mono text-gray-400">
-                <div id="camera-status" class="flex items-center gap-2 text-red-500">
+                <div id="cam-status" class="flex items-center gap-2 text-red-500">
                     <span class="w-2 h-2 rounded-full bg-current animate-pulse"></span>
-                    <span>OFFLINE</span>
+                    <span>INIT...</span>
                 </div>
                 <div class="hidden md:block w-px h-4 bg-gray-800"></div>
-                <div id="resolution-badge" class="hidden md:block">0x0</div>
+                <div id="res-status" class="hidden md:block">-- x --</div>
             </div>
         </header>
 
-        <div class="stage-container group">
+        <div class="viewport group">
             
-            <canvas id="main-canvas"></canvas>
+            <canvas id="render-canvas"></canvas>
             
             <video id="source-video" autoplay playsinline muted style="display:none;"></video>
 
-            <div id="interactive-layer" class="absolute inset-0 z-10 overflow-hidden pointer-events-none">
-                </div>
-
             <div class="absolute inset-0 z-20 pointer-events-none p-6 flex flex-col justify-between">
-                
                 <div class="flex justify-between items-start pointer-events-auto">
-                    <div class="bg-black/60 backdrop-blur-md p-2 rounded-lg border border-white/10">
-                        <canvas id="histogram-canvas" width="100" height="50"></canvas>
-                    </div>
-
+                    <canvas id="histogram-canvas"></canvas>
+                    
                     <div class="flex flex-col gap-2">
-                        <button onclick="Engine.toggleMirror()" class="w-10 h-10 bg-black/60 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition border border-white/10" title="Mirror Flip">
+                        <button onclick="Engine.toggleMirror()" class="w-10 h-10 bg-black/60 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-white/20 border border-white/10" title="Mirror">
                             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
-                        <button onclick="Engine.toggleTimer()" class="w-10 h-10 bg-black/60 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition border border-white/10 font-bold text-xs" id="timer-btn">
+                        <button onclick="Engine.toggleTimer()" id="timer-btn" class="w-10 h-10 bg-black/60 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-white/20 border border-white/10 font-bold text-xs">
                             0s
                         </button>
                     </div>
                 </div>
-
-                <div class="flex justify-center pointer-events-auto pb-4 lg:hidden">
-                    </div>
             </div>
 
             <div id="countdown-overlay" class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
-                <span id="countdown-text" class="text-9xl font-display font-bold text-white drop-shadow-2xl animate-pulse">3</span>
+                <span id="countdown-text" class="text-9xl font-display font-bold text-white drop-shadow-2xl">3</span>
             </div>
 
-            <div id="error-modal" class="absolute inset-0 z-50 bg-studio-bg flex flex-col items-center justify-center text-center p-8 hidden">
-                <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4 text-3xl">!</div>
-                <h2 class="text-xl font-bold text-white mb-2">Camera Access Failed</h2>
-                <p class="text-gray-400 text-sm mb-6 max-w-xs">Please ensure you are using HTTPS or Localhost and have granted camera permissions.</p>
-                <button onclick="Engine.init()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-sm transition">Retry Connection</button>
+            <div id="error-overlay" class="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center text-center p-8 hidden">
+                <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 text-3xl">!</div>
+                <h2 class="text-xl font-bold text-white mb-2">Camera Access Required</h2>
+                <p class="text-gray-400 text-sm mb-6 max-w-xs">The application cannot see the camera. Please allow permissions and ensure you are using a secure connection (HTTPS/Localhost).</p>
+                <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-sm">Reload App</button>
             </div>
 
         </div>
 
         <aside class="sidebar">
             
-            <div class="flex border-b border-studio-border">
+            <div class="flex border-b border-gray-800">
                 <button onclick="UI.setTab('adjust')" id="tab-adjust" class="tab-btn active">Adjust</button>
                 <button onclick="UI.setTab('filters')" id="tab-filters" class="tab-btn">Filters</button>
                 <button onclick="UI.setTab('layers')" id="tab-layers" class="tab-btn">Decor</button>
@@ -277,96 +293,87 @@
             <div class="flex-1 overflow-y-auto p-6 scrollbar-hide">
                 
                 <div id="view-adjust" class="space-y-6">
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-bold text-gray-400 uppercase">
-                            <span>Brightness</span>
-                            <span id="lbl-brightness" class="text-blue-400 font-mono">0</span>
+                    <div class="control-group">
+                        <div class="flex justify-between mb-2 text-xs font-bold text-gray-400 uppercase">
+                            <span>Brightness</span><span id="lbl-brightness" class="text-blue-400 font-mono">0</span>
                         </div>
-                        <input type="range" min="-100" max="100" value="0" id="inp-brightness" oninput="Engine.updateParam('brightness', this.value)">
+                        <input type="range" min="-100" max="100" value="0" id="inp-brightness" oninput="Engine.setParam('brightness', this.value)">
                     </div>
 
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-bold text-gray-400 uppercase">
-                            <span>Contrast</span>
-                            <span id="lbl-contrast" class="text-blue-400 font-mono">0</span>
+                    <div class="control-group">
+                        <div class="flex justify-between mb-2 text-xs font-bold text-gray-400 uppercase">
+                            <span>Contrast</span><span id="lbl-contrast" class="text-blue-400 font-mono">0</span>
                         </div>
-                        <input type="range" min="-100" max="100" value="0" id="inp-contrast" oninput="Engine.updateParam('contrast', this.value)">
+                        <input type="range" min="-100" max="100" value="0" id="inp-contrast" oninput="Engine.setParam('contrast', this.value)">
                     </div>
 
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-bold text-gray-400 uppercase">
-                            <span>Saturation</span>
-                            <span id="lbl-saturate" class="text-blue-400 font-mono">0</span>
+                    <div class="control-group">
+                        <div class="flex justify-between mb-2 text-xs font-bold text-gray-400 uppercase">
+                            <span>Saturation</span><span id="lbl-saturate" class="text-blue-400 font-mono">0</span>
                         </div>
-                        <input type="range" min="-100" max="100" value="0" id="inp-saturate" oninput="Engine.updateParam('saturation', this.value)">
+                        <input type="range" min="-100" max="100" value="0" id="inp-saturate" oninput="Engine.setParam('saturate', this.value)">
                     </div>
 
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-bold text-gray-400 uppercase">
-                            <span>Warmth</span>
-                            <span id="lbl-warmth" class="text-blue-400 font-mono">0</span>
+                    <div class="control-group">
+                        <div class="flex justify-between mb-2 text-xs font-bold text-gray-400 uppercase">
+                            <span>Temperature</span><span id="lbl-warmth" class="text-blue-400 font-mono">0</span>
                         </div>
-                        <input type="range" min="-100" max="100" value="0" id="inp-warmth" oninput="Engine.updateParam('warmth', this.value)">
+                        <input type="range" min="-100" max="100" value="0" id="inp-warmth" oninput="Engine.setParam('warmth', this.value)">
                     </div>
 
-                    <div class="pt-4 border-t border-studio-border">
-                        <button onclick="Engine.resetParams()" class="w-full py-3 text-xs font-bold text-gray-500 hover:text-white transition bg-white/5 rounded-lg">RESET DEFAULT SETTINGS</button>
+                    <div class="pt-4 border-t border-gray-800">
+                        <button onclick="Engine.reset()" class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition">RESET ALL</button>
                     </div>
                 </div>
 
                 <div id="view-filters" class="hidden space-y-4">
-                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Color Grades</span>
-                    <div class="grid grid-cols-2 gap-3" id="filters-container">
+                    <span class="text-xs font-bold text-gray-400 uppercase">Preset LUTs</span>
+                    <div class="grid grid-cols-2 gap-3" id="filters-grid">
                         </div>
                 </div>
 
                 <div id="view-layers" class="hidden space-y-6">
-                    <div class="space-y-3">
-                        <span class="text-xs font-bold text-gray-400 uppercase">Add Typography</span>
+                    <div class="control-group">
+                        <span class="text-xs font-bold text-gray-400 uppercase mb-2 block">Typography</span>
                         <div class="flex gap-2">
-                            <input type="text" id="text-input" placeholder="CAPTION..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 placeholder-gray-600 font-bold">
-                            <button onclick="Layers.addText()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 rounded-lg font-bold text-lg transition">+</button>
+                            <input type="text" id="text-input" placeholder="Type caption..." class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                            <button onclick="Layers.addText()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 rounded font-bold text-lg">+</button>
                         </div>
                     </div>
 
-                    <div class="space-y-3">
-                        <span class="text-xs font-bold text-gray-400 uppercase">Stickers</span>
+                    <div class="control-group">
+                        <span class="text-xs font-bold text-gray-400 uppercase mb-2 block">Stickers</span>
                         <div class="grid grid-cols-4 gap-2">
-                            <button onclick="Layers.addSticker('🔥')" class="aspect-square bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center justify-center text-xl transition">🔥</button>
-                            <button onclick="Layers.addSticker('✨')" class="aspect-square bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center justify-center text-xl transition">✨</button>
-                            <button onclick="Layers.addSticker('💖')" class="aspect-square bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center justify-center text-xl transition">💖</button>
-                            <button onclick="Layers.addSticker('👑')" class="aspect-square bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center justify-center text-xl transition">👑</button>
-                            <button onclick="Layers.addSticker('🕶️')" class="aspect-square bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center justify-center text-xl transition">🕶️</button>
-                            <button onclick="Layers.addSticker('💯')" class="aspect-square bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center justify-center text-xl transition">💯</button>
-                            <button onclick="Layers.addSticker('🌈')" class="aspect-square bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center justify-center text-xl transition">🌈</button>
-                            <button onclick="Layers.addSticker('📷')" class="aspect-square bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center justify-center text-xl transition">📷</button>
+                            <button onclick="Layers.addSticker('🔥')" class="aspect-square bg-gray-800 rounded hover:bg-gray-700 text-xl">🔥</button>
+                            <button onclick="Layers.addSticker('✨')" class="aspect-square bg-gray-800 rounded hover:bg-gray-700 text-xl">✨</button>
+                            <button onclick="Layers.addSticker('💖')" class="aspect-square bg-gray-800 rounded hover:bg-gray-700 text-xl">💖</button>
+                            <button onclick="Layers.addSticker('👑')" class="aspect-square bg-gray-800 rounded hover:bg-gray-700 text-xl">👑</button>
+                            <button onclick="Layers.addSticker('💯')" class="aspect-square bg-gray-800 rounded hover:bg-gray-700 text-xl">💯</button>
+                            <button onclick="Layers.addSticker('🌈')" class="aspect-square bg-gray-800 rounded hover:bg-gray-700 text-xl">🌈</button>
+                            <button onclick="Layers.addSticker('📸')" class="aspect-square bg-gray-800 rounded hover:bg-gray-700 text-xl">📸</button>
+                            <button onclick="Layers.addSticker('🕶️')" class="aspect-square bg-gray-800 rounded hover:bg-gray-700 text-xl">🕶️</button>
                         </div>
                     </div>
 
-                    <div class="space-y-2 pt-4 border-t border-studio-border">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-gray-400 uppercase">Active Layers</span>
-                            <button onclick="Layers.clearAll()" class="text-[10px] text-red-500 font-bold hover:underline">CLEAR ALL</button>
-                        </div>
-                        <div id="layer-list-container" class="space-y-1">
-                            <div class="text-xs text-gray-600 italic py-2">No layers added.</div>
-                        </div>
+                    <div class="pt-4 border-t border-gray-800 flex justify-between items-center">
+                        <span class="text-xs font-bold text-gray-400">ACTIVE LAYERS</span>
+                        <button onclick="Layers.clear()" class="text-xs text-red-500 font-bold hover:underline">CLEAR ALL</button>
                     </div>
+                    <div id="layers-list" class="space-y-1"></div>
                 </div>
 
-                <div id="view-library" class="hidden h-full flex flex-col">
+                <div id="view-library" class="hidden flex flex-col h-full">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-xs font-bold text-gray-400 uppercase">Session Storage</span>
-                        <button onclick="Gallery.downloadAll()" class="text-xs font-bold text-blue-500 hover:text-white transition">DOWNLOAD ALL</button>
+                        <span class="text-xs font-bold text-gray-400 uppercase">Session</span>
+                        <button onclick="Gallery.downloadAll()" class="text-xs font-bold text-blue-500 hover:text-white">DOWNLOAD ALL</button>
                     </div>
-                    <div id="gallery-grid" class="grid grid-cols-2 gap-2 overflow-y-auto pb-20">
-                        </div>
+                    <div id="gallery-preview-grid" class="grid grid-cols-2 gap-2"></div>
                 </div>
 
             </div>
 
-            <div class="p-6 border-t border-studio-border bg-studio-panel flex justify-center items-center relative">
-                <button id="shutter-btn" class="shutter-outer" onclick="Engine.capture()">
+            <div class="p-6 border-t border-gray-800 bg-black/50 backdrop-blur flex justify-center">
+                <button id="shutter-button" class="shutter-btn" onclick="Engine.capture()">
                     <div class="shutter-inner"></div>
                 </button>
             </div>
@@ -375,70 +382,80 @@
 
     </div>
 
+    <div id="gallery-modal" class="gallery-modal">
+        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-black/80">
+            <h2 class="font-display font-bold text-xl text-white">Library</h2>
+            <button onclick="UI.toggleGallery()" class="text-2xl text-gray-400 hover:text-white">×</button>
+        </div>
+        <div id="gallery-full-grid" class="flex-1 overflow-y-auto p-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+    </div>
+
     <script>
         /**
-         * STUDIO OS KERNEL V3.0
+         * STUDIO OS KERNEL V4.0
          * ---------------------
-         * Features: 
-         * - IndexedDB for massive storage
-         * - RequestAnimationFrame Render Loop (60fps)
-         * - Manual Canvas Pixel Manipulation (Filters)
-         * - Object-Oriented Layer System
+         * Architecture: Class-based
+         * Renderer: RequestAnimationFrame (60fps)
+         * Color Pipeline: HSL/RGB Manipulation via Canvas 2D
          */
 
-        // --- 1. STORAGE SUBSYSTEM (IndexedDB) ---
-        const DB = {
-            name: 'StudioOS_V3_Store',
-            version: 1,
-            db: null,
+        // --- 1. STORAGE KERNEL (IndexedDB) ---
+        class StorageKernel {
+            constructor() {
+                this.dbName = 'StudioOS_Ultra_V4';
+                this.db = null;
+            }
 
             async init() {
                 return new Promise((resolve, reject) => {
-                    const req = indexedDB.open(this.name, this.version);
+                    const req = indexedDB.open(this.dbName, 1);
                     req.onupgradeneeded = e => {
                         const db = e.target.result;
-                        if (!db.objectStoreNames.contains('media')) {
-                            db.createObjectStore('media', { keyPath: 'id' });
+                        if (!db.objectStoreNames.contains('photos')) {
+                            db.createObjectStore('photos', { keyPath: 'id' });
                         }
                     };
                     req.onsuccess = e => {
                         this.db = e.target.result;
-                        console.log("Storage System: Online");
+                        console.log("Storage: ONLINE");
                         resolve();
                     };
                     req.onerror = e => reject(e);
                 });
-            },
+            }
 
             async save(blob) {
                 if (!this.db) return;
-                const tx = this.db.transaction('media', 'readwrite');
-                const store = tx.objectStore('media');
-                store.add({ id: Date.now(), blob: blob, created: new Date() });
+                const tx = this.db.transaction('photos', 'readwrite');
+                const store = tx.objectStore('photos');
+                const item = { id: Date.now(), blob: blob, date: new Date() };
+                store.add(item);
                 return new Promise(resolve => tx.oncomplete = resolve);
-            },
+            }
 
             async getAll() {
                 if (!this.db) return [];
-                const tx = this.db.transaction('media', 'readonly');
-                const store = tx.objectStore('media');
+                const tx = this.db.transaction('photos', 'readonly');
+                const store = tx.objectStore('photos');
                 return new Promise(resolve => {
                     const req = store.getAll();
                     req.onsuccess = () => resolve(req.result.reverse());
                 });
-            },
+            }
 
             async delete(id) {
-                const tx = this.db.transaction('media', 'readwrite');
-                tx.objectStore('media').delete(id);
+                const tx = this.db.transaction('photos', 'readwrite');
+                tx.objectStore('photos').delete(id);
                 return new Promise(resolve => tx.oncomplete = resolve);
             }
-        };
+        }
 
-        // --- 2. LAYERS SUBSYSTEM ---
-        const Layers = {
-            items: [], // { id, type, content, x, y, scale }
-            
+        // --- 2. LAYERS KERNEL ---
+        class LayersKernel {
+            constructor() {
+                this.items = [];
+            }
+
             addText() {
                 const input = document.getElementById('text-input');
                 const text = input.value.trim();
@@ -447,12 +464,13 @@
                     id: Date.now(),
                     type: 'text',
                     content: text,
-                    x: 0.5, y: 0.5, // Normalized coordinates (0-1)
-                    scale: 1
+                    x: 0.5, y: 0.5,
+                    scale: 1,
+                    color: '#ffffff'
                 });
                 input.value = '';
-                this.renderUI();
-            },
+                this.renderList();
+            }
 
             addSticker(emoji) {
                 this.items.push({
@@ -462,105 +480,84 @@
                     x: 0.5, y: 0.5,
                     scale: 1
                 });
-                this.renderUI();
-            },
+                this.renderList();
+            }
 
             remove(id) {
                 this.items = this.items.filter(i => i.id !== id);
-                this.renderUI();
-            },
-
-            clearAll() {
-                this.items = [];
-                this.renderUI();
-            },
-
-            renderUI() {
-                const list = document.getElementById('layer-list-container');
-                const layerDiv = document.getElementById('interactive-layer');
-                
-                // 1. Render Sidebar List
-                if(this.items.length === 0) {
-                    list.innerHTML = '<div class="text-xs text-gray-600 italic py-2">No layers added.</div>';
-                } else {
-                    list.innerHTML = this.items.map(i => `
-                        <div class="flex justify-between items-center bg-gray-800 p-2 rounded border border-gray-700">
-                            <span class="text-xs font-bold text-white truncate max-w-[150px]">${i.content}</span>
-                            <button onclick="Layers.remove(${i.id})" class="text-red-500 hover:text-white transition text-xs">✕</button>
-                        </div>
-                    `).join('');
-                }
-
-                // 2. Render Interactive Elements on Stage
-                // Note: For this simplified version, we are just visually placing them.
-                // In a full 2000+ line app, we would add draggable event listeners here.
-                // Currently, they are rendered statically at center to prove the concept.
-                // *The actual burning into image happens in Engine.draw()*
-                
-                // We don't actually need DOM elements for the output, 
-                // but we can show them for "selection" indication if we wanted.
-                // For robustness, we will rely on the Canvas Render loop to show them.
+                this.renderList();
             }
-        };
 
-        // --- 3. CORE ENGINE ---
-        const Engine = {
-            video: null,
-            canvas: null,
-            ctx: null,
-            stream: null,
-            
-            // State
-            params: { brightness: 0, contrast: 0, saturation: 0, warmth: 0 },
-            filter: 'none',
-            mirror: true,
-            timer: 0,
-            isReady: false,
+            clear() {
+                this.items = [];
+                this.renderList();
+            }
+
+            renderList() {
+                const container = document.getElementById('layers-list');
+                if(this.items.length === 0) {
+                    container.innerHTML = `<div class="text-xs text-gray-600 italic">No layers active</div>`;
+                    return;
+                }
+                container.innerHTML = this.items.map(i => `
+                    <div class="flex justify-between items-center bg-gray-800 p-2 rounded border border-gray-700">
+                        <span class="text-xs font-bold text-white truncate max-w-[120px]">${i.content}</span>
+                        <button onclick="Layers.remove(${i.id})" class="text-red-500 hover:text-white text-xs px-2">✕</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // --- 3. RENDER KERNEL (THE FIX) ---
+        class RenderKernel {
+            constructor() {
+                this.video = document.getElementById('source-video');
+                this.canvas = document.getElementById('render-canvas');
+                this.ctx = this.canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+                
+                this.params = { brightness: 0, contrast: 0, saturation: 0, warmth: 0 };
+                this.filter = 'none';
+                this.mirror = true;
+                this.timer = 0;
+                this.isReady = false;
+                this.stream = null;
+            }
 
             async init() {
-                this.video = document.getElementById('source-video');
-                this.canvas = document.getElementById('main-canvas');
-                this.ctx = this.canvas.getContext('2d', { alpha: false }); // Optimize
-
                 try {
                     this.stream = await navigator.mediaDevices.getUserMedia({
-                        video: { width: { ideal: 1920 }, height: { ideal: 1080 } },
+                        video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: 'user' },
                         audio: false
                     });
-                    
                     this.video.srcObject = this.stream;
                     
-                    // Wait for data
                     this.video.onloadedmetadata = () => {
                         this.resize();
                         this.isReady = true;
                         this.loop();
                         
-                        // Update UI Status
-                        const status = document.getElementById('camera-status');
+                        // Status Update
+                        const status = document.getElementById('cam-status');
                         status.classList.replace('text-red-500', 'text-green-500');
-                        status.querySelector('span').innerText = 'ONLINE';
-                        document.getElementById('resolution-badge').innerText = `${this.video.videoWidth}x${this.video.videoHeight}`;
-                        document.getElementById('error-modal').classList.add('hidden');
+                        status.querySelector('span').classList.replace('bg-current', 'bg-green-500');
+                        status.querySelector('span:last-child').innerText = 'ONLINE';
+                        document.getElementById('res-status').innerText = `${this.video.videoWidth}x${this.video.videoHeight}`;
+                        document.getElementById('error-overlay').classList.add('hidden');
                     };
-
                 } catch (e) {
                     console.error(e);
-                    document.getElementById('error-modal').classList.remove('hidden');
+                    document.getElementById('error-overlay').classList.remove('hidden');
                 }
 
                 window.addEventListener('resize', () => this.resize());
-            },
+            }
 
             resize() {
-                // Ensure 1:1 pixel mapping for sharpness
                 if(!this.video) return;
-                
-                // We want high res capture, but fitted to screen.
-                // We set internal canvas resolution to Video Native Resolution
+                // Force canvas to match video resolution exactly for 1:1 pixel mapping
                 this.canvas.width = this.video.videoWidth || 1280;
                 this.canvas.height = this.video.videoHeight || 720;
-            },
+            }
 
             loop() {
                 if(this.isReady) {
@@ -568,53 +565,57 @@
                     this.updateHistogram();
                 }
                 requestAnimationFrame(() => this.loop());
-            },
+            }
 
-            // --- THE RENDER PIPELINE ---
+            // PIXEL PIPELINE
             draw() {
                 const w = this.canvas.width;
                 const h = this.canvas.height;
 
-                // 1. Clear Frame
+                // 1. Clear
                 this.ctx.clearRect(0, 0, w, h);
 
-                // 2. Transformations (Mirror)
+                // 2. Transform
                 this.ctx.save();
                 if(this.mirror) {
                     this.ctx.translate(w, 0);
                     this.ctx.scale(-1, 1);
                 }
 
-                // 3. Filter Application (Canvas 2D API)
-                // We use standard CSS-style filter strings which Canvas supports natively.
-                // This guarantees the saved image looks identical to the preview.
+                // 3. APPLY FILTERS (Standardized)
+                // IMPORTANT: We use 100% as baseline.
+                // Inputs are -100 to +100.
                 
-                let filterStr = `brightness(${100 + parseInt(this.params.brightness)}%) ` +
-                                `contrast(${100 + parseInt(this.params.contrast)}%) ` +
-                                `saturate(${100 + parseInt(this.params.saturation)}%) `;
+                let b = 100 + parseInt(this.params.brightness);
+                let c = 100 + parseInt(this.params.contrast);
+                let s = 100 + parseInt(this.params.saturation);
+                
+                let filterStr = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
 
-                // Warmth Logic (Sepia for warm, Hue for cool - simplified for robustness)
+                // Warmth Logic: Sepia for warm, Hue Rotate for cool
+                // This prevents the "Purple" issue by only rotating slightly
                 const warm = parseInt(this.params.warmth);
-                if(warm > 0) filterStr += `sepia(${warm}%) `;
-                
-                // Presets
-                if(this.filter === 'bw') filterStr += 'grayscale(100%) ';
-                if(this.filter === 'vintage') filterStr += 'sepia(60%) contrast(110%) ';
-                if(this.filter === 'cyber') filterStr += 'hue-rotate(180deg) saturate(200%) ';
-                if(this.filter === 'dramatic') filterStr += 'contrast(140%) saturate(0%) ';
+                if(warm > 0) filterStr += ` sepia(${warm}%)`;
+                else if (warm < 0) filterStr += ` hue-rotate(${warm / 2}deg)`; 
+
+                // Preset Overrides
+                if(this.filter === 'bw') filterStr += ' grayscale(100%)';
+                if(this.filter === 'dramatic') filterStr += ' contrast(130%) saturate(70%)';
+                if(this.filter === 'cyber') filterStr += ' hue-rotate(180deg) saturate(200%)';
+                if(this.filter === 'vintage') filterStr += ' sepia(50%) contrast(90%)';
 
                 this.ctx.filter = filterStr;
 
                 // 4. Draw Video
                 this.ctx.drawImage(this.video, 0, 0, w, h);
 
-                // 5. Restore (Remove filters for overlays)
+                // 5. Restore
                 this.ctx.restore();
-                this.ctx.filter = 'none'; // Crucial reset
+                this.ctx.filter = 'none'; // CRITICAL RESET
 
                 // 6. Draw Layers
                 this.drawLayers(w, h);
-            },
+            }
 
             drawLayers(w, h) {
                 Layers.items.forEach(item => {
@@ -625,16 +626,12 @@
                     this.ctx.translate(x, y);
                     this.ctx.textAlign = 'center';
                     this.ctx.textBaseline = 'middle';
-                    
-                    // Shadow for visibility
                     this.ctx.shadowColor = 'rgba(0,0,0,0.5)';
                     this.ctx.shadowBlur = 10;
-                    this.ctx.shadowOffsetY = 4;
 
                     if(item.type === 'text') {
-                        // Responsive Font Size
-                        const fontSize = w * 0.05; 
-                        this.ctx.font = `700 ${fontSize}px 'Space Grotesk'`;
+                        const size = w * 0.05;
+                        this.ctx.font = `700 ${size}px 'Space Grotesk'`;
                         this.ctx.fillStyle = '#ffffff';
                         this.ctx.fillText(item.content, 0, 0);
                     } else {
@@ -644,76 +641,69 @@
                     }
                     this.ctx.restore();
                 });
-            },
+            }
 
             updateHistogram() {
-                // Simplified histogram for performance (Sample center)
-                // In a real 2000 line app, we'd compute full pixel data here.
-                const canvas = document.getElementById('histogram-canvas');
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(this.canvas, 0, 0, 100, 50);
-            },
+                if(Date.now() % 5 !== 0) return; // Optimization
+                const cvs = document.getElementById('histogram-canvas');
+                const ctx = cvs.getContext('2d');
+                ctx.drawImage(this.canvas, 0, 0, 100, 50); // Downsampled preview
+            }
 
-            // --- CONTROLS ---
-            updateParam(key, val) {
+            // CONTROLS
+            setParam(key, val) {
                 this.params[key] = val;
-                const label = document.getElementById(`lbl-${key}`);
-                label.innerText = val > 0 ? `+${val}` : val;
-            },
+                document.getElementById(`lbl-${key}`).innerText = val > 0 ? `+${val}` : val;
+            }
 
             setFilter(name) {
                 this.filter = name;
+                // UI Highlight
                 document.querySelectorAll('.filter-card').forEach(el => {
                     if(el.dataset.name === name) el.classList.add('ring-2', 'ring-blue-500');
                     else el.classList.remove('ring-2', 'ring-blue-500');
                 });
-            },
+            }
 
-            resetParams() {
+            reset() {
                 this.params = { brightness: 0, contrast: 0, saturation: 0, warmth: 0 };
                 this.filter = 'none';
-                
                 ['brightness', 'contrast', 'saturate', 'warmth'].forEach(k => {
                     document.getElementById(`inp-${k}`).value = 0;
                     document.getElementById(`lbl-${k}`).innerText = '0';
                 });
-                
-                // Visual reset
                 this.setFilter('none');
-            },
+            }
 
-            toggleMirror() {
-                this.mirror = !this.mirror;
-            },
-
+            toggleMirror() { this.mirror = !this.mirror; }
+            
             toggleTimer() {
-                const timers = [0, 3, 5, 10];
-                const idx = timers.indexOf(this.timer);
-                this.timer = timers[(idx + 1) % timers.length];
+                const opts = [0, 3, 5, 10];
+                const idx = opts.indexOf(this.timer);
+                this.timer = opts[(idx + 1) % opts.length];
                 document.getElementById('timer-btn').innerText = this.timer === 0 ? '0s' : `${this.timer}s`;
-            },
+            }
 
-            // --- CAPTURE ---
+            // CAPTURE
             async capture() {
                 if(!this.isReady) return;
                 
-                const btn = document.getElementById('shutter-btn');
+                const btn = document.getElementById('shutter-button');
                 btn.style.pointerEvents = 'none';
                 btn.style.opacity = '0.5';
 
-                // Countdown
+                // Timer Logic
                 if(this.timer > 0) {
-                    const overlay = document.getElementById('countdown-overlay');
-                    const text = document.getElementById('countdown-text');
-                    overlay.classList.remove('hidden');
-                    
-                    for(let i = this.timer; i > 0; i--) {
-                        text.innerText = i;
-                        // Audio beep
+                    const ov = document.getElementById('countdown-overlay');
+                    const tx = document.getElementById('countdown-text');
+                    ov.classList.remove('hidden');
+                    for(let i=this.timer; i>0; i--) {
+                        tx.innerText = i;
+                        // Beep
                         Utils.playTone(600, 0.1);
                         await new Promise(r => setTimeout(r, 1000));
                     }
-                    overlay.classList.add('hidden');
+                    ov.classList.add('hidden');
                 }
 
                 // Flash
@@ -725,48 +715,54 @@
                 // Shutter Sound
                 Utils.playTone(300, 0.15, 'square');
 
-                // Capture
+                // Blob Generation
                 this.canvas.toBlob(async (blob) => {
-                    await DB.save(blob);
-                    Gallery.render();
-                    
+                    await Storage.save(blob);
+                    Gallery.refresh();
                     btn.style.pointerEvents = 'auto';
                     btn.style.opacity = '1';
                 }, 'image/jpeg', 0.95);
             }
-        };
+        }
 
-        // --- 4. GALLERY MANAGER ---
+        // --- 4. GALLERY LOGIC ---
         const Gallery = {
-            async init() {
-                await DB.init();
-                this.render();
-            },
+            async refresh() {
+                const photos = await Storage.getAll();
+                // Update Sidebar
+                const sbGrid = document.getElementById('gallery-preview-grid');
+                sbGrid.innerHTML = '';
+                photos.slice(0, 4).forEach(p => {
+                    const url = URL.createObjectURL(p.blob);
+                    const div = document.createElement('div');
+                    div.className = 'aspect-square bg-gray-800 rounded border border-gray-700 overflow-hidden cursor-pointer';
+                    div.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
+                    div.onclick = () => UI.toggleGallery();
+                    sbGrid.appendChild(div);
+                });
 
-            async render() {
-                const photos = await DB.getAll();
-                const grid = document.getElementById('gallery-grid');
-                grid.innerHTML = '';
-
-                photos.forEach(photo => {
-                    const url = URL.createObjectURL(photo.blob);
+                // Update Modal
+                const mdGrid = document.getElementById('gallery-full-grid');
+                mdGrid.innerHTML = '';
+                photos.forEach(p => {
+                    const url = URL.createObjectURL(p.blob);
                     const div = document.createElement('div');
                     div.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative group';
                     div.innerHTML = `
                         <img src="${url}" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <button onclick="Gallery.download('${url}', ${photo.id})" class="text-white hover:text-blue-400">⬇</button>
-                            <button onclick="Gallery.delete(${photo.id})" class="text-white hover:text-red-400">✕</button>
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                            <button onclick="Gallery.download('${url}', ${p.id})" class="text-white hover:text-blue-400">⬇</button>
+                            <button onclick="Gallery.delete(${p.id})" class="text-white hover:text-red-400">✕</button>
                         </div>
                     `;
-                    grid.appendChild(div);
+                    mdGrid.appendChild(div);
                 });
             },
 
             async delete(id) {
                 if(confirm('Delete photo?')) {
-                    await DB.delete(id);
-                    this.render();
+                    await Storage.delete(id);
+                    this.refresh();
                 }
             },
 
@@ -778,9 +774,8 @@
             },
 
             async downloadAll() {
-                const photos = await DB.getAll();
-                if(photos.length === 0) return alert("No photos");
-                
+                const photos = await Storage.getAll();
+                if(!photos.length) return alert('No photos');
                 photos.forEach((p, i) => {
                     setTimeout(() => {
                         const url = URL.createObjectURL(p.blob);
@@ -790,7 +785,7 @@
             }
         };
 
-        // --- 5. UI MANAGER ---
+        // --- 5. UI LOGIC ---
         const UI = {
             setTab(name) {
                 ['adjust', 'filters', 'layers', 'library'].forEach(t => {
@@ -801,19 +796,28 @@
                 document.getElementById(`tab-${name}`).classList.add('active');
             },
 
+            toggleGallery() {
+                const modal = document.getElementById('gallery-modal');
+                if(modal.classList.contains('open')) modal.classList.remove('open');
+                else {
+                    Gallery.refresh();
+                    modal.classList.add('open');
+                }
+            },
+
             buildFilters() {
-                const container = document.getElementById('filters-container');
+                const container = document.getElementById('filters-grid');
                 const filters = [
                     { id: 'none', label: 'Standard', color: '#333' },
                     { id: 'bw', label: 'Noir', color: '#000' },
-                    { id: 'vintage', label: '1980s', color: '#d97706' },
+                    { id: 'vintage', label: 'Vintage', color: '#d97706' },
                     { id: 'cyber', label: 'Cyber', color: '#7c3aed' },
                     { id: 'dramatic', label: 'Drama', color: '#52525b' }
                 ];
 
                 filters.forEach(f => {
                     const btn = document.createElement('button');
-                    btn.className = 'filter-card h-20 rounded-lg border border-gray-700 flex items-center justify-center text-xs font-bold uppercase hover:border-white transition relative overflow-hidden group';
+                    btn.className = 'filter-card h-16 rounded-lg border border-gray-700 bg-gray-800 text-xs font-bold uppercase hover:border-white transition relative overflow-hidden group';
                     btn.dataset.name = f.id;
                     btn.onclick = () => Engine.setFilter(f.id);
                     btn.innerHTML = `
@@ -822,6 +826,7 @@
                     `;
                     container.appendChild(btn);
                 });
+                Engine.setFilter('none');
             }
         };
 
@@ -841,11 +846,17 @@
             }
         };
 
+        // --- INSTANCES ---
+        const Storage = new StorageKernel();
+        const Engine = new RenderKernel();
+        const Layers = new LayersKernel();
+
         // --- BOOTSTRAP ---
-        window.onload = () => {
-            Engine.init();
-            Gallery.init();
+        window.onload = async () => {
+            await Storage.init();
+            await Engine.init();
             UI.buildFilters();
+            Gallery.refresh();
         };
 
     </script>

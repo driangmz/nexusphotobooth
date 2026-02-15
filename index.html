@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Photo Booth</title>
+    <style>
+        /* --- 1. THEME VARIABLES (Light Mode Default) --- */
+        :root {
+            --bg-body: #f0f2f5;
+            --bg-panel: #ffffff;
+            --text-primary: #1c1e21;
+            --text-secondary: #65676b;
+            --accent: #007AFF; /* iOS Blue */
+            --accent-hover: #0056b3;
+            --danger: #ff3b30;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* App-like feeling */
+        }
+
+        /* --- 2. LAYOUT --- */
+        header {
+            padding: 15px 25px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.5px; }
+        
+        .main-stage {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            height: calc(100vh - 60px);
+        }
+
+        /* --- 3. CAMERA SECTION (Left) --- */
+        .camera-zone {
+            flex: 2;
+            background: #000;
+            border-radius: var(--radius);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror */
+        }
+
+        /* UI Overlays */
+        .error-message {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: var(--danger);
+            display: none; /* Hidden by default */
+            z-index: 50;
+        }
+
+        .flash {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.1s;
+            z-index: 20;
+        }
+
+        .filter-name-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* --- 4. CONTROLS & GALLERY (Right) --- */
+        .sidebar {
+            flex: 1;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Filter Scrollbar */
+        .filter-strip {
+            background: var(--bg-panel);
+            padding: 15px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            white-space: nowrap;
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            background: #eee;
+            border: 2px solid transparent;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover { background: #e4e6eb; }
+        .filter-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,122,255,0.3);
+        }
+
+        /* Capture Button */
+        .action-area {
+            display: flex;
+            justify-content: center;
+        }
+
+        .shutter-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid var(--bg-body);
+            background: var(--text-primary);
+            cursor: pointer;
+            box-shadow: 0 0 0 4px var(--text-primary);
+            transition: transform 0.1s;
+        }
+        
+        .shutter-btn:active { transform: scale(0.9); background: var(--accent); box-shadow: 0 0 0 4px var(--accent); }
+
+        /* Gallery Grid */
+        .gallery-container {
+            flex: 1;
+            background: var(--bg-panel);
+            border-radius: var(--radius);
+            padding: 15px;
+            box-shadow: var(--shadow);
+            overflow-y: auto;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+        }
+
+        .photo-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .photo-actions {
+            padding: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.6;
+        }
+        .icon-btn:hover { opacity: 1; }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-stage { flex-direction: column; height: auto; overflow-y: auto; }
+            .camera-zone { height: 400px; }
+            .sidebar { min-width: 100%; }
+        }
+
+        /* Hidden Canvas */
+        canvas { display: none; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📸 StudioLite</h1>
+    <div style="font-size: 0.8rem; color: var(--text-secondary);">Secure Context Required (HTTPS/Localhost)</div>
+</header>
+
+<div class="main-stage">
+    
+    <div class="camera-zone">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="flash" id="flash"></div>
+        <div class="filter-name-display" id="filterLabel">Normal</div>
+        
+        <div id="errorMsg" class="error-message">
+            <h3>Camera Access Denied</h3>
+            <p>1. Ensure you are on <b>https://</b> or <b>localhost</b>.</p>
+            <p>2. Check browser permission settings.</p>
+            <button onclick="initCamera()" style="padding: 5px 10px; margin-top:10px;">Retry</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        
+        <div class="filter-strip" id="filterContainer">
+            <button class="filter-btn active" onclick="setFilter('none', 'Normal', this)">Normal</button>
+            <button class="filter-btn" onclick="setFilter('grayscale(100%)', 'B&W', this)">Mono</button>
+            <button class="filter-btn" onclick="setFilter('sepia(0.8) contrast(1.2)', 'Vintage', this)">Vintage</button>
+            <button class="filter-btn" onclick="setFilter('saturate(2)', 'Vivid', this)">Vivid</button>
+            <button class="filter-btn" onclick="setFilter('contrast(1.5) brightness(1.1)', 'Punchy', this)">Punchy</button>
+            <button class="filter-btn" onclick="setFilter('hue-rotate(90deg)', 'Cyber', this)">Cyber</button>
+            <button class="filter-btn" onclick="setFilter('blur(3px)', 'Soft', this)">Soft</button>
+        </div>
+
+        <div class="action-area">
+            <button class="shutter-btn" id="shutterBtn" title="Take Photo"></button>
+        </div>
+
+        <div class="gallery-container">
+            <h3 style="margin-top:0; font-size: 0.9rem; color:var(--text-secondary);">SESSION GALLERY</h3>
+            <div class="gallery-grid" id="gallery">
+                </div>
+        </div>
+    </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const gallery = document.getElementById('gallery');
+    const errorMsg = document.getElementById('errorMsg');
+    const flash = document.getElementById('flash');
+    const filterLabel = document.getElementById('filterLabel');
+
+    let currentFilter = 'none';
+
+    // 1. ROBUST CAMERA INIT
+    async function initCamera() {
+        errorMsg.style.display = 'none';
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 1920 }, 
+                    height: { ideal: 1080 },
+                    facingMode: "user" 
+                }, 
+                audio: false 
+            });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error("Camera failed:", err);
+            errorMsg.style.display = 'block';
+        }
+    }
+
+    // 2. FILTER HANDLING
+    window.setFilter = function(filterValue, name, btnElement) {
+        // Update Logic
+        currentFilter = filterValue;
+        video.style.filter = filterValue;
+        filterLabel.innerText = name;
+
+        // Update UI Classes
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btnElement.classList.add('active');
+    }
+
+    // 3. CAPTURE LOGIC
+    document.getElementById('shutterBtn').addEventListener('click', () => {
+        if (!video.srcObject) return alert("Camera not active");
+
+        // Flash Effect
+        flash.style.opacity = 1;
+        setTimeout(() => flash.style.opacity = 0, 100);
+
+        // Canvas Setup
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // Drawing: Mirror + Filter
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.filter = currentFilter;
+        ctx.drawImage(video, 0, 0);
+        
+        // Reset transform for safety (though we reset canvas next time anyway)
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        // Generate Image
+        const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+        addPhotoToGallery(dataURL);
+    });
+
+    // 4. GALLERY MANAGEMENT
+    function addPhotoToGallery(dataURL) {
+        const div = document.createElement('div');
+        div.className = 'photo-card';
+        
+        const img = document.createElement('img');
+        img.src = dataURL;
+
+        const actions = document.createElement('div');
+        actions.className = 'photo-actions';
+
+        // Download Button
+        const dlBtn = document.createElement('a');
+        dlBtn.innerHTML = '⬇';
+        dlBtn.className = 'icon-btn';
+        dlBtn.href = dataURL;
+        dlBtn.download = `studio-lite-${Date.now()}.jpg`;
+        dlBtn.title = "Download";
+
+        // Delete Button
+        const delBtn = document.createElement('button');
+        delBtn.innerHTML = '✕';
+        delBtn.className = 'icon-btn';
+        delBtn.style.color = 'var(--danger)';
+        delBtn.title = "Delete";
+        delBtn.onclick = () => div.remove();
+
+        actions.appendChild(dlBtn);
+        actions.appendChild(delBtn);
+        
+        div.appendChild(img);
+        div.appendChild(actions);
+
+        // Insert at top
+        gallery.prepend(div);
+    }
+
+    // Start
+    window.addEventListener('load', initCamera);
+
+</script>
+</body>
+</html>

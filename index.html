@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PRO Photo Booth | Studio Edition V3</title>
     <style>
         /* --- CORE VARIABLES --- */
@@ -19,6 +19,7 @@
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-mono: 'Courier New', Courier, monospace;
             --ease-out: cubic-bezier(0.25, 0.8, 0.25, 1);
+            --safe-area-bottom: env(safe-area-inset-bottom);
         }
 
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
@@ -34,6 +35,8 @@
                 radial-gradient(circle at 85% 30%, rgba(255, 0, 80, 0.03) 0%, transparent 25%);
             color: var(--text);
             min-height: 100vh;
+            /* Fix for mobile address bars */
+            min-height: 100dvh; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -62,7 +65,6 @@
         body.flash-active * {
             visibility: hidden; /* Hide everything to maximize screen brightness */
         }
-        /* Keep video visible but maybe blown out? No, hide it to make screen white light source */
         
         /* --- WELCOME SCREEN --- */
         #welcome-screen {
@@ -75,6 +77,7 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.8s var(--ease-out);
+            padding: 20px;
         }
 
         .welcome-content {
@@ -85,6 +88,8 @@
             border: 1px solid rgba(255,255,255,0.05);
             background: radial-gradient(circle, rgba(20,20,20,1) 0%, rgba(0,0,0,1) 100%);
             border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
         }
 
         .brand-badge {
@@ -102,7 +107,7 @@
         }
 
         .welcome-title {
-            font-size: 4rem;
+            font-size: clamp(2.5rem, 8vw, 4rem);
             font-weight: 900;
             line-height: 1;
             margin-bottom: 15px;
@@ -127,13 +132,15 @@
             padding: 18px 45px;
             font-size: 1.1rem;
             font-weight: 700;
-            border-radius: 4px;
+            border-radius: 50px; /* Cutier round button */
             cursor: pointer;
             transition: all 0.3s;
             text-transform: uppercase;
             letter-spacing: 1px;
             position: relative;
             overflow: hidden;
+            width: 100%;
+            max-width: 300px;
         }
         .btn-start::after {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -159,14 +166,15 @@
             justify-content: center;
             opacity: 0;
             transition: opacity 0.3s;
+            padding: 20px;
         }
         .modal-overlay.active { display: flex; opacity: 1; }
 
         .modal-box {
-            width: 90%; max-width: 650px; max-height: 85vh;
+            width: 100%; max-width: 650px; max-height: 85vh;
             background: #111;
             border: 1px solid #333;
-            border-radius: 12px;
+            border-radius: 20px;
             padding: 0;
             display: flex;
             flex-direction: column;
@@ -234,26 +242,28 @@
         /* --- APP HEADER --- */
         #app-header {
             width: 100%;
-            height: 70px;
+            height: 60px;
             border-bottom: var(--panel-border);
             background: rgba(10,10,10,0.8);
             backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 30px;
+            padding: 0 20px;
             z-index: 500;
+            position: sticky;
+            top: 0;
         }
 
         .logo-area { display: flex; align-items: center; gap: 10px; }
-        .logo-icon { width: 20px; height: 20px; background: var(--primary); border-radius: 3px; }
-        .logo-text { font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; }
+        .logo-icon { width: 20px; height: 20px; background: var(--primary); border-radius: 6px; }
+        .logo-text { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; }
 
-        .header-actions { display: flex; gap: 15px; }
+        .header-actions { display: flex; gap: 10px; }
         .btn-icon {
             background: transparent; border: 1px solid rgba(255,255,255,0.1);
-            color: #ccc; padding: 8px 12px; border-radius: 6px; cursor: pointer;
-            font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+            color: #ccc; padding: 6px 12px; border-radius: 50px; cursor: pointer;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
             transition: 0.2s;
         }
         .btn-icon:hover { border-color: #666; color: #fff; background: rgba(255,255,255,0.05); }
@@ -266,8 +276,8 @@
             width: 100%;
             max-width: 1400px;
             flex: 1;
-            padding: 30px 20px;
-            gap: 30px;
+            padding: 20px;
+            gap: 20px;
         }
 
         /* --- VIEWFINDER --- */
@@ -275,15 +285,18 @@
             position: relative;
             padding: 5px;
             border: 1px solid #333;
-            border-radius: 16px;
+            border-radius: 20px;
             background: #000;
             box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
 
         .booth-container {
             position: relative;
             background: #050505;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
             transition: all 0.5s var(--ease-out);
         }
@@ -317,7 +330,7 @@
         .rec-indicator {
             position: absolute; top: 20px; right: 20px;
             display: flex; align-items: center; gap: 8px;
-            background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 4px;
+            background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 50px;
         }
         .rec-dot { width: 10px; height: 10px; background: red; border-radius: 50%; animation: pulse-rec 2s infinite; }
         .rec-text { font-family: var(--font-mono); font-size: 0.8rem; color: #fff; letter-spacing: 1px; }
@@ -350,8 +363,8 @@
         .control-deck {
             background: var(--panel-bg);
             border: var(--panel-border);
-            border-radius: 16px;
-            padding: 25px;
+            border-radius: 24px;
+            padding: 20px;
             width: 100%; max-width: 1000px;
             display: flex; flex-direction: column; gap: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
@@ -366,30 +379,31 @@
             display: flex; flex-direction: column; gap: 8px; align-items: center;
         }
         .group-label {
-            font-size: 0.65rem; text-transform: uppercase; color: #555; font-weight: 700; letter-spacing: 1px;
+            font-size: 0.6rem; text-transform: uppercase; color: #666; font-weight: 700; letter-spacing: 1px;
         }
 
         .btn-set {
-            display: flex; background: #000; padding: 4px; border-radius: 8px; border: 1px solid #222;
+            display: flex; background: rgba(0,0,0,0.5); padding: 4px; border-radius: 50px; border: 1px solid #222;
         }
         .btn-opt {
-            background: transparent; border: none; color: #777; padding: 8px 14px;
-            font-size: 0.8rem; font-weight: 600; cursor: pointer; border-radius: 5px;
-            transition: all 0.2s;
+            background: transparent; border: none; color: #888; padding: 8px 16px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; border-radius: 50px;
+            transition: all 0.2s; white-space: nowrap;
         }
         .btn-opt:hover { color: #fff; }
-        .btn-opt.active { background: #222; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-opt.active { background: #333; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
         /* Filter Scroll Area */
         .filter-scroll-container {
             width: 100%; overflow-x: auto; padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
         }
         .filter-strip {
             display: flex; gap: 10px; width: max-content; padding: 0 10px;
         }
         .filter-btn {
             background: #111; border: 1px solid #333; color: #aaa;
-            padding: 8px 16px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+            padding: 8px 18px; border-radius: 50px; font-size: 0.8rem; cursor: pointer;
             white-space: nowrap; transition: 0.2s;
         }
         .filter-btn:hover { border-color: #555; color: #fff; }
@@ -397,12 +411,12 @@
 
         /* Main Shutter */
         .shutter-container {
-            position: relative; width: 90px; height: 90px;
+            position: relative; width: 80px; height: 80px;
         }
         .btn-shutter {
             width: 100%; height: 100%; border-radius: 50%;
             background: linear-gradient(145deg, #ff0050, #cc0040);
-            border: 4px solid rgba(255,255,255,0.15);
+            border: 4px solid rgba(255,255,255,0.2);
             cursor: pointer; position: relative; z-index: 2;
             box-shadow: 0 0 25px rgba(255, 0, 80, 0.4);
             transition: transform 0.1s, box-shadow 0.2s;
@@ -410,32 +424,33 @@
         }
         .btn-shutter:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 0, 80, 0.6); }
         .btn-shutter:active { transform: scale(0.95); }
-        .btn-shutter i { width: 30px; height: 24px; background: #fff; border-radius: 4px; display: block; position: relative; }
-        .btn-shutter i::after { content:''; position: absolute; width: 12px; height: 12px; background: #ddd; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); border: 2px solid #aaa; }
+        .btn-shutter i { width: 26px; height: 20px; background: #fff; border-radius: 4px; display: block; position: relative; }
+        .btn-shutter i::after { content:''; position: absolute; width: 10px; height: 10px; background: #ddd; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); border: 2px solid #aaa; }
 
         .btn-flash-toggle {
-            position: absolute; top: -10px; right: -10px; z-index: 3;
-            width: 32px; height: 32px; border-radius: 50%; background: #222; border: 1px solid #444;
+            position: absolute; top: -5px; right: -5px; z-index: 3;
+            width: 28px; height: 28px; border-radius: 50%; background: #222; border: 1px solid #444;
             color: #ccc; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 14px; transition: 0.2s;
+            font-size: 12px; transition: 0.2s;
         }
         .btn-flash-toggle.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 10px #fff; }
 
         /* --- GALLERY --- */
         .gallery-area {
             width: 100%; max-width: 1200px;
-            padding: 30px; background: #080808; border-top: 1px solid #222;
+            padding: 20px; background: #080808; border-top: 1px solid #222;
+            margin-top: auto; /* Pushes to bottom if flex container */
         }
         .gallery-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
-        .gallery-title { font-size: 1.2rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .gallery-title { font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
         .count-badge { background: #222; font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; color: #888; }
         
         .gallery-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px;
         }
         
         .photo-item {
-            background: #111; border: 1px solid #222; border-radius: 8px; overflow: hidden;
+            background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden;
             display: flex; flex-direction: column; transition: transform 0.2s;
             animation: fadeIn 0.4s var(--ease-out);
         }
@@ -443,7 +458,7 @@
         .photo-thumb { width: 100%; height: auto; display: block; cursor: pointer; }
         
         .photo-meta {
-            padding: 10px; display: flex; justify-content: space-between; background: #151515; border-top: 1px solid #222;
+            padding: 8px; display: flex; justify-content: space-between; background: #151515; border-top: 1px solid #222;
         }
         .meta-actions button {
             background: transparent; border: none; color: #666; cursor: pointer; font-size: 0.9rem; padding: 4px; transition: 0.2s;
@@ -458,12 +473,112 @@
         /* Loading Spinner */
         .loader { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-top: 20px; display: none; }
 
-        @media (max-width: 768px) {
-            .welcome-title { font-size: 2.5rem; }
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        
+        /* TABLETS (Max Width: 1024px) */
+        @media (max-width: 1024px) {
+            #workspace { padding: 15px; }
             .control-deck { padding: 15px; }
-            .btn-opt { padding: 8px 10px; font-size: 0.75rem; }
-            .shutter-container { width: 70px; height: 70px; }
-            #app-header { padding: 0 15px; }
+            .btn-opt { font-size: 0.75rem; padding: 6px 12px; }
+        }
+
+        /* MOBILE (Max Width: 768px) */
+        @media (max-width: 768px) {
+            body { background-image: none; background-color: #000; }
+            
+            #app-header { 
+                padding: 0 15px; 
+                height: 50px;
+                background: #000;
+                border-bottom: 1px solid #111;
+            }
+            
+            .logo-text { font-size: 1rem; }
+            .btn-icon { font-size: 0.7rem; padding: 4px 10px; }
+
+            #workspace {
+                padding: 10px 0;
+                gap: 15px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .viewfinder-wrapper {
+                border-radius: 0;
+                border: none;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .booth-container {
+                border-radius: 0;
+                width: 100% !important;
+                max-width: 100% !important;
+                aspect-ratio: 3/4 !important; /* Force portrait friendly ratio on mobile viewfinder */
+            }
+            /* Override JS ratio styles for mobile viewfinder to fill screen better */
+            .booth-container.ratio-16-9, 
+            .booth-container.ratio-4-3, 
+            .booth-container.ratio-1-1, 
+            .booth-container.ratio-21-9 {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .control-deck {
+                background: #000;
+                border: none;
+                border-top: 1px solid #222;
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+                width: 100%;
+                padding: 20px 10px;
+                gap: 15px;
+                margin-top: auto; /* Push to bottom */
+            }
+
+            .deck-row {
+                gap: 10px;
+                justify-content: space-between;
+            }
+
+            .control-group {
+                align-items: flex-start;
+            }
+            .group-label { font-size: 0.55rem; margin-left: 5px; margin-bottom: 2px; }
+
+            .btn-set {
+                border-radius: 12px;
+                overflow-x: auto;
+                max-width: 100vw;
+            }
+            
+            .btn-opt {
+                font-size: 0.7rem;
+                padding: 8px 12px;
+            }
+
+            .shutter-container {
+                width: 70px; height: 70px;
+                margin: 0 auto; /* Center shutter */
+            }
+
+            /* Stack controls for mobile convenience */
+            .deck-row:last-child {
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+                align-items: center;
+                width: 100%;
+            }
+
+            /* Hide status text on mobile to save space */
+            .control-group:last-child { display: none; } 
+            
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -671,13 +786,13 @@
 
                 <hr style="width:100%; border:0; border-top:1px solid #222;">
 
-                <div class="deck-row" style="justify-content: space-between; width: 100%;">
+                <div class="deck-row">
                     
                     <div class="control-group">
-                        <span class="group-label">Burst Mode</span>
+                        <span class="group-label">Mode</span>
                         <div class="btn-set">
-                            <button class="btn-opt active" onclick="app.setMode('single', this)">Single</button>
-                            <button class="btn-opt" onclick="app.setMode('burst', this)">Burst (3x)</button>
+                            <button class="btn-opt active" onclick="app.setMode('single', this)">1x</button>
+                            <button class="btn-opt" onclick="app.setMode('burst', this)">3x</button>
                         </div>
                     </div>
 

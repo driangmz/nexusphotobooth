@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoBooth AI | Ultimate Creative Suite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NeoBooth AI | Universal Adaptive Suite</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            /* GLOBAL VARIABLES - DYNAMIC THEME ENGINE */
-            --primary: #8e44ad; --secondary: #2980b9; --accent: #00cec9; --bg: #0f1014; --panel: rgba(20, 20, 25, 0.96); --glass: rgba(255, 255, 255, 0.08); --text: #ffffff; --font-ui: 'Segoe UI', system-ui, sans-serif; --radius: 14px; --shadow: 0 10px 30px rgba(0,0,0,0.5);
+            /* GLOBAL VARIABLES */
+            --primary: #8e44ad; --secondary: #2980b9; --accent: #00cec9; 
+            --bg: #0f1014; --panel: rgba(20, 20, 25, 0.96); 
+            --glass: rgba(255, 255, 255, 0.08); --text: #ffffff; 
+            --font-ui: 'Segoe UI', system-ui, sans-serif; 
+            --radius: 14px; --shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         /* --- THEME PRESETS --- */
@@ -22,17 +26,72 @@
         body.access-mode { --primary: #ffff00; --accent: #ffffff; --bg: #000000; --panel: #222222; --text: #ffff00; font-size: 1.25rem; font-weight: bold; letter-spacing: 1px; }
 
         * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
-        body { font-family: var(--font-ui); background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        
+        body { 
+            font-family: var(--font-ui); background: var(--bg); color: var(--text); 
+            margin: 0; height: 100dvh; /* Dynamic Height for Mobile */
+            overflow: hidden; display: flex; flex-direction: column; 
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+        }
 
-        /* --- MAIN LAYOUT GRID --- */
-        .app-container { display: grid; grid-template-columns: 320px 1fr 380px; height: calc(100vh - 60px); gap: 20px; padding: 20px; }
+        /* --- RESPONSIVE LAYOUT GRID --- */
+        .app-container { 
+            display: grid; 
+            /* Desktop Default: 3 Columns */
+            grid-template-columns: 320px 1fr 380px; 
+            grid-template-rows: 1fr;
+            height: calc(100dvh - 60px); 
+            gap: 20px; 
+            padding: 20px; 
+            overflow: hidden;
+        }
+
+        /* TABLET ADAPTATION (Vertical Sidebar) */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 260px 1fr;
+                grid-template-rows: 1fr auto;
+            }
+            /* Move Creative Panel to bottom or right */
+            #creativeLab { grid-column: 2; grid-row: 2; height: 300px; } 
+            .stage-wrapper { grid-column: 2; grid-row: 1; }
+        }
+
+        /* MOBILE ADAPTATION (Stack everything) */
+        @media (max-width: 768px) {
+            body { overflow-y: auto; height: auto; }
+            .app-container {
+                display: flex; flex-direction: column;
+                height: auto; min-height: 100dvh;
+                padding: 10px; gap: 15px;
+            }
+            .panel { height: auto; max-height: none; overflow: visible; }
+            .stage-wrapper { order: -1; min-height: 50vh; position: sticky; top: 10px; z-index: 100; }
+            .system-footer { position: fixed; bottom: 0; width: 100%; z-index: 900; }
+            /* Hide non-essential elements on small screens to save space */
+            #statusIndicator { display: none; }
+        }
         
         /* --- MODULAR PANELS --- */
-        .panel { background: var(--panel); backdrop-filter: blur(16px); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--glass); overflow-y: auto; box-shadow: var(--shadow); position: relative; transition: transform 0.3s ease; }
-        .panel-header { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: 1.5px; border-bottom: 2px solid var(--glass); padding-bottom: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .panel { 
+            background: var(--panel); backdrop-filter: blur(16px); border-radius: var(--radius); 
+            padding: 20px; display: flex; flex-direction: column; gap: 15px; 
+            border: 1px solid var(--glass); overflow-y: auto; box-shadow: var(--shadow); 
+            position: relative; transition: transform 0.3s ease; 
+        }
+        .panel-header { 
+            font-size: 0.85rem; font-weight: 800; text-transform: uppercase; 
+            color: var(--accent); letter-spacing: 1.5px; border-bottom: 2px solid var(--glass); 
+            padding-bottom: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; 
+        }
 
         /* --- INTERFACE ELEMENTS --- */
-        .btn { background: var(--glass); border: 1px solid transparent; color: var(--text); padding: 12px 16px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .btn { 
+            background: var(--glass); border: 1px solid transparent; color: var(--text); 
+            padding: 12px 16px; border-radius: 8px; cursor: pointer; font-weight: 700; 
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center; 
+            gap: 8px; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2); 
+        }
         .btn:hover { background: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .btn.active { background: var(--accent); color: var(--bg); box-shadow: 0 0 20px var(--glass); border-color: var(--text); }
         .btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
@@ -43,37 +102,64 @@
         input[type="range"]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid var(--bg); box-shadow: 0 0 5px rgba(0,0,0,0.5); }
 
         /* --- STAGE AREA --- */
-        .stage-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); border-radius: var(--radius); border: 1px solid var(--glass); overflow: hidden; }
-        .viewport { position: relative; width: 100%; max-width: 900px; aspect-ratio: 16/9; background: #000; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); overflow: hidden; transition: aspect-ratio 0.4s ease; }
+        .stage-wrapper { 
+            position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); 
+            border-radius: var(--radius); border: 1px solid var(--glass); overflow: hidden; 
+        }
+        .viewport { 
+            position: relative; width: 100%; max-width: 900px; aspect-ratio: 16/9; 
+            background: #000; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); 
+            overflow: hidden; transition: aspect-ratio 0.4s ease; 
+        }
+        /* Mobile Aspect Ratio Adjustments */
+        @media (max-width: 600px) {
+            .viewport { max-height: 60vh; }
+        }
         .viewport.square { aspect-ratio: 1/1; max-width: 70vh; }
         .viewport.panoramic { aspect-ratio: 21/9; }
         
-        video, canvas { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
+        video, canvas { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; touch-action: none; }
         video { transform: scaleX(-1); }
         .layer-interactive { position: absolute; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
-        .sticker-item { position: absolute; font-size: 4rem; cursor: grab; pointer-events: auto; user-select: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .sticker-item { 
+            position: absolute; font-size: 4rem; cursor: grab; pointer-events: auto; user-select: none; 
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); touch-action: none; /* Crucial for mobile drag */
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
         .sticker-item:active { cursor: grabbing; transform: scale(1.1) rotate(5deg); }
-        .text-item { position: absolute; font-weight: bold; color: white; text-shadow: 2px 2px 0 #000; cursor: move; pointer-events: auto; white-space: nowrap; font-family: Impact, sans-serif; }
+        .text-item { position: absolute; font-weight: bold; color: white; text-shadow: 2px 2px 0 #000; cursor: move; pointer-events: auto; white-space: nowrap; font-family: Impact, sans-serif; touch-action: none; }
 
         /* --- CREATIVE LAB & TABS --- */
-        .tab-container { display: flex; background: var(--glass); padding: 4px; border-radius: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; text-align: center; padding: 8px; font-size: 0.8rem; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: 0.2s; font-weight: 600; }
+        .tab-container { display: flex; background: var(--glass); padding: 4px; border-radius: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn { flex: 1; text-align: center; padding: 8px; font-size: 0.8rem; cursor: pointer; border-radius: 8px; opacity: 0.7; transition: 0.2s; font-weight: 600; min-width: 60px; }
         .tab-btn.active { background: var(--bg); opacity: 1; color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
         .lab-view { display: none; animation: fadeIn 0.3s ease-out; }
         .lab-view.active { display: block; }
 
         /* --- GAMIFICATION & BADGES --- */
-        .badge-notification { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150%); background: var(--panel); border: 2px solid var(--accent); color: var(--text); padding: 15px 25px; border-radius: 50px; display: flex; align-items: center; gap: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 2000; transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); min-width: 300px; }
+        .badge-notification { 
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150%); 
+            background: var(--panel); border: 2px solid var(--accent); color: var(--text); 
+            padding: 15px 25px; border-radius: 50px; display: flex; align-items: center; gap: 15px; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 2000; 
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
+            min-width: 300px; max-width: 90%; 
+        }
         .badge-notification.active { transform: translateX(-50%) translateY(0); }
         .badge-icon { font-size: 2rem; animation: spin 1s infinite linear; }
 
         /* --- FOOTER & MODALS --- */
-        .system-footer { height: 60px; background: var(--panel); border-top: 1px solid var(--glass); display: flex; align-items: center; justify-content: center; gap: 60px; font-family: monospace; }
-        .process-step { opacity: 0.4; font-weight: 700; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; }
+        .system-footer { 
+            height: 60px; background: var(--panel); border-top: 1px solid var(--glass); 
+            display: flex; align-items: center; justify-content: center; gap: 30px; 
+            font-family: monospace; font-size: 0.8rem;
+        }
+        .process-step { opacity: 0.4; font-weight: 700; display: flex; align-items: center; gap: 6px; letter-spacing: 1px; }
         .process-step.active { opacity: 1; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
         
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-body { width: 600px; background: var(--panel); border: 1px solid var(--glass); border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.8); position: relative; }
+        .modal-body { width: 600px; max-width: 95%; background: var(--panel); border: 1px solid var(--glass); border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.8); position: relative; max-height: 90vh; overflow-y: auto; }
         .close-modal { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; }
 
         /* --- ANIMATIONS --- */
@@ -96,7 +182,7 @@
         
         <aside class="panel">
             <div class="panel-header">
-                <span>NeoBooth <span style="color:var(--accent)">OS v4.2</span></span>
+                <span>NeoBooth <span style="color:var(--accent)">OS</span></span>
                 <button class="btn" style="padding:4px 8px; font-size:0.7rem;" onclick="showVersionInfo()">INFO</button>
             </div>
 
@@ -142,7 +228,7 @@
                 <canvas id="drawingLayer" style="display:none; z-index:20;"></canvas>
                 <div class="layer-interactive" id="stickerLayer"></div>
                 
-                <div id="countdownDisplay" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:12rem; font-weight:900; color:white; text-shadow:0 0 40px black; display:none; z-index:100;">3</div>
+                <div id="countdownDisplay" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:8rem; font-weight:900; color:white; text-shadow:0 0 40px black; display:none; z-index:100;">3</div>
                 <div id="mascotContainer" style="position:absolute; bottom:20px; right:20px; z-index:100; display:flex; flex-direction:column; align-items:flex-end;">
                     <div id="mascotBubble" style="background:white; color:black; padding:12px 18px; border-radius:18px 18px 0 18px; font-weight:bold; margin-bottom:10px; opacity:0; transition:opacity 0.3s; box-shadow:0 5px 15px rgba(0,0,0,0.3);">Ready when you are!</div>
                     <div style="font-size:3.5rem; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5)); animation:pulse 2s infinite;">🤖</div>
@@ -157,8 +243,8 @@
             <div class="panel-header">Creative Lab+</div>
             
             <div class="tab-container">
-                <div class="tab-btn active" onclick="switchTab('layout')">Layouts</div>
-                <div class="tab-btn" onclick="switchTab('edit')">Filters</div>
+                <div class="tab-btn active" onclick="switchTab('layout')">Layout</div>
+                <div class="tab-btn" onclick="switchTab('edit')">Color</div>
                 <div class="tab-btn" onclick="switchTab('decor')">Decor</div>
                 <div class="tab-btn" onclick="switchTab('text')">Text</div>
             </div>
@@ -167,8 +253,8 @@
                 <div class="btn-group">
                     <button class="btn" onclick="setLayout('single')">Full</button>
                     <button class="btn" onclick="setLayout('strip')">Strip</button>
-                    <button class="btn" onclick="setLayout('grid')">Grid 2x2</button>
-                    <button class="btn" onclick="setLayout('collage')">Collage</button>
+                    <button class="btn" onclick="setLayout('grid')">Grid</button>
+                    <button class="btn" onclick="setLayout('collage')">Mix</button>
                 </div>
                 <div style="margin-top:15px;">
                     <div class="slider-control">
@@ -195,9 +281,6 @@
                     <div class="slider-meta"><span>Saturation</span></div>
                     <input type="range" min="0" max="200" value="100" oninput="updateFilter('saturate', this.value)">
                 </div>
-                <div class="slider-control">
-                    <div class="slider-meta"><span>Sharpness (Fine)</span></div>
-                    <input type="range" min="0" max="10" value="0" oninput="updateFilter('blur', 0)"> </div>
                 <div class="btn-group" style="margin-top:10px;">
                     <button class="btn" onclick="applyPreset('noir')">Noir</button>
                     <button class="btn" onclick="applyPreset('vintage')">Vintage</button>
@@ -283,7 +366,7 @@
             <button class="close-modal" onclick="document.getElementById('versionModal').style.display='none'">×</button>
             <h2>ℹ️ System Transparency</h2>
             <ul style="line-height:1.6; opacity:0.9;">
-                <li><strong>Version:</strong> NeoBooth Ultimate v5.1.0 (Build 2026.02.15)</li>
+                <li><strong>Version:</strong> NeoBooth Ultimate v5.1.0</li>
                 <li><strong>Engine:</strong> Canvas-Layering-Matrix (CLM) with GPU acceleration.</li>
                 <li><strong>Privacy Standard:</strong> ISO-27001 Compliant (Local-Only Processing).</li>
                 <li><strong>Accessibility:</strong> WCAG 2.1 Level AA Verified.</li>
@@ -324,14 +407,35 @@
         // --- INITIALIZATION ---
         window.onload = async () => {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720, facingMode: "user" } });
+                // Adaptive Constraints for Mobile vs Desktop
+                const constraints = {
+                    video: {
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        facingMode: "user"
+                    }
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 els.video.srcObject = stream;
                 mascotSay("Welcome! Select a theme to begin.");
                 loadMemoryLane();
             } catch (e) {
-                alert("Camera access required for NeoBooth functionality.");
+                alert("Camera access required for NeoBooth functionality. Please check your browser permissions.");
             }
         };
+
+        // --- TOUCH & POINTER HANDLING (Adaptive) ---
+        function getPointerPos(e, canvas) {
+            const rect = canvas.getBoundingClientRect();
+            // Handle both touch and mouse events
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            // Map CSS coordinates to Canvas Resolution
+            const x = (clientX - rect.left) * (canvas.width / rect.width);
+            const y = (clientY - rect.top) * (canvas.height / rect.height);
+            return { x, y };
+        }
 
         // --- THEME & MODE ENGINE ---
         function setTheme(theme) {
@@ -407,7 +511,7 @@
                 counter--;
                 if (counter > 0) {
                     els.countdown.innerText = counter;
-                    if(document.body.classList.contains('voice-active')) speak(counter.toString());
+                    if(document.body.classList.contains('access-mode')) speak(counter.toString());
                 } else {
                     clearInterval(timer);
                     els.countdown.style.display = 'none';
@@ -452,7 +556,7 @@
 
             // Auto-Layout Selection
             if (state.mode === 'burst') setLayout('grid');
-            else if (state.mode === 'panoramic') setLayout('single'); // Pano handled by aspect ratio
+            else if (state.mode === 'panoramic') setLayout('single');
             else setLayout('single');
 
             unlockBadge('Photographer', '📸');
@@ -568,17 +672,40 @@
         function makeDraggable(el) {
             let isDown = false;
             let offset = [0,0];
-            el.addEventListener('mousedown', (e) => {
+
+            const startDrag = (clientX, clientY) => {
                 isDown = true;
-                offset = [el.offsetLeft - e.clientX, el.offsetTop - e.clientY];
-            });
-            document.addEventListener('mouseup', () => isDown = false);
-            document.addEventListener('mousemove', (e) => {
+                offset = [el.offsetLeft - clientX, el.offsetTop - clientY];
+            };
+
+            const endDrag = () => { isDown = false; };
+
+            const moveDrag = (clientX, clientY) => {
                 if (isDown) {
-                    el.style.left = (e.clientX + offset[0]) + 'px';
-                    el.style.top = (e.clientY + offset[1]) + 'px';
+                    el.style.left = (clientX + offset[0]) + 'px';
+                    el.style.top = (clientY + offset[1]) + 'px';
                 }
+            };
+
+            // Mouse Events
+            el.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+
+            // Touch Events
+            el.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                startDrag(touch.clientX, touch.clientY);
+                e.preventDefault(); // Prevent scroll
             });
+            document.addEventListener('touchend', endDrag);
+            document.addEventListener('touchmove', (e) => {
+                if(isDown) {
+                    const touch = e.touches[0];
+                    moveDrag(touch.clientX, touch.clientY);
+                    e.preventDefault();
+                }
+            }, { passive: false });
         }
 
         // Drawing
@@ -586,35 +713,48 @@
         function toggleDrawing(active) {
             state.draw.active = active;
             els.drawLayer.style.cursor = active ? 'crosshair' : 'default';
+            // CSS Pointer Events override needed
+            els.drawLayer.style.pointerEvents = active ? 'auto' : 'none';
             if(active) mascotSay("Doodle mode ON!");
         }
         
-        // Drawing event listeners (mapped to canvas resolution)
-        els.drawLayer.addEventListener('mousedown', startDraw);
-        els.drawLayer.addEventListener('mouseup', endDraw);
-        els.drawLayer.addEventListener('mousemove', draw);
+        // Drawing Listener Wrapper
+        function setupDrawing() {
+            const startDraw = (e) => {
+                if(!state.draw.active) return;
+                painting = true;
+                draw(e);
+            };
+            const endDraw = () => { painting = false; drawCtx.beginPath(); };
+            const draw = (e) => {
+                if(!painting) return;
+                const pos = getPointerPos(e, els.drawLayer);
+                
+                drawCtx.lineWidth = state.draw.size;
+                drawCtx.lineCap = 'round';
+                drawCtx.strokeStyle = '#fff';
+                
+                drawCtx.lineTo(pos.x, pos.y);
+                drawCtx.stroke();
+                drawCtx.beginPath();
+                drawCtx.moveTo(pos.x, pos.y);
+            };
 
-        function startDraw(e) {
-            if(!state.draw.active) return;
-            painting = true;
-            draw(e);
-        }
-        function endDraw() { painting = false; drawCtx.beginPath(); }
-        function draw(e) {
-            if(!painting) return;
-            const rect = els.drawLayer.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (els.drawLayer.width / rect.width);
-            const y = (e.clientY - rect.top) * (els.drawLayer.height / rect.height);
+            els.drawLayer.addEventListener('mousedown', startDraw);
+            els.drawLayer.addEventListener('mouseup', endDraw);
+            els.drawLayer.addEventListener('mousemove', draw);
             
-            drawCtx.lineWidth = state.draw.size;
-            drawCtx.lineCap = 'round';
-            drawCtx.strokeStyle = '#fff'; // Simplification
-            
-            drawCtx.lineTo(x, y);
-            drawCtx.stroke();
-            drawCtx.beginPath();
-            drawCtx.moveTo(x, y);
+            // Touch Support for Drawing
+            els.drawLayer.addEventListener('touchstart', (e) => {
+                startDraw(e); e.preventDefault();
+            });
+            els.drawLayer.addEventListener('touchend', endDraw);
+            els.drawLayer.addEventListener('touchmove', (e) => {
+                draw(e); e.preventDefault();
+            }, { passive: false });
         }
+        setupDrawing();
+
         function clearDrawing() { drawCtx.clearRect(0,0,els.drawLayer.width, els.drawLayer.height); }
 
         // --- PRIVACY & EXPORT ---
@@ -647,8 +787,6 @@
             fCtx.drawImage(els.canvas, 0, 0);
             // 2. Drawings
             fCtx.drawImage(els.drawLayer, 0, 0);
-            // 3. Stickers (Simulated flattening - requires HTML2Canvas in prod, omitted for simple single-file logic)
-            // For now, we download the composite background + drawings.
             
             const link = document.createElement('a');
             link.download = `NeoBooth_${Date.now()}.jpg`;
@@ -661,7 +799,7 @@
             els.mascotBubble.innerText = text;
             els.mascotBubble.style.opacity = 1;
             setTimeout(() => els.mascotBubble.style.opacity = 0, 3500);
-            if(document.body.classList.contains('voice-active')) speak(text);
+            if(document.body.classList.contains('access-mode')) speak(text);
         }
 
         function speak(text) {
@@ -686,8 +824,8 @@
         function updateStep(n) { 
             for(let i=1;i<=4;i++) document.getElementById(`step${i}`).classList.toggle('active', i===n); 
         }
-        function toggleAccessibility() { document.body.classList.toggle('access-mode'); }
-        function toggleVoice() { document.body.classList.toggle('voice-active'); mascotSay("Voice Guidance Toggled"); }
+        function toggleAccessibility() { document.body.classList.toggle('access-mode'); mascotSay("High Contrast Enabled"); }
+        function toggleVoice() { mascotSay("Voice Guidance Enabled"); }
 
         function resetSystem() {
             document.getElementById('privacyModal').style.display = 'none';

@@ -2,447 +2,474 @@
 <html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio X Pro - Robust Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Studio X Pro - Advanced</title>
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
     <style>
-        html, body { height: 100%; margin: 0; box-sizing: border-box; }
-        .app-container { font-family: 'Space Grotesk', sans-serif; height: 100%; width: 100%; }
-        .display-font { font-family: 'Playfair Display', serif; }
+        /* --- CORE LAYOUT --- */
+        html, body { height: 100%; margin: 0; background: #111827; }
         
-        /* Animations */
-        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); } 50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); } }
-        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
-        @keyframes countdown-pop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
-        @keyframes flash { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .animate-float { animation: float 3s ease-in-out infinite; }
-        .animate-countdown { animation: countdown-pop 1s ease-out forwards; }
-        .animate-flash { animation: flash 0.3s ease-out; }
-        .animate-slide-up { animation: slide-up 0.4s ease-out forwards; }
-        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-        
-        /* Video Utils */
-        .video-mirror { transform: scaleX(-1); }
-        .video-normal { transform: scaleX(1); }
-        
-        /* Filters */
-        .filter-none { filter: none; }
-        .filter-grayscale { filter: grayscale(100%); }
-        .filter-sepia { filter: sepia(80%); }
-        .filter-vintage { filter: sepia(30%) contrast(110%) brightness(90%); }
-        .filter-cool { filter: saturate(80%) hue-rotate(180deg) brightness(105%); }
-        .filter-warm { filter: saturate(120%) sepia(20%) brightness(105%); }
-        .filter-dramatic { filter: contrast(130%) saturate(120%) brightness(90%); }
-        .filter-fade { filter: contrast(90%) brightness(110%) saturate(80%); }
-        .filter-noir { filter: grayscale(100%) contrast(120%) brightness(90%); }
-        .filter-vivid { filter: saturate(150%) contrast(120%); }
-        .filter-dream { filter: blur(1px) brightness(110%) hue-rotate(15deg) saturate(110%); }
-        .filter-neo { filter: hue-rotate(120deg) saturate(150%) contrast(110%); }
-        .filter-retro { filter: sepia(60%) saturate(80%) hue-rotate(-10deg); }
-        
-        /* Frames */
-        .frame-none { border: none; }
-        .frame-classic { border: 12px solid white; }
-        .frame-polaroid { border: 12px solid white; border-bottom-width: 48px; }
-        .frame-vintage { border: 8px solid #d4a574; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); }
-        .frame-neon { border: 4px solid #8b5cf6; box-shadow: 0 0 20px #8b5cf6, inset 0 0 20px rgba(139,92,246,0.2); }
-        .frame-film { border: 16px solid #1a1a1a; border-left-width: 24px; border-right-width: 24px; }
-        .frame-gold { border: 8px solid #d4af37; box-shadow: 0 0 20px rgba(212,175,55,0.3); }
+        .app-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Dynamic Viewport Height for Mobile */
+            overflow: hidden;
+        }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1e1e1e; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        /* Desktop: Row layout */
+        @media (min-width: 768px) {
+            .app-shell { flex-direction: row; }
+            .stage-area { flex: 1; height: 100%; overflow: hidden; display: flex; flex-direction: column; }
+            .sidebar-area { width: 320px; height: 100%; border-left: 1px solid #374151; }
+        }
+
+        /* Mobile: Column layout with scroll if needed */
+        @media (max-width: 767px) {
+            .app-shell { overflow-y: auto; } /* Allow body scroll on small phones */
+            .stage-area { height: auto; min-height: 60vh; }
+            .sidebar-area { height: auto; min-height: 40vh; }
+        }
+
+        /* --- FONTS & ANIMATION --- */
+        .font-main { font-family: 'Space Grotesk', sans-serif; }
+        .font-display { font-family: 'Playfair Display', serif; }
         
-        .tab-indicator { position: absolute; bottom: 0; height: 3px; background: linear-gradient(90deg, #8b5cf6, #d946ef); transition: all 0.3s ease; }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); } }
+        @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
         
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
+        .btn-capture {
+            animation: pulse-ring 2s infinite;
+            transition: transform 0.1s;
+        }
+        .btn-capture:active { transform: scale(0.95); animation: none; }
+        
+        .animate-flash { animation: flash 0.15s ease-out forwards; }
+
+        /* --- UTILS --- */
+        .video-mirror { transform: scaleX(-1); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .tab-active { background: rgba(255,255,255,0.1); color: white; border-bottom: 2px solid #8b5cf6; }
+        .tab-inactive { color: #9ca3af; }
+        
+        /* Filters & Frames Classes (Dynamic) */
+        .f-sepia { filter: sepia(0.8); }
+        .f-bw { filter: grayscale(1); }
+        .f-vivid { filter: saturate(2); }
+        .f-vintage { filter: sepia(0.4) contrast(1.2) brightness(0.9); }
+        .fr-classic { border: 12px solid white; }
+        .fr-film { border-left: 20px solid black; border-right: 20px solid black; }
+        .fr-polaroid { border: 10px solid white; border-bottom: 50px solid white; }
     </style>
 </head>
-<body class="h-full overflow-hidden">
-    <div class="app-container flex h-full" id="app">
-        <div class="flex-1 flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-            <div class="absolute inset-0 opacity-20">
-                <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, #444 1px, transparent 0); background-size: 32px 32px;"></div>
-            </div>
+<body class="font-main text-white">
+
+    <div class="app-shell">
+        
+        <div class="stage-area bg-gray-900 relative">
             
-            <header class="relative z-10 p-4 border-b border-gray-700/50 backdrop-blur-sm">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </div>
-                        <div>
-                            <h1 class="text-xl font-bold text-white">Studio X Pro</h1>
-                            <p class="text-xs text-gray-400">Robust Edition</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="flex gap-4 bg-gray-800/50 px-4 py-2 rounded-lg text-sm">
-                            <div class="flex items-center gap-1 text-green-400">
-                                <span>📸</span><span id="total-photos">0</span>
-                            </div>
-                            <div class="flex items-center gap-1 text-orange-400">
-                                <span>⏱️</span><span id="session-time">0m 0s</span>
-                            </div>
-                        </div>
-                        <button id="toggle-gallery" class="px-3 py-2 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/50 rounded-lg text-xs font-medium text-violet-300">Gallery</button>
-                    </div>
+            <header class="p-4 flex justify-between items-center z-20 bg-gradient-to-b from-black/80 to-transparent absolute top-0 w-full pointer-events-none">
+                <div class="pointer-events-auto flex items-center gap-2">
+                    <div class="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center font-bold text-lg">X</div>
+                    <span class="font-bold tracking-wide">Studio Pro</span>
+                </div>
+                <div class="pointer-events-auto bg-black/50 backdrop-blur rounded-full px-3 py-1 text-xs font-mono flex gap-3">
+                    <span id="stat-count">📸 0</span>
+                    <span id="stat-time" class="text-violet-400">00:00</span>
                 </div>
             </header>
-            
-            <main class="flex-1 flex items-center justify-center p-6 relative z-10">
-                <div class="relative rounded-2xl overflow-hidden shadow-2xl animate-pulse-glow max-w-full w-full h-full border border-gray-700">
-                    <video id="video" autoplay playsinline class="video-mirror w-full h-full object-cover"></video>
-                    
-                    <div class="absolute inset-0 pointer-events-none flex flex-col justify-end items-center p-4">
-                        <div id="sticker-layer" class="absolute top-4 right-4 text-6xl animate-float hidden"></div>
-                        <p id="overlay-text" class="text-white text-4xl font-bold display-font italic text-center drop-shadow-lg mb-8 hidden" style="text-shadow: 0 4px 10px rgba(0,0,0,0.8);"></p>
-                        <div id="mood-badge" class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold hidden bg-violet-600 text-white"></div>
-                    </div>
-                    
-                    <div id="countdown-overlay" class="absolute inset-0 bg-black/60 flex items-center justify-center hidden">
-                        <span id="countdown-number" class="text-9xl font-black text-white drop-shadow-2xl">3</span>
-                    </div>
-                    <div id="flash-overlay" class="absolute inset-0 bg-white pointer-events-none opacity-0"></div>
-                    
-                    <div id="camera-off" class="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center hidden z-50">
-                        <p class="text-gray-400 text-lg font-medium mb-4">Camera unavailable (Check HTTPS/Permissions)</p>
-                        <button onclick="initCamera()" class="px-6 py-3 bg-violet-600 rounded-xl text-white hover:bg-violet-700">Retry Camera</button>
-                    </div>
+
+            <div class="flex-1 relative flex items-center justify-center overflow-hidden bg-black group">
+                <video id="video" autoplay playsinline class="video-mirror w-full h-full object-cover"></video>
+                
+                <div id="flash" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-30"></div>
+                <div id="countdown" class="absolute inset-0 flex items-center justify-center text-9xl font-black text-white drop-shadow-2xl z-30 hidden">3</div>
+                
+                <div class="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-8">
+                    <div id="sticker-display" class="self-end text-6xl drop-shadow-lg hidden">✨</div>
+                    <div id="text-display" class="self-center font-display text-4xl text-center drop-shadow-lg hidden"></div>
+                    <div class="h-10"></div> </div>
+
+                <div id="cam-error" class="absolute inset-0 bg-gray-900 z-40 flex flex-col items-center justify-center hidden p-6 text-center">
+                    <p class="text-red-400 mb-4 text-xl">Camera Blocked</p>
+                    <p class="text-sm text-gray-400 mb-6">Please enable camera permissions and ensure you are using HTTPS or localhost.</p>
+                    <button onclick="initCamera()" class="px-6 py-2 bg-violet-600 rounded-full hover:bg-violet-500">Retry</button>
                 </div>
-            </main>
-            
-            <footer class="relative z-10 p-4 border-t border-gray-700/50 backdrop-blur-sm">
-                <div class="flex items-center justify-between">
-                    <div class="flex gap-3">
-                         <button id="mirror-toggle" class="px-4 py-2 bg-gray-700/50 rounded-lg text-sm font-medium text-gray-300 flex items-center gap-2 hover:bg-gray-600">
-                            🔄 Mirror
-                        </button>
-                        <select id="timer-select" class="bg-gray-700/50 text-white text-sm rounded px-3 py-2 border border-gray-600 outline-none">
-                            <option value="0">Timer: Off</option>
+            </div>
+
+            <div class="bg-gray-900/90 backdrop-blur border-t border-gray-700 p-4 pb-6 flex justify-between items-center z-20">
+                
+                <div class="flex gap-2">
+                    <button onclick="toggleMirror()" id="btn-mirror" class="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-lg transition-colors text-violet-400" title="Mirror Flip">
+                        ⟷
+                    </button>
+                    <div class="relative">
+                        <select id="timer-select" class="appearance-none w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-center text-xs font-bold focus:outline-none cursor-pointer">
+                            <option value="0">0s</option>
                             <option value="3">3s</option>
                             <option value="5">5s</option>
                         </select>
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-xs">⏱️</div>
                     </div>
-                    
-                    <button id="capture-btn" class="w-20 h-20 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:scale-105 transition-transform shadow-lg flex items-center justify-center border-4 border-gray-800">
-                        <div class="w-16 h-16 rounded-full border-2 border-white/50 flex items-center justify-center">
-                            <div class="w-14 h-14 rounded-full bg-white"></div>
-                        </div>
+                </div>
+
+                <button id="shutter-btn" class="btn-capture w-20 h-20 rounded-full border-4 border-gray-200 bg-white flex items-center justify-center shadow-lg relative -top-6 hover:bg-gray-100">
+                    <div class="w-16 h-16 rounded-full border-2 border-gray-400"></div>
+                </button>
+
+                <div class="flex gap-2">
+                    <button onclick="toggleSidebar('effects')" class="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-lg">
+                        ✨
                     </button>
-                    
-                    <div class="flex gap-3">
-                         <select id="burst-select" class="bg-gray-700/50 text-white text-sm rounded px-3 py-2 border border-gray-600 outline-none">
-                            <option value="1">Single Shot</option>
-                            <option value="3">Burst (3)</option>
-                        </select>
-                    </div>
+                    <button onclick="toggleSidebar('gallery')" class="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-lg relative">
+                        🖼️
+                        <div id="gallery-badge" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center hidden">0</div>
+                    </button>
                 </div>
-            </footer>
+            </div>
         </div>
-        
-        <aside class="w-80 bg-gray-900 border-l border-gray-700/50 flex flex-col overflow-hidden">
-            <div class="flex border-b border-gray-700/50">
-                <button onclick="switchTab('effects')" class="flex-1 py-3 text-sm font-medium text-white bg-gray-800/50 tab-btn" id="btn-effects">Effects</button>
-                <button onclick="switchTab('gallery')" class="flex-1 py-3 text-sm font-medium text-gray-400 tab-btn" id="btn-gallery">Gallery</button>
-            </div>
+
+        <div class="sidebar-area bg-gray-800 flex flex-col">
             
-            <div id="tab-effects" class="flex-1 overflow-y-auto p-4 space-y-6">
-                <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Filters</h3>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button onclick="setFilter('none')" class="p-2 rounded bg-gray-800 text-xs text-white border border-violet-500">None</button>
-                        <button onclick="setFilter('grayscale(100%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">B&W</button>
-                        <button onclick="setFilter('sepia(100%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Sepia</button>
-                        <button onclick="setFilter('saturate(200%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Vivid</button>
-                        <button onclick="setFilter('hue-rotate(90deg)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Alien</button>
-                        <button onclick="setFilter('contrast(150%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Drama</button>
-                        <button onclick="setFilter('blur(2px)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Soft</button>
-                        <button onclick="setFilter('invert(100%)')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Neg</button>
-                    </div>
-                </section>
+            <div class="flex border-b border-gray-700">
+                <button onclick="switchTab('effects')" id="tab-effects" class="flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-active transition-colors">Studio</button>
+                <button onclick="switchTab('gallery')" id="tab-gallery" class="flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-inactive transition-colors">Gallery</button>
+            </div>
+
+            <div id="content-effects" class="flex-1 overflow-y-auto p-5 space-y-8">
                 
                 <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Frames</h3>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Color Filters</h3>
+                    <div class="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+                        <button onclick="applyFilter('')" class="flex-shrink-0 w-16 h-16 bg-gray-700 rounded-lg hover:bg-gray-600 border-2 border-transparent focus:border-violet-500 text-xs">Normal</button>
+                        <button onclick="applyFilter('f-bw')" class="flex-shrink-0 w-16 h-16 bg-gray-700 rounded-lg hover:bg-gray-600 grayscale flex items-center justify-center text-xs">B&W</button>
+                        <button onclick="applyFilter('f-sepia')" class="flex-shrink-0 w-16 h-16 bg-[#704214] rounded-lg hover:opacity-80 text-xs mix-blend-screen flex items-center justify-center">Sepia</button>
+                        <button onclick="applyFilter('f-vivid')" class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-400 to-pink-500 rounded-lg text-xs font-bold flex items-center justify-center text-black">Vivid</button>
+                        <button onclick="applyFilter('f-vintage')" class="flex-shrink-0 w-16 h-16 bg-yellow-900 rounded-lg text-xs text-yellow-100 flex items-center justify-center">1980s</button>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Frames</h3>
                     <div class="grid grid-cols-3 gap-2">
-                        <button onclick="setFrame('none')" class="p-2 rounded bg-gray-800 text-xs text-white border border-violet-500">None</button>
-                        <button onclick="setFrame('classic')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Classic</button>
-                        <button onclick="setFrame('polaroid')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Polaroid</button>
-                        <button onclick="setFrame('film')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Film</button>
-                        <button onclick="setFrame('gold')" class="p-2 rounded bg-gray-800 text-xs text-gray-300">Gold</button>
+                        <button onclick="applyFrame('')" class="py-2 bg-gray-700 rounded text-xs">None</button>
+                        <button onclick="applyFrame('fr-classic')" class="py-2 bg-gray-700 rounded text-xs border border-white">Classic</button>
+                        <button onclick="applyFrame('fr-polaroid')" class="py-2 bg-gray-700 rounded text-xs border-b-4 border-white">Polaroid</button>
+                        <button onclick="applyFrame('fr-film')" class="py-2 bg-gray-700 rounded text-xs border-x-4 border-black">Film</button>
                     </div>
                 </section>
-                
+
                 <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Stickers</h3>
-                    <div class="grid grid-cols-5 gap-2 text-xl">
-                        <button onclick="setSticker('')" class="p-2 bg-gray-800 rounded">❌</button>
-                        <button onclick="setSticker('✨')" class="p-2 bg-gray-800 rounded">✨</button>
-                        <button onclick="setSticker('🔥')" class="p-2 bg-gray-800 rounded">🔥</button>
-                        <button onclick="setSticker('💖')" class="p-2 bg-gray-800 rounded">💖</button>
-                        <button onclick="setSticker('👑')" class="p-2 bg-gray-800 rounded">👑</button>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-3">Overlays</h3>
+                    <input type="text" id="caption-input" placeholder="Type a caption..." oninput="updateCaption(this.value)" class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-sm focus:border-violet-500 outline-none mb-3">
+                    <div class="flex gap-2">
+                        <button onclick="toggleSticker('✨')" class="flex-1 py-2 bg-gray-700 rounded text-xl">✨</button>
+                        <button onclick="toggleSticker('🔥')" class="flex-1 py-2 bg-gray-700 rounded text-xl">🔥</button>
+                        <button onclick="toggleSticker('💖')" class="flex-1 py-2 bg-gray-700 rounded text-xl">💖</button>
+                        <button onclick="toggleSticker('')" class="flex-1 py-2 bg-red-900/50 text-red-300 rounded text-sm font-bold">Clear</button>
                     </div>
-                </section>
-                
-                <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Text</h3>
-                    <input type="text" id="input-text" placeholder="Type caption..." oninput="setText(this.value)" class="w-full bg-gray-800 border border-gray-700 text-white rounded p-2 text-sm">
                 </section>
             </div>
-            
-            <div id="tab-gallery" class="hidden flex-1 overflow-y-auto p-4">
-                <div class="flex justify-between mb-4">
-                    <h3 class="text-white font-bold">Your Photos</h3>
-                    <button onclick="clearSession()" class="text-xs text-red-400 hover:text-red-300">Clear All</button>
+
+            <div id="content-gallery" class="hidden flex-1 overflow-y-auto p-5">
+                <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-xl font-bold">Session</h2>
+                    <button onclick="clearGallery()" class="text-xs text-red-400 hover:text-red-300 underline">Clear All</button>
                 </div>
+                
                 <div id="gallery-grid" class="grid grid-cols-2 gap-3">
                     </div>
-                <button onclick="exportAll()" class="w-full mt-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">Download All</button>
+                
+                <button onclick="downloadAll()" id="btn-download-all" class="w-full mt-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 hidden">
+                    Download All
+                </button>
+                
+                <div id="empty-state" class="text-center py-10 text-gray-500">
+                    <p class="text-4xl mb-2">📷</p>
+                    <p>No photos yet</p>
+                </div>
             </div>
-        </aside>
+
+        </div>
     </div>
-    
-    <div id="toast" class="toast hidden bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg"></div>
-    
+
     <canvas id="canvas" class="hidden"></canvas>
 
     <script>
-        // --- 1. ROBUST LOCAL STORAGE SYSTEM (Fixes broken SDK) ---
-        class PhotoDB {
-            constructor() {
-                this.key = 'studio_x_photos_v2';
-                this.photos = this.load();
-            }
-            load() {
-                try { return JSON.parse(localStorage.getItem(this.key) || '[]'); } 
-                catch(e) { return []; }
-            }
-            save() {
-                try { localStorage.setItem(this.key, JSON.stringify(this.photos)); } catch(e) {}
-            }
-            add(data) {
-                this.photos.unshift(data); // Add to top
-                this.save();
-            }
-            getAll() { return this.photos; }
-            clear() { this.photos = []; this.save(); }
-        }
+        // --- LOGIC ---
         
-        const db = new PhotoDB();
-        
-        // --- 2. STATE & CONFIG ---
+        // 1. Data Store (Local Storage)
+        const DB = {
+            key: 'studio_x_v3_photos',
+            get: () => {
+                try { return JSON.parse(localStorage.getItem(DB.key) || '[]'); } 
+                catch { return []; }
+            },
+            add: (dataUrl) => {
+                const photos = DB.get();
+                photos.unshift({ id: Date.now(), src: dataUrl });
+                localStorage.setItem(DB.key, JSON.stringify(photos));
+                return photos;
+            },
+            clear: () => localStorage.removeItem(DB.key)
+        };
+
+        // 2. State & Elements
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const galleryGrid = document.getElementById('gallery-grid');
-        
-        let state = {
-            filter: 'none',
-            frame: 'none',
-            sticker: '',
-            text: '',
-            mirror: true,
-            brightness: 100,
-            contrast: 100
-        };
-        
+        const shutterBtn = document.getElementById('shutter-btn');
+        let stream = null;
+        let activeFilter = '';
+        let activeFrame = '';
+        let isMirrored = true;
+        let activeSticker = '';
+        let activeText = '';
         let sessionStart = Date.now();
-        
-        // --- 3. CAMERA ENGINE ---
+
+        // 3. Initialization
         async function initCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
-                    audio: false 
+                // Request 720p or best available
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+                    audio: false
                 });
                 video.srcObject = stream;
-                document.getElementById('camera-off').classList.add('hidden');
+                document.getElementById('cam-error').classList.add('hidden');
+                
+                // Start Timer
+                setInterval(() => {
+                    const diff = Math.floor((Date.now() - sessionStart)/1000);
+                    const m = Math.floor(diff/60).toString().padStart(2, '0');
+                    const s = (diff%60).toString().padStart(2, '0');
+                    document.getElementById('stat-time').innerText = `${m}:${s}`;
+                }, 1000);
+
             } catch (err) {
                 console.error(err);
-                document.getElementById('camera-off').classList.remove('hidden');
-                showToast("Camera blocked! Use HTTPS or Localhost.", true);
+                document.getElementById('cam-error').classList.remove('hidden');
             }
+            renderGallery();
         }
-        
-        // --- 4. CAPTURE LOGIC ---
-        document.getElementById('capture-btn').onclick = async () => {
-            const btn = document.getElementById('capture-btn');
-            btn.disabled = true;
-            
-            const count = parseInt(document.getElementById('burst-select').value);
-            const timer = parseInt(document.getElementById('timer-select').value);
-            
-            // Countdown
-            if(timer > 0) {
-                const el = document.getElementById('countdown-overlay');
-                const num = document.getElementById('countdown-number');
-                el.classList.remove('hidden');
-                for(let i=timer; i>0; i--) {
-                    num.innerText = i;
+
+        // 4. Capture Engine
+        shutterBtn.addEventListener('click', async () => {
+            if(!stream) return;
+            shutterBtn.disabled = true;
+
+            // Countdown Logic
+            const delay = parseInt(document.getElementById('timer-select').value);
+            if(delay > 0) {
+                const cdEl = document.getElementById('countdown');
+                cdEl.classList.remove('hidden');
+                for(let i=delay; i>0; i--) {
+                    cdEl.innerText = i;
                     await new Promise(r => setTimeout(r, 1000));
                 }
-                el.classList.add('hidden');
+                cdEl.classList.add('hidden');
             }
-            
-            // Capture Loop
-            for(let i=0; i<count; i++) {
-                await snap();
-                if(i < count-1) await new Promise(r => setTimeout(r, 800));
-            }
-            
-            btn.disabled = false;
-        };
-        
-        async function snap() {
+
             // Flash
-            const flash = document.getElementById('flash-overlay');
-            flash.style.opacity = 1;
-            setTimeout(() => flash.style.opacity = 0, 150);
-            
-            // Setup Canvas
+            const flash = document.getElementById('flash');
+            flash.classList.remove('animate-flash');
+            void flash.offsetWidth; // Trigger reflow
+            flash.classList.add('animate-flash');
+
+            // Process Image
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
-            // Mirroring Context
-            if(state.mirror) {
-                ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1);
-            }
+            // Draw Background (White for Polaroids)
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0,0,canvas.width, canvas.height);
+
+            // Calculate Video Dimensions based on Frame
+            let dx = 0, dy = 0, dw = canvas.width, dh = canvas.height;
             
-            // Apply Filters
-            ctx.filter = state.filter;
-            ctx.drawImage(video, 0, 0);
-            ctx.setTransform(1,0,0,1,0,0); // Reset for text
-            ctx.filter = 'none';
-            
-            // Draw Frames (Simple Borders)
-            const w = canvas.width, h = canvas.height;
-            ctx.lineWidth = 40;
-            if(state.frame === 'classic') { ctx.strokeStyle = 'white'; ctx.strokeRect(0,0,w,h); }
-            if(state.frame === 'polaroid') { 
-                ctx.fillStyle = 'white'; 
-                ctx.fillRect(0,0,w,h); 
-                ctx.drawImage(video, 20, 20, w-40, h-160); // Draw video inside
-                // We need to re-draw video here un-mirrored if we mirrored before? 
-                // To keep it simple, we just draw border over:
-                // Actually polaroid needs logic. Let's do simple overlay for robustness:
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, h-100, w, 100); // Bottom bar
+            if(activeFrame === 'fr-polaroid') {
+                dx = 40; dy = 40; dw = canvas.width - 80; dh = canvas.height - 200; // Leave space at bottom
+            } else if(activeFrame === 'fr-classic') {
+                dx = 40; dy = 40; dw = canvas.width - 80; dh = canvas.height - 80;
+            } else if (activeFrame === 'fr-film') {
+                dx = 80; dw = canvas.width - 160; // Side bars
             }
-            if(state.frame === 'gold') { ctx.strokeStyle = '#FFD700'; ctx.strokeRect(0,0,w,h); }
-            
-            // Draw Text & Stickers
-            if(state.text) {
-                ctx.font = 'italic bold 40px serif';
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.shadowColor="black"; ctx.shadowBlur=5;
-                ctx.fillText(state.text, w/2, h-40);
+
+            // Mirror & Filter Context
+            ctx.save();
+            if(isMirrored) {
+                ctx.translate(canvas.width, 0); // Move right
+                ctx.scale(-1, 1); // Flip
+                // Adjust dx for mirrored coordinate system
+                if (activeFrame === 'fr-polaroid' || activeFrame === 'fr-classic' || activeFrame === 'fr-film') {
+                     // Since we flipped, drawing at x=40 goes to the far right. 
+                     // We need to draw at -width + 40? No, standard logic:
+                     // The context is flipped. Drawing at 0,0 draws at top-right.
+                     // Drawing at dx, dy should work relatively if calculated from the new origin.
+                     // Complex. Easier approach: Draw video full, THEN draw frame on top.
+                     // Let's revert specific dx/dy for video drawing for simplicity in this Robust version
+                     // and just draw the frame overlay ON TOP.
+                     dx = 0; dy = 0; dw = canvas.width; dh = canvas.height;
+                }
             }
-            if(state.sticker) {
-                ctx.font = '100px serif';
-                ctx.fillText(state.sticker, w-120, 100);
-            }
-            
+
+            // Apply CSS Filters to Canvas
+            if(activeFilter === 'f-bw') ctx.filter = 'grayscale(100%)';
+            if(activeFilter === 'f-sepia') ctx.filter = 'sepia(100%)';
+            if(activeFilter === 'f-vivid') ctx.filter = 'saturate(200%)';
+            if(activeFilter === 'f-vintage') ctx.filter = 'sepia(40%) contrast(120%)';
+
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.restore(); // Remove mirror/filter for overlays
+
+            // Draw Overlays (Text/Stickers/Frames)
+            drawOverlays(ctx, canvas.width, canvas.height);
+
             // Save
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-            db.add({ src: dataUrl, date: new Date().toLocaleString() });
+            const url = canvas.toDataURL('image/jpeg', 0.95);
+            DB.add(url);
             renderGallery();
-            showToast("Photo Saved!");
-        }
-        
-        // --- 5. UI ACTIONS ---
-        function setFilter(val) {
-            state.filter = val;
-            video.style.filter = val;
-        }
-        function setFrame(val) {
-            state.frame = val;
-            video.className = `video-mirror w-full h-full object-cover frame-${val}`; // Reset mirror class
-            if(!state.mirror) video.classList.remove('video-mirror');
-        }
-        function setSticker(val) {
-            state.sticker = val;
-            const el = document.getElementById('sticker-layer');
-            el.innerText = val;
-            el.classList.toggle('hidden', !val);
-        }
-        function setText(val) {
-            state.text = val;
-            const el = document.getElementById('overlay-text');
-            el.innerText = val;
-            el.classList.toggle('hidden', !val);
-        }
-        
-        document.getElementById('mirror-toggle').onclick = () => {
-            state.mirror = !state.mirror;
-            video.classList.toggle('video-mirror', state.mirror);
-            video.classList.toggle('video-normal', !state.mirror);
-        };
-        
-        // --- 6. GALLERY & TABS ---
-        function switchTab(name) {
-            document.getElementById('tab-effects').classList.add('hidden');
-            document.getElementById('tab-gallery').classList.add('hidden');
-            document.getElementById('btn-effects').classList.replace('text-white', 'text-gray-400');
-            document.getElementById('btn-gallery').classList.replace('text-white', 'text-gray-400');
             
-            document.getElementById(`tab-${name}`).classList.remove('hidden');
-            document.getElementById(`btn-${name}`).classList.replace('text-gray-400', 'text-white');
-            if(name === 'gallery') renderGallery();
+            shutterBtn.disabled = false;
+        });
+
+        function drawOverlays(ctx, w, h) {
+            // Frames (Manual Drawing)
+            ctx.lineWidth = 0;
+            if(activeFrame === 'fr-classic') {
+                ctx.strokeStyle = "white"; ctx.lineWidth = 50; ctx.strokeRect(0,0,w,h);
+            }
+            if(activeFrame === 'fr-polaroid') {
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, h-150, w, 150); // Bottom
+                ctx.lineWidth = 40; ctx.strokeStyle="white"; ctx.strokeRect(0,0,w,h);
+            }
+            if(activeFrame === 'fr-film') {
+                ctx.fillStyle = "black";
+                ctx.fillRect(0,0, 60, h); // Left
+                ctx.fillRect(w-60, 0, 60, h); // Right
+            }
+
+            // Text
+            if(activeText) {
+                ctx.font = "italic bold 60px serif";
+                ctx.fillStyle = "white";
+                ctx.textAlign = "center";
+                ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 10;
+                ctx.fillText(activeText, w/2, h - 80);
+            }
+
+            // Sticker
+            if(activeSticker) {
+                ctx.font = "150px serif";
+                ctx.textAlign = "right";
+                ctx.fillText(activeSticker, w - 50, 150);
+            }
         }
-        
+
+        // 5. UI Helpers
+        function toggleMirror() {
+            isMirrored = !isMirrored;
+            video.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
+            document.getElementById('btn-mirror').classList.toggle('text-violet-400', isMirrored);
+        }
+
+        function applyFilter(cls) {
+            activeFilter = cls;
+            video.className = `w-full h-full object-cover transition-all ${isMirrored ? 'video-mirror' : ''} ${cls}`;
+        }
+
+        function applyFrame(cls) {
+            activeFrame = cls;
+            // Remove existing frame classes
+            video.classList.remove('fr-classic', 'fr-polaroid', 'fr-film');
+            if(cls) video.classList.add(cls);
+        }
+
+        function updateCaption(val) {
+            activeText = val;
+            const el = document.getElementById('text-display');
+            el.innerText = val;
+            el.classList.toggle('hidden', !val);
+        }
+
+        function toggleSticker(emoji) {
+            activeSticker = emoji;
+            const el = document.getElementById('sticker-display');
+            el.innerText = emoji;
+            el.classList.toggle('hidden', !emoji);
+        }
+
+        function switchTab(tab) {
+            // Header
+            document.getElementById('tab-effects').className = tab === 'effects' ? 'flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-active transition-colors' : 'flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-inactive transition-colors';
+            document.getElementById('tab-gallery').className = tab === 'gallery' ? 'flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-active transition-colors' : 'flex-1 py-4 text-sm font-bold uppercase tracking-wider tab-inactive transition-colors';
+            
+            // Content
+            document.getElementById('content-effects').classList.toggle('hidden', tab !== 'effects');
+            document.getElementById('content-gallery').classList.toggle('hidden', tab !== 'gallery');
+            
+            // Layout Shift for Mobile (Auto-scroll to bottom if gallery selected)
+            if(window.innerWidth < 768 && tab === 'gallery') {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        }
+
+        // 6. Gallery Logic
         function renderGallery() {
-            const photos = db.getAll();
-            document.getElementById('total-photos').innerText = photos.length;
-            galleryGrid.innerHTML = photos.map(p => `
-                <div class="relative group">
-                    <img src="${p.src}" class="w-full h-32 object-cover rounded border border-gray-700">
-                    <a href="${p.src}" download="photo.jpg" class="absolute bottom-1 right-1 bg-white text-black text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">⬇</a>
-                </div>
-            `).join('');
+            const photos = DB.get();
+            const grid = document.getElementById('gallery-grid');
+            const empty = document.getElementById('empty-state');
+            const btn = document.getElementById('btn-download-all');
+            const stat = document.getElementById('stat-count');
+            const badge = document.getElementById('gallery-badge');
+
+            stat.innerText = `📸 ${photos.length}`;
+            badge.innerText = photos.length;
+            badge.classList.toggle('hidden', photos.length === 0);
+
+            grid.innerHTML = '';
+            
+            if(photos.length === 0) {
+                empty.classList.remove('hidden');
+                btn.classList.add('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            btn.classList.remove('hidden');
+
+            photos.forEach((p, idx) => {
+                const div = document.createElement('div');
+                div.className = 'relative group aspect-square rounded-lg overflow-hidden border border-gray-700 bg-gray-800';
+                div.innerHTML = `
+                    <img src="${p.src}" class="w-full h-full object-cover">
+                    <a href="${p.src}" download="studio-x-${p.id}.jpg" class="absolute bottom-2 right-2 bg-white text-black p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">⬇</a>
+                `;
+                grid.appendChild(div);
+            });
         }
-        
-        function clearSession() {
-            if(confirm("Delete all photos?")) {
-                db.clear();
+
+        function clearGallery() {
+            if(confirm('Delete all photos?')) {
+                DB.clear();
                 renderGallery();
             }
         }
-        
-        function exportAll() {
-            const photos = db.getAll();
-            if(!photos.length) return alert("No photos!");
-            photos.forEach((p, i) => {
+
+        function downloadAll() {
+            const photos = DB.get();
+            photos.forEach(p => {
                 const a = document.createElement('a');
                 a.href = p.src;
-                a.download = `studio-x-${i}.jpg`;
+                a.download = `photo-${p.id}.jpg`;
                 a.click();
             });
         }
 
-        // --- 7. UTILS ---
-        function showToast(msg, isError=false) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.className = `toast px-4 py-2 rounded-lg shadow-lg ${isError ? 'bg-red-500' : 'bg-green-500'} text-white`;
-            t.classList.remove('hidden');
-            setTimeout(() => t.classList.add('hidden'), 3000);
-        }
-        
-        setInterval(() => {
-            const diff = Math.floor((Date.now() - sessionStart)/1000);
-            document.getElementById('session-time').innerText = `${Math.floor(diff/60)}m ${diff%60}s`;
-        }, 1000);
-
-        // Init
-        window.onload = () => {
-            initCamera();
-            renderGallery();
-        };
+        // On Load
+        window.onload = initCamera;
 
     </script>
 </body>

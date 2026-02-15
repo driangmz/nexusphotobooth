@@ -8,20 +8,28 @@
         :root {
             --primary: #00f2ea;
             --secondary: #ff0050;
-            --dark: #0a0a0a;
-            --panel-bg: rgba(255, 255, 255, 0.08);
+            --accent: #ffee00;
+            --dark: #050505;
+            --panel-bg: rgba(20, 20, 20, 0.6);
             --text: #ffffff;
-            --glass-border: 1px solid rgba(255, 255, 255, 0.15);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         * { box-sizing: border-box; outline: none; }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
 
         body {
             margin: 0;
             padding: 0;
             font-family: var(--font-main);
             background-color: var(--dark);
+            background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000 70%);
             color: var(--text);
             min-height: 100vh;
             display: flex;
@@ -42,7 +50,10 @@
         #welcome-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            background: #000;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 242, 234, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 0, 80, 0.15) 0px, transparent 50%);
             z-index: 100;
             display: flex;
             flex-direction: column;
@@ -55,61 +66,76 @@
             text-align: center;
             animation: fadeIn 1s ease-out;
             padding: 20px;
+            max-width: 600px;
         }
 
         .welcome-title {
-            font-size: 4rem;
+            font-size: 5rem;
             font-weight: 900;
             text-transform: uppercase;
             margin-bottom: 10px;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
+            letter-spacing: -2px;
+            background: linear-gradient(to right, #fff, #aaa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: glow 3s infinite;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .welcome-tag {
+            font-size: 1rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+            font-weight: 700;
         }
 
         .welcome-subtitle {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-bottom: 40px;
-            letter-spacing: 2px;
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 50px;
+            line-height: 1.5;
         }
 
         .start-btn {
-            padding: 18px 50px;
-            font-size: 1.2rem;
-            background: white;
-            color: black;
+            padding: 20px 60px;
+            font-size: 1.1rem;
+            background: var(--text);
+            color: #000;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+            font-weight: 800;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(255,255,255,0.1);
             text-transform: uppercase;
             letter-spacing: 1px;
-            animation: float 3s ease-in-out infinite;
+            animation: float 4s ease-in-out infinite;
         }
 
-        .start-btn:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,255,255,0.5); }
-        .start-btn:active { transform: scale(0.95); }
+        .start-btn:hover { 
+            transform: scale(1.05); 
+            box-shadow: 0 0 50px rgba(255,255,255,0.3); 
+            background: var(--primary);
+        }
 
         .privacy-link {
-            margin-top: 30px;
-            color: rgba(255,255,255,0.5);
-            text-decoration: underline;
+            margin-top: 40px;
+            color: #444;
+            text-decoration: none;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: color 0.2s;
+            border-bottom: 1px solid transparent;
         }
-        .privacy-link:hover { color: var(--primary); }
+        .privacy-link:hover { color: var(--text); border-bottom-color: var(--text); }
 
         /* --- PRIVACY MODAL --- */
         #privacy-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
             z-index: 200;
             display: none;
             justify-content: center;
@@ -118,31 +144,50 @@
         }
 
         .modal-content {
-            background: #151515;
-            border: var(--glass-border);
+            background: #111;
+            border: 1px solid #333;
             border-radius: 20px;
             padding: 40px;
-            max-width: 500px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
             text-align: left;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 80px rgba(0,0,0,0.8);
             animation: popIn 0.3s ease;
+            position: relative;
         }
 
-        .modal-content h2 { margin-top: 0; color: var(--primary); }
-        .modal-content p { line-height: 1.6; opacity: 0.8; }
+        .modal-content h2 { margin-top: 0; color: var(--text); border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-content h3 { color: var(--primary); margin-top: 25px; font-size: 1.1rem; }
+        .modal-content p { line-height: 1.7; color: #aaa; font-size: 0.95rem; margin-bottom: 15px; }
+        .modal-content strong { color: #fff; }
+        
+        .credit-tag {
+            display: block;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #222;
+            color: var(--secondary);
+            font-weight: bold;
+            font-family: monospace;
+        }
+
         .close-modal {
-            background: #333;
-            color: white;
-            padding: 10px 20px;
+            background: var(--text);
+            color: #000;
+            padding: 12px 30px;
             border: none;
             border-radius: 8px;
             margin-top: 20px;
             cursor: pointer;
+            font-weight: bold;
             float: right;
+            transition: background 0.2s;
         }
-        .close-modal:hover { background: #444; }
+        .close-modal:hover { background: var(--primary); }
 
-        /* --- MAIN APP (Hidden initially) --- */
+        /* --- MAIN APP --- */
         #app-container {
             display: none;
             width: 100%;
@@ -155,11 +200,11 @@
         /* --- HEADER --- */
         header {
             width: 100%;
-            padding: 15px 20px;
-            text-align: center;
-            background: linear-gradient(90deg, #111, #000);
-            border-bottom: var(--glass-border);
-            margin-bottom: 20px;
+            padding: 20px 40px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #222;
+            margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -167,39 +212,52 @@
 
         .header-logo {
             margin: 0;
-            font-weight: 800;
-            font-size: 1.5rem;
+            font-weight: 900;
+            font-size: 1.4rem;
             text-transform: uppercase;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #fff, #888);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .header-controls button { font-size: 0.8rem; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.2); }
+        .header-controls button { 
+            font-size: 0.75rem; 
+            padding: 8px 16px; 
+            border: 1px solid #333; 
+            background: transparent;
+            border-radius: 4px;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .header-controls button:hover { color: #fff; border-color: #666; }
 
         .main-stage {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 1200px;
-            gap: 20px;
-            padding: 0 15px;
+            max-width: 1100px;
+            gap: 25px;
+            padding: 0 20px;
         }
 
         /* --- VIEWFINDER --- */
         .booth-container {
             position: relative;
             background: #000;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.8);
             overflow: hidden;
-            border: var(--glass-border);
-            transition: all 0.3s ease;
+            border: 1px solid #333;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
+        /* Aspect Ratios */
         .ratio-landscape { width: 100%; max-width: 800px; aspect-ratio: 16/9; }
-        .ratio-portrait  { width: 100%; max-width: 450px; aspect-ratio: 3/4; }
+        .ratio-portrait  { width: 100%; max-width: 480px; aspect-ratio: 3/4; }
         .ratio-square    { width: 100%; max-width: 600px; aspect-ratio: 1/1; }
 
         video {
@@ -210,159 +268,202 @@
             display: block;
         }
 
-        /* --- OVERLAYS --- */
+        /* Overlays */
+        .grid-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+        }
+        .grid-visible { opacity: 1; }
+        .grid-line-h { position: absolute; width: 100%; height: 1px; background: rgba(255,255,255,0.3); left: 0; }
+        .grid-line-v { position: absolute; height: 100%; width: 1px; background: rgba(255,255,255,0.3); top: 0; }
+
         .overlay-countdown {
-            position: absolute;
-            top: 50%; left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 8rem;
+            font-size: 10rem;
             font-weight: 900;
-            color: white;
-            text-shadow: 0 0 30px rgba(0,0,0,0.8);
+            color: #fff;
+            text-shadow: 0 4px 40px rgba(0,0,0,0.5);
             opacity: 0;
             pointer-events: none;
             z-index: 10;
+            font-variant-numeric: tabular-nums;
         }
 
         .flash-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: white;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
             opacity: 0;
             pointer-events: none;
             z-index: 20;
         }
 
-        /* --- CONTROLS UI --- */
+        /* --- CONTROLS --- */
         .controls-panel {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 15px;
-            padding: 20px;
-            background: var(--panel-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            gap: 20px;
+            padding: 25px;
+            background: #111;
+            border: 1px solid #222;
             border-radius: 16px;
-            border: var(--glass-border);
             width: 100%;
             max-width: 900px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
+            min-width: 120px;
         }
 
         .control-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.6;
+            letter-spacing: 1.5px;
+            color: #666;
+            font-weight: 700;
         }
 
         .btn-group {
             display: flex;
-            background: rgba(0,0,0,0.3);
+            background: #1a1a1a;
             border-radius: 8px;
             padding: 4px;
+            gap: 2px;
             flex-wrap: wrap;
             justify-content: center;
         }
 
-        button {
+        .btn-group button {
             background: transparent;
             border: none;
-            color: white;
-            padding: 8px 16px;
+            color: #888;
+            padding: 8px 14px;
             cursor: pointer;
             border-radius: 6px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             transition: all 0.2s;
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        button:hover { background: rgba(255,255,255,0.1); }
-        button.active { background: var(--primary); color: #000; font-weight: bold; box-shadow: 0 0 10px rgba(0, 242, 234, 0.3); }
+        .btn-group button:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .btn-group button.active { background: #333; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-        /* Shutter Button */
+        /* Toggles */
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: #1a1a1a;
+            border: 1px solid transparent;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 242, 234, 0.05); }
+
+        /* Shutter */
+        .shutter-wrapper { width: 100%; display: flex; justify-content: center; margin-top: 10px; }
         .shutter-btn {
-            background: var(--secondary) !important;
+            background: linear-gradient(135deg, var(--secondary), #d00040) !important;
             color: white !important;
-            width: 70px;
-            height: 70px;
+            width: 80px; height: 80px;
             border-radius: 50%;
-            border: 4px solid rgba(255,255,255,0.2) !important;
+            border: 4px solid rgba(255,255,255,0.1) !important;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 20px rgba(255, 0, 80, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+            transition: transform 0.1s, box-shadow 0.2s;
+            cursor: pointer;
         }
-        
-        .shutter-btn:hover { transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 0, 80, 0.6); }
-        .shutter-btn:active { transform: scale(0.95); }
-        .shutter-icon { width: 24px; height: 24px; background: white; border-radius: 50%; }
+        .shutter-btn:hover { transform: scale(1.05); box-shadow: 0 10px 40px rgba(255, 0, 80, 0.5); }
+        .shutter-btn:active { transform: scale(0.92); }
+        .shutter-icon { width: 30px; height: 30px; background: white; border-radius: 50%; }
 
         /* --- GALLERY --- */
         .gallery-section {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1100px;
             margin-top: 40px;
-            padding: 20px;
+            padding-bottom: 50px;
         }
 
         .gallery-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
         }
+        .gallery-header h3 { margin: 0; color: #fff; font-size: 1.2rem; }
 
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
         }
 
         .photo-card {
-            background: #1a1a1a;
+            background: #111;
             border-radius: 12px;
             overflow: hidden;
-            position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border: 1px solid #333;
+            border: 1px solid #222;
             transition: transform 0.2s;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
         }
 
-        .photo-card:hover { transform: translateY(-5px); }
-        .photo-card img { width: 100%; height: auto; display: block; }
+        .photo-card:hover { transform: translateY(-5px); border-color: #444; }
+        .photo-card img { width: 100%; height: auto; display: block; flex-grow: 1; }
 
         .card-actions {
             display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background: #222;
+            padding: 12px;
+            gap: 10px;
+            background: #151515;
+            border-top: 1px solid #222;
         }
 
-        .action-btn { font-size: 0.8rem; padding: 6px 12px; border-radius: 4px; text-decoration: none; }
-        .btn-download { background: #333; color: var(--primary); display: inline-block; }
-        .btn-download:hover { background: #444; }
-        .btn-delete { color: #ff4444; }
-        .btn-delete:hover { background: rgba(255, 68, 68, 0.1); }
+        .action-btn { 
+            flex: 1;
+            font-size: 0.75rem; 
+            padding: 8px; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-download { background: #fff; color: #000; }
+        .btn-download:hover { background: #ddd; }
+        .btn-delete { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
+        .btn-delete:hover { background: rgba(255, 68, 68, 0.2); }
 
         canvas { display: none; }
 
-        @media (max-width: 600px) {
-            .welcome-title { font-size: 2.5rem; }
-            .controls-panel { flex-direction: column; align-items: stretch; }
-            .btn-group { justify-content: center; }
-            .shutter-btn { align-self: center; margin: 10px 0; }
+        @media (max-width: 768px) {
+            .welcome-title { font-size: 3rem; }
+            .controls-panel { gap: 15px; padding: 15px; }
+            .btn-group { width: 100%; }
+            .control-group { width: 100%; }
+            .shutter-btn { width: 70px; height: 70px; }
+            .gallery-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -370,10 +471,12 @@
 
     <div id="welcome-screen">
         <div class="welcome-content">
-            <div class="welcome-title">STUDIO BOOTH</div>
-            <div class="welcome-subtitle">Professional Web-Based Photography</div>
-            <button class="start-btn" onclick="enterBooth()">Enter Booth</button>
-            <div class="privacy-link" onclick="openPrivacy()">Privacy Policy</div>
+            <div class="welcome-tag">New V2.0</div>
+            <div class="welcome-title">Studio<br>Booth</div>
+            <div class="welcome-subtitle">Advanced Web-Based Photography Suite<br>Local. Private. High Fidelity.</div>
+            <button class="start-btn" onclick="enterBooth()">Start Session</button>
+            <br>
+            <a class="privacy-link" onclick="openPrivacy()">Privacy Policy & Terms</a>
         </div>
     </div>
 
@@ -381,11 +484,20 @@
         <div class="modal-content">
             <h2>Privacy Policy</h2>
             <p><strong>Your privacy is our priority.</strong></p>
-            <p>This application operates 100% locally within your web browser. No video feed, images, or personal data are ever sent to a server or the cloud. All processing happens on your device using your computer's resources. Images are stored in your browser's temporary memory and are deleted when you refresh the page or close the tab. We are committed to protecting your privacy and ensuring that your experience remains safe, transparent, and under your control. By using this application, you acknowledge that all data remains confined to your device and that no external party has access to your content. This design ensures that your information is never collected, analyzed, or shared beyond your browser session.  
-            <h2></h2>Rights and Terms</h2>
-            <p></p>You retain full ownership of all images, videos, and content processed through this application. Nothing you create or upload is stored permanently, nor is it transmitted to any external service. You have the right to close the application at any time, which will immediately clear temporary memory and remove any stored images. We do not claim any rights over your creative output, and you are free to use, share, or delete your content as you see fit.   By proceeding, you agree to use this application responsibly and acknowledge that it is provided “as is,” without warranties of any kind. While we strive to ensure smooth performance, we cannot guarantee uninterrupted service or absolute technical perfection. You accept that the application may occasionally encounter errors or limitations due to the constraints of your device’s hardware and browser environment. You also agree not to misuse the application for unlawful purposes, including but not limited to the creation or distribution of harmful, offensive, or illegal content. The developers disclaim liability for any misuse or damages resulting from your use of the application. Your continued use signifies your acceptance of these terms and your understanding that responsibility for all content rests with you. We reserve the right to update this Privacy Policy and Terms of Use to reflect improvements, legal requirements, or changes in technology. Any updates will be communicated through revisions to this text, and your continued use after such updates will constitute acceptance of the revised terms.  
-            <h2></h2>Further and Credits</h2>
-            <p></p>This project was built with a commitment to transparency, accessibility, and respect for user privacy. It reflects a philosophy of empowering users to create freely without sacrificing control over their personal data. Created with love. by @ianny  </p>
+            <p>This application operates 100% locally within your web browser. No video feed, images, or personal data are ever sent to a server or the cloud. All processing happens on your device using your computer's resources. Images are stored in your browser's temporary memory and are deleted when you refresh the page or close the tab.</p>
+            <p>We are committed to protecting your privacy and ensuring that your experience remains safe, transparent, and under your control. By using this application, you acknowledge that all data remains confined to your device and that no external party has access to your content. This design ensures that your information is never collected, analyzed, or shared beyond your browser session.</p>
+            
+            <h3>Rights and Terms</h3>
+            <p>You retain full ownership of all images, videos, and content processed through this application. Nothing you create or upload is stored permanently, nor is it transmitted to any external service. You have the right to close the application at any time, which will immediately clear temporary memory and remove any stored images. We do not claim any rights over your creative output, and you are free to use, share, or delete your content as you see fit.</p>
+            <p>By proceeding, you agree to use this application responsibly and acknowledge that it is provided “as is,” without warranties of any kind. While we strive to ensure smooth performance, we cannot guarantee uninterrupted service or absolute technical perfection. You accept that the application may occasionally encounter errors or limitations due to the constraints of your device’s hardware and browser environment.</p>
+            <p>You also agree not to misuse the application for unlawful purposes, including but not limited to the creation or distribution of harmful, offensive, or illegal content. The developers disclaim liability for any misuse or damages resulting from your use of the application. Your continued use signifies your acceptance of these terms and your understanding that responsibility for all content rests with you.</p>
+            <p>We reserve the right to update this Privacy Policy and Terms of Use to reflect improvements, legal requirements, or changes in technology. Any updates will be communicated through revisions to this text, and your continued use after such updates will constitute acceptance of the revised terms.</p>
+            
+            <h3>Further and Credits</h3>
+            <p>This project was built with a commitment to transparency, accessibility, and respect for user privacy. It reflects a philosophy of empowering users to create freely without sacrificing control over their personal data.</p>
+            
+            <span class="credit-tag">Created with love. by @ianny</span>
+            
             <button class="close-modal" onclick="closePrivacy()">I Understand</button>
         </div>
     </div>
@@ -394,19 +506,35 @@
         <header>
             <div class="header-logo">Studio Booth Pro</div>
             <div class="header-controls">
-                <button onclick="openPrivacy()">Privacy</button>
+                <button onclick="openPrivacy()">Info & Privacy</button>
             </div>
         </header>
 
         <div class="main-stage">
             <div id="booth-frame" class="booth-container ratio-landscape">
                 <video id="video" autoplay playsinline></video>
+                
+                <div id="grid-overlay" class="grid-overlay">
+                    <div class="grid-line-h" style="top: 33%;"></div>
+                    <div class="grid-line-h" style="top: 66%;"></div>
+                    <div class="grid-line-v" style="left: 33%;"></div>
+                    <div class="grid-line-v" style="left: 66%;"></div>
+                </div>
+
                 <div id="countdown" class="overlay-countdown">3</div>
                 <div id="flash" class="flash-overlay"></div>
             </div>
 
             <div class="controls-panel">
                 
+                <div class="control-group">
+                    <span class="control-label">Tools</span>
+                    <div class="btn-group">
+                        <button id="btn-grid" onclick="toggleGrid(this)"># Grid</button>
+                        <button id="btn-stamp" onclick="toggleDateStamp(this)">Date Stamp</button>
+                    </div>
+                </div>
+
                 <div class="control-group">
                     <span class="control-label">Format</span>
                     <div class="btn-group">
@@ -417,29 +545,37 @@
                 </div>
 
                 <div class="control-group">
+                    <span class="control-label">Mode</span>
+                    <div class="btn-group">
+                        <button onclick="setMode('single', this)" class="active">Single</button>
+                        <button onclick="setMode('burst', this)">Burst (3x)</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
                     <span class="control-label">Timer</span>
                     <div class="btn-group">
-                        <button onclick="setTimer(0, this)">Off</button>
+                        <button onclick="setTimer(0, this)">0s</button>
                         <button onclick="setTimer(3, this)" class="active">3s</button>
                         <button onclick="setTimer(5, this)">5s</button>
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <span class="control-label">Filters</span>
-                    <div class="btn-group" style="max-width: 400px;">
-                        <button onclick="setFilter('none', this)" class="active">Normal</button>
-                        <button onclick="setFilter('grayscale(100%)', this)">B&W</button>
-                        <button onclick="setFilter('sepia(100%)', this)">Sepia</button>
-                        <button onclick="setFilter('contrast(1.3) saturate(1.5)', this)">Vivid</button>
-                        <button onclick="setFilter('contrast(1.2) sepia(0.4)', this)">Vintage</button>
-                        <button onclick="setFilter('saturate(2) hue-rotate(200deg)', this)">Cyber</button>
-                        <button onclick="setFilter('saturate(1.2) sepia(0.3) contrast(1.1)', this)">Golden</button>
-                        <button onclick="setFilter('contrast(1.4) brightness(0.9) grayscale(0.3)', this)">Dramatic</button>
+                <div class="control-group" style="width: 100%; max-width: 800px;">
+                    <span class="control-label">Color Grading</span>
+                    <div class="btn-group">
+                        <button onclick="setFilter('none', this)" class="active">Clean</button>
+                        <button onclick="setFilter('grayscale(100%) contrast(1.2)', this)">Mono</button>
+                        <button onclick="setFilter('contrast(1.1) brightness(1.1) saturate(1.3)', this)">Pop</button>
+                        <button onclick="setFilter('sepia(0.5) contrast(1.2) saturate(0.8)', this)">Warm</button>
+                        <button onclick="setFilter('contrast(0.9) brightness(1.1) saturate(0.5) sepia(0.2)', this)">Nordic</button>
+                        <button onclick="setFilter('hue-rotate(-10deg) saturate(1.5) contrast(1.2)', this)">Miami</button>
+                        <button onclick="setFilter('sepia(0.3) contrast(1.5) brightness(0.9)', this)">Cinema</button>
+                        <button onclick="setFilter('contrast(1.2) saturate(1.8) hue-rotate(180deg)', this)">Invert</button>
                     </div>
                 </div>
 
-                <div class="control-group" style="justify-content: center; width: 100%;">
+                <div class="shutter-wrapper">
                     <button id="snap-btn" class="shutter-btn">
                         <div class="shutter-icon"></div>
                     </button>
@@ -451,7 +587,7 @@
         <div class="gallery-section">
             <div class="gallery-header">
                 <h3>Session Gallery</h3>
-                <button onclick="clearGallery()" class="btn-delete" style="background:transparent; border:1px solid #333;">Clear All</button>
+                <button onclick="clearGallery()" style="background:transparent; border:1px solid #333; color:#888; padding:5px 10px; border-radius:4px; cursor:pointer;">Clear All</button>
             </div>
             <div id="gallery-grid" class="gallery-grid">
                 </div>
@@ -468,7 +604,10 @@
             filter: 'none',
             timerDuration: 3,
             ratio: 'landscape', 
-            isCapturing: false
+            mode: 'single', // 'single' or 'burst'
+            isCapturing: false,
+            showGrid: false,
+            dateStamp: false
         };
 
         const DOM = {
@@ -481,30 +620,27 @@
             countdown: document.getElementById('countdown'),
             flash: document.getElementById('flash'),
             snapBtn: document.getElementById('snap-btn'),
-            gallery: document.getElementById('gallery-grid')
+            gallery: document.getElementById('gallery-grid'),
+            gridOverlay: document.getElementById('grid-overlay')
         };
 
         /**
          * UX FLOW
          */
-        function openPrivacy() {
-            DOM.privacy.style.display = 'flex';
-        }
-
-        function closePrivacy() {
-            DOM.privacy.style.display = 'none';
-        }
+        function openPrivacy() { DOM.privacy.style.display = 'flex'; }
+        function closePrivacy() { DOM.privacy.style.display = 'none'; }
 
         function enterBooth() {
-            initCamera().then(() => {
-                DOM.welcome.style.opacity = '0';
-                setTimeout(() => {
-                    DOM.welcome.style.display = 'none';
-                    DOM.app.style.display = 'flex';
-                    // Trigger reflow for transition
-                    DOM.app.offsetHeight; 
-                    DOM.app.style.opacity = '1';
-                }, 800);
+            initCamera().then(success => {
+                if(success) {
+                    DOM.welcome.style.opacity = '0';
+                    setTimeout(() => {
+                        DOM.welcome.style.display = 'none';
+                        DOM.app.style.display = 'flex';
+                        DOM.app.offsetHeight; // Reflow
+                        DOM.app.style.opacity = '1';
+                    }, 800);
+                }
             });
         }
 
@@ -525,13 +661,13 @@
                 return true;
             } catch (error) {
                 console.error("Camera Error:", error);
-                alert("Camera Access Denied. Please ensure you are using HTTPS or Localhost and have granted permission.");
+                alert("Camera Access Denied. Please ensure you are using HTTPS or Localhost.");
                 return false;
             }
         }
 
         /**
-         * CONTROLS LOGIC
+         * CONTROLS
          */
         function setRatio(type, btn) {
             updateActiveButton(btn);
@@ -544,10 +680,27 @@
             state.timerDuration = seconds;
         }
 
+        function setMode(mode, btn) {
+            updateActiveButton(btn);
+            state.mode = mode;
+        }
+
         function setFilter(filterVal, btn) {
             updateActiveButton(btn);
             state.filter = filterVal;
             DOM.video.style.filter = filterVal;
+        }
+
+        function toggleGrid(btn) {
+            state.showGrid = !state.showGrid;
+            btn.classList.toggle('active');
+            if(state.showGrid) DOM.gridOverlay.classList.add('grid-visible');
+            else DOM.gridOverlay.classList.remove('grid-visible');
+        }
+
+        function toggleDateStamp(btn) {
+            state.dateStamp = !state.dateStamp;
+            btn.classList.toggle('active');
         }
 
         function updateActiveButton(clickedBtn) {
@@ -561,52 +714,73 @@
          */
         DOM.snapBtn.addEventListener('click', () => {
             if (state.isCapturing) return;
-            state.isCapturing = true;
-
-            if (state.timerDuration > 0) {
-                runCountdown(state.timerDuration);
-            } else {
-                takePicture();
-            }
+            startCaptureSequence();
         });
 
+        async function startCaptureSequence() {
+            state.isCapturing = true;
+            DOM.snapBtn.style.opacity = '0.5';
+            DOM.snapBtn.style.pointerEvents = 'none';
+
+            // Initial delay
+            if (state.timerDuration > 0) {
+                await runCountdown(state.timerDuration);
+            }
+
+            if (state.mode === 'single') {
+                takePicture();
+            } else if (state.mode === 'burst') {
+                // Burst Logic: 3 shots with 1s interval
+                takePicture();
+                await new Promise(r => setTimeout(r, 1200));
+                takePicture();
+                await new Promise(r => setTimeout(r, 1200));
+                takePicture();
+            }
+
+            state.isCapturing = false;
+            DOM.snapBtn.style.opacity = '1';
+            DOM.snapBtn.style.pointerEvents = 'all';
+        }
+
         function runCountdown(num) {
-            let count = num;
-            DOM.countdown.innerText = count;
-            DOM.countdown.style.opacity = 1; // Ensure visible
-            
-            // Reset animation
-            DOM.countdown.style.animation = 'none';
-            DOM.countdown.offsetHeight; 
-            DOM.countdown.style.animation = 'countAnim 1s linear';
-            
-            const interval = setInterval(() => {
-                count--;
-                if (count > 0) {
-                    DOM.countdown.innerText = count;
-                    DOM.countdown.style.animation = 'none';
-                    DOM.countdown.offsetHeight; 
-                    DOM.countdown.style.animation = 'countAnim 1s linear';
-                } else {
-                    clearInterval(interval);
-                    DOM.countdown.style.opacity = 0;
-                    takePicture();
-                }
-            }, 1000);
+            return new Promise(resolve => {
+                let count = num;
+                DOM.countdown.innerText = count;
+                DOM.countdown.style.opacity = 1; 
+                
+                DOM.countdown.style.animation = 'none';
+                DOM.countdown.offsetHeight; 
+                DOM.countdown.style.animation = 'countAnim 1s linear';
+                
+                const interval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        DOM.countdown.innerText = count;
+                        DOM.countdown.style.animation = 'none';
+                        DOM.countdown.offsetHeight; 
+                        DOM.countdown.style.animation = 'countAnim 1s linear';
+                    } else {
+                        clearInterval(interval);
+                        DOM.countdown.style.opacity = 0;
+                        resolve();
+                    }
+                }, 1000);
+            });
         }
 
         function takePicture() {
-            // Flash
+            // Flash Effect
             DOM.flash.style.animation = 'none';
             DOM.flash.offsetHeight;
-            DOM.flash.style.animation = 'flashAnim 0.3s ease-out';
+            DOM.flash.style.animation = 'flashAnim 0.2s ease-out';
             
-            // Setup Canvas
+            // Canvas Setup
             const vidW = DOM.video.videoWidth;
             const vidH = DOM.video.videoHeight;
             const ctx = DOM.canvas.getContext('2d');
 
-            // Calculate Crop
+            // Crop Calc
             let drawW, drawH, startX, startY;
             const videoRatio = vidW / vidH;
             
@@ -629,7 +803,7 @@
             DOM.canvas.width = drawW;
             DOM.canvas.height = drawH;
 
-            // Draw
+            // Draw Video
             ctx.save();
             ctx.translate(drawW, 0);
             ctx.scale(-1, 1);
@@ -641,17 +815,32 @@
             ctx.drawImage(DOM.video, startX, startY, drawW, drawH, 0, 0, drawW, drawH);
             ctx.restore();
 
+            // Date Stamp Overlay
+            if (state.dateStamp) {
+                const date = new Date();
+                const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                ctx.font = 'bold 24px monospace';
+                ctx.fillStyle = '#ffaa00'; // Classic amber date color
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 4;
+                ctx.textAlign = 'right';
+                
+                // Position bottom right
+                const pad = 30;
+                ctx.fillText(dateStr, drawW - pad, drawH - pad);
+            }
+
             // Save
-            const dataURL = DOM.canvas.toDataURL('image/png', 1.0);
+            const dataURL = DOM.canvas.toDataURL('image/jpeg', 0.95);
             addToGallery(dataURL);
-            state.isCapturing = false;
         }
 
         /**
-         * GALLERY LOGIC
+         * GALLERY
          */
         function addToGallery(dataURL) {
-            const filename = `studio_booth_${Date.now()}.png`;
+            const filename = `studio_booth_${Date.now()}.jpg`;
 
             const card = document.createElement('div');
             card.className = 'photo-card';
@@ -681,4 +870,3 @@
     </script>
 </body>
 </html>
-

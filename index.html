@@ -2,766 +2,1221 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PRO Photo Booth | Studio Edition V3.5</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PRO Photo Booth | Studio Edition V3</title>
     <style>
-        /* * ==========================================================================
-         * 1. RESET & CORE VARIABLES
-         * ==========================================================================
-         */
+        /* --- CORE VARIABLES --- */
         :root {
-            /* --- COLOR PALETTE --- */
-            --color-primary: #00f2ea;
-            --color-primary-dim: rgba(0, 242, 234, 0.15);
-            --color-secondary: #ff0050;
-            --color-accent: #ffee00;
-            --color-bg: #000000;
-            --color-surface: #111111;
-            --color-surface-trans: rgba(17, 17, 17, 0.9);
-            --color-border: rgba(255, 255, 255, 0.12);
-            --color-text-main: #ffffff;
-            --color-text-muted: #888888;
-
-            /* --- DIMENSIONS & SPACING --- */
-            --header-height: 50px;
-            --control-deck-height: 240px; /* Tall enough for thumbs */
-            --control-deck-width: 140px;  /* For landscape sidebar */
-            
-            /* --- SAFE AREAS (CRITICAL FOR MOBILE) --- */
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 20px);
-            --safe-left: env(safe-area-inset-left, 0px);
-            --safe-right: env(safe-area-inset-right, 0px);
-
-            /* --- ANIMATION --- */
-            --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            --ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
+            --primary: #00f2ea;
+            --primary-dim: rgba(0, 242, 234, 0.1);
+            --secondary: #ff0050;
+            --accent: #ffee00;
+            --dark: #050505;
+            --panel-bg: rgba(18, 18, 18, 0.85);
+            --panel-border: 1px solid rgba(255, 255, 255, 0.12);
+            --text: #ffffff;
+            --text-muted: #888888;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+            --ease-out: cubic-bezier(0.25, 0.8, 0.25, 1);
+            --safe-area-bottom: env(safe-area-inset-bottom);
         }
 
-        *, *::before, *::after {
-            box-sizing: border-box;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
-        html, body {
+        /* --- GLOBAL LAYOUT --- */
+        body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--color-bg);
-            color: var(--color-text-main);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden; /* Lock scroll */
-            position: fixed; /* Prevent iOS rubber-banding */
+            font-family: var(--font-main);
+            background-color: var(--dark);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 242, 234, 0.03) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 80, 0.03) 0%, transparent 25%);
+            color: var(--text);
+            min-height: 100vh;
+            /* Fix for mobile address bars */
+            min-height: 100dvh; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            transition: background-color 0.1s;
         }
 
-        /* --- TRUE FLASH OVERRIDE --- */
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+        @keyframes pulse-rec { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes flash-bang { 0% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- TRUE FLASH OVERRIDE CLASS --- */
         body.flash-active {
             background-color: #ffffff !important;
+            background-image: none !important;
         }
         body.flash-active * {
-            visibility: hidden !important;
+            visibility: hidden; /* Hide everything to maximize screen brightness */
         }
-
-        /* * ==========================================================================
-         * 2. ANIMATIONS
-         * ==========================================================================
-         */
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes slideInRight { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes pulseRec { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
-        @keyframes flashBang { 0% { background: white; opacity: 1; } 100% { background: transparent; opacity: 0; } }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-        /* * ==========================================================================
-         * 3. LAYOUT ARCHITECTURE (FLEX ENGINE)
-         * ==========================================================================
-         */
         
-        #app-root {
+        /* --- WELCOME SCREEN --- */
+        #welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 9000;
             display: flex;
-            width: 100%;
-            height: 100%;
-            /* Fix for mobile browser bars */
-            height: 100dvh; 
-            flex-direction: column; /* Default: Portrait */
-            position: relative;
-            z-index: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s var(--ease-out);
+            padding: 20px;
         }
 
-        /* --- HEADER --- */
-        #top-bar {
-            height: var(--header-height);
+        .welcome-content {
+            text-align: center;
+            animation: fadeIn 1.2s var(--ease-out);
+            position: relative;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: radial-gradient(circle, rgba(20,20,20,1) 0%, rgba(0,0,0,1) 100%);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .brand-badge {
+            background: var(--primary);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px var(--primary-dim);
+        }
+
+        .welcome-title {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        .welcome-desc {
+            color: var(--text-muted);
+            max-width: 400px;
+            margin: 0 auto 40px auto;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .btn-start {
+            background: var(--text);
+            color: #000;
+            border: none;
+            padding: 18px 45px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px; /* Cutier round button */
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 300px;
+        }
+        .btn-start::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: translateX(-100%);
+            transition: 0.5s;
+        }
+        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
+        .btn-start:hover::after { transform: translateX(100%); }
+
+        .links-row { margin-top: 30px; display: flex; gap: 20px; justify-content: center; }
+        .link-item { color: #555; text-decoration: none; font-size: 0.8rem; transition: 0.2s; cursor: pointer; }
+        .link-item:hover { color: var(--primary); }
+
+        /* --- MODALS (Privacy / Settings) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-box {
+            width: 100%; max-width: 650px; max-height: 85vh;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            transform: scale(0.95);
+            transition: transform 0.3s var(--ease-out);
+        }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+
+        .modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 { margin: 0; font-size: 1.5rem; color: var(--text); }
+        
+        .btn-close {
+            background: transparent; border: none; color: #555; font-size: 1.5rem; cursor: pointer;
+        }
+        .btn-close:hover { color: #fff; }
+
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            color: #aaa;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .modal-body h3 { color: var(--primary); margin-top: 25px; margin-bottom: 10px; }
+        .modal-body strong { color: #fff; }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #222;
+            text-align: right;
+        }
+        
+        /* Settings specific styles */
+        .setting-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid #222;
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .input-text {
+            background: #000; border: 1px solid #333; color: #fff; padding: 8px 12px;
+            border-radius: 4px; width: 200px;
+        }
+        .switch {
+            position: relative; display: inline-block; width: 50px; height: 26px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* --- APP HEADER --- */
+        #app-header {
+            width: 100%;
+            height: 60px;
+            border-bottom: var(--panel-border);
+            background: rgba(10,10,10,0.8);
+            backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 20px;
-            padding-top: var(--safe-top);
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 20;
-            flex-shrink: 0; /* Never shrink */
-            border-bottom: 1px solid var(--color-border);
+            z-index: 500;
+            position: sticky;
+            top: 0;
         }
 
-        .logo-text { font-weight: 900; font-size: 1rem; letter-spacing: 2px; }
-        .header-actions { display: flex; gap: 15px; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { width: 20px; height: 20px; background: var(--primary); border-radius: 6px; }
+        .logo-text { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; }
 
-        /* --- WORKSPACE (The Camera) --- */
+        .header-actions { display: flex; gap: 10px; }
+        .btn-icon {
+            background: transparent; border: 1px solid rgba(255,255,255,0.1);
+            color: #ccc; padding: 6px 12px; border-radius: 50px; cursor: pointer;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .btn-icon:hover { border-color: #666; color: #fff; background: rgba(255,255,255,0.05); }
+
+        /* --- MAIN WORKSPACE --- */
         #workspace {
-            flex-grow: 1; /* Take all available space */
-            position: relative;
-            background: #000;
             display: flex;
-            align-items: center; /* Center Vertically */
-            justify-content: center; /* Center Horizontally */
-            overflow: hidden;
-            padding: 10px;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1400px;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
         }
 
-        .viewfinder {
+        /* --- VIEWFINDER --- */
+        .viewfinder-wrapper {
             position: relative;
-            width: 100%;
-            height: 100%;
+            padding: 5px;
+            border: 1px solid #333;
             border-radius: 20px;
-            overflow: hidden;
-            background: #050505;
-            box-shadow: 0 0 0 1px #222;
+            background: #000;
+            box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
+            width: 100%;
             display: flex;
-            align-items: center;
             justify-content: center;
-            transition: all 0.3s var(--ease-smooth);
         }
+
+        .booth-container {
+            position: relative;
+            background: #050505;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.5s var(--ease-out);
+        }
+        
+        /* Ratios */
+        .ratio-16-9 { width: 100%; max-width: 960px; aspect-ratio: 16/9; }
+        .ratio-4-3  { width: 100%; max-width: 640px; aspect-ratio: 4/3; }
+        .ratio-1-1  { width: 100%; max-width: 600px; aspect-ratio: 1/1; }
+        .ratio-21-9 { width: 100%; max-width: 960px; aspect-ratio: 21/9; }
 
         video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
+            width: 100%; height: 100%; object-fit: cover;
+            transform: scaleX(-1); /* Default Mirror */
             display: block;
         }
         .no-mirror video { transform: scaleX(1); }
 
-        /* --- CONTROL DECK --- */
-        #control-deck {
-            flex-shrink: 0; /* Never shrink */
-            background: var(--color-surface);
-            border-top: 1px solid var(--color-border);
-            z-index: 30;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            padding-bottom: calc(20px + var(--safe-bottom));
-            gap: 20px;
-        }
-
-        /* * ==========================================================================
-         * 4. UI COMPONENTS (CONTROLS)
-         * ==========================================================================
-         */
-
-        /* Filter Strip */
-        .filter-scroller {
-            width: 100%;
-            overflow-x: auto;
-            display: flex;
-            gap: 10px;
-            padding-bottom: 5px;
-            scrollbar-width: none; /* Hide scrollbars */
-        }
-        .filter-scroller::-webkit-scrollbar { display: none; }
-
-        .filter-chip {
-            background: #222;
-            border: 1px solid #333;
-            color: #888;
-            padding: 8px 16px;
-            border-radius: 100px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .filter-chip.active {
-            background: var(--color-text-main);
-            color: #000;
-            border-color: #fff;
-            box-shadow: 0 0 15px rgba(255,255,255,0.3);
-        }
-
-        /* Main Actions Row */
-        .actions-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-
-        /* Side Buttons Group */
-        .side-actions {
-            display: flex;
-            gap: 15px;
-            flex: 1; /* Take up side space */
-        }
-        .side-actions.left { justify-content: flex-start; }
-        .side-actions.right { justify-content: flex-end; }
-
-        .btn-circle {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-circle:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
-        .btn-circle.active { color: var(--color-accent); border-color: var(--color-accent); box-shadow: 0 0 10px rgba(255,238,0,0.2); }
-
-        /* Shutter Button */
-        .shutter-container {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .shutter-outer {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            border: 4px solid #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .shutter-inner {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--color-secondary);
-            transition: transform 0.1s;
-        }
-        .shutter-outer:active { transform: scale(0.95); }
-        .shutter-outer:active .shutter-inner { transform: scale(0.9); }
-
-        /* * ==========================================================================
-         * 5. ORIENTATION & RESPONSIVE LOGIC (THE FIX)
-         * ==========================================================================
-         */
-
-        /* A. MOBILE PORTRAIT (Default) */
-        @media (orientation: portrait) {
-            #app-root { flex-direction: column; }
-            #top-bar { display: flex; }
-            
-            #workspace { padding: 10px 0; } /* Remove side padding to max width */
-            
-            .viewfinder {
-                width: 100%;
-                /* Let flexbox handle height, but ensure aspect ratio feels good */
-                height: 100%; 
-                border-radius: 20px;
-                max-width: 100%;
-            }
-            
-            #control-deck {
-                width: 100%;
-                border-radius: 24px 24px 0 0;
-                box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-            }
-        }
-
-        /* B. MOBILE LANDSCAPE (Side-by-Side) */
-        @media (orientation: landscape) and (max-height: 500px) {
-            #app-root { flex-direction: row; }
-            #top-bar { display: none; } /* Hide top bar to save space */
-
-            #workspace { padding: 0; width: auto; height: 100%; }
-            .viewfinder { border-radius: 0; width: 100%; height: 100%; border: none; }
-
-            #control-deck {
-                width: var(--control-deck-width);
-                height: 100%;
-                border-top: none;
-                border-left: 1px solid var(--color-border);
-                padding: 10px;
-                padding-right: calc(10px + var(--safe-right));
-                justify-content: center;
-                gap: 15px;
-            }
-
-            /* Rotate Layouts for Sidebar */
-            .filter-scroller {
-                flex-direction: column;
-                height: 120px;
-                width: 100%;
-                overflow-y: auto;
-                overflow-x: hidden;
-                order: 1; /* Move to top */
-            }
-            .filter-chip { text-align: center; width: 100%; }
-
-            .actions-row {
-                flex-direction: column-reverse;
-                height: auto;
-                gap: 15px;
-                order: 2;
-            }
-
-            .side-actions { flex-direction: column; width: 100%; align-items: center; justify-content: center; }
-            .side-actions.left { margin-top: 10px; }
-            .side-actions.right { margin-bottom: 10px; }
-        }
-
-        /* C. DESKTOP / TABLET */
-        @media (min-width: 769px) and (min-height: 501px) {
-            #workspace { padding: 40px; }
-            .viewfinder {
-                max-width: 1200px;
-                box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-                border: 2px solid #333;
-            }
-            
-            #control-deck {
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-                padding: 20px;
-                background: #000;
-            }
-            .filter-scroller { width: 300px; margin-right: 40px; justify-content: center; }
-            .actions-row { max-width: 600px; }
-        }
-
-        /* * ==========================================================================
-         * 6. OVERLAYS & MODALS
-         * ==========================================================================
-         */
-        
-        .overlay-layer {
+        /* Overlays */
+        .ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 10;
         }
 
-        /* REC Tag */
-        .rec-tag {
-            position: absolute; top: 15px; left: 15px;
-            background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 4px;
-            display: flex; align-items: center; gap: 6px;
-            font-family: monospace; font-size: 0.75rem; color: #fff;
+        .grid-overlay {
+            width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s;
         }
-        .rec-dot { width: 8px; height: 8px; background: red; border-radius: 50%; animation: pulseRec 2s infinite; }
+        .grid-overlay.active { opacity: 1; }
+        .grid-h { position: absolute; width: 100%; height: 1px; background: rgba(255,255,255,0.25); left: 0; }
+        .grid-v { position: absolute; height: 100%; width: 1px; background: rgba(255,255,255,0.25); top: 0; }
 
-        /* Grid */
-        .grid-guide { width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s; }
-        .grid-guide.visible { opacity: 1; }
-        .g-h { position: absolute; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.3); }
-        .g-v { position: absolute; top: 0; height: 100%; width: 1px; background: rgba(255,255,255,0.3); }
-
-        /* Countdown */
-        .countdown {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 8rem; font-weight: 900; color: #fff;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.2s;
+        .rec-indicator {
+            position: absolute; top: 20px; right: 20px;
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 50px;
         }
+        .rec-dot { width: 10px; height: 10px; background: red; border-radius: 50%; animation: pulse-rec 2s infinite; }
+        .rec-text { font-family: var(--font-mono); font-size: 0.8rem; color: #fff; letter-spacing: 1px; }
 
-        /* Flash */
-        .flash-white {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; opacity: 0; z-index: 100; pointer-events: none;
+        .sys-info {
+            position: absolute; bottom: 20px; left: 20px;
+            font-family: var(--font-mono); font-size: 0.7rem; color: var(--primary);
+            opacity: 0.7;
         }
 
-        /* MODALS */
-        .modal-backdrop {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-            z-index: 2000; display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s;
+        .level-meter {
+            position: absolute; bottom: 20px; right: 20px;
+            display: flex; gap: 2px; align-items: flex-end; height: 30px;
         }
-        .modal-backdrop.active { display: flex; opacity: 1; }
-        .modal-card {
-            background: #151515; border: 1px solid #333; width: 90%; max-width: 400px;
-            border-radius: 20px; overflow: hidden; animation: slideUp 0.3s var(--ease-elastic);
-        }
-        .modal-header { padding: 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 20px; color: #aaa; font-size: 0.9rem; line-height: 1.6; }
+        .bar { width: 4px; background: var(--primary); opacity: 0.5; border-radius: 2px; }
         
-        /* SETTINGS ROWS */
-        .opt-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #222; }
-        .opt-label { font-weight: 500; color: #fff; }
-
-        /* BOOT SCREEN */
-        #boot-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 20px; text-align: center;
-        }
-        .boot-title { font-size: 3rem; font-weight: 900; margin: 0; letter-spacing: -2px; color: #fff; }
-        .boot-sub { color: #666; margin: 10px 0 30px 0; }
-        .btn-boot {
-            background: #fff; color: #000; padding: 15px 40px; border-radius: 50px;
-            border: none; font-weight: 700; font-size: 1rem; cursor: pointer;
-            box-shadow: 0 0 20px rgba(255,255,255,0.2); animation: pop 2s infinite;
+        .countdown-display {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 12rem; font-weight: 900; color: #fff;
+            text-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            opacity: 0; transition: opacity 0.1s;
         }
 
-        /* Utils */
+        .flash-bang-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 100;
+        }
+
+        /* --- CONTROL DECK --- */
+        .control-deck {
+            background: var(--panel-bg);
+            border: var(--panel-border);
+            border-radius: 24px;
+            padding: 20px;
+            width: 100%; max-width: 1000px;
+            display: flex; flex-direction: column; gap: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            backdrop-filter: blur(15px);
+        }
+
+        .deck-row {
+            display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: center;
+        }
+
+        .control-group {
+            display: flex; flex-direction: column; gap: 8px; align-items: center;
+        }
+        .group-label {
+            font-size: 0.6rem; text-transform: uppercase; color: #666; font-weight: 700; letter-spacing: 1px;
+        }
+
+        .btn-set {
+            display: flex; background: rgba(0,0,0,0.5); padding: 4px; border-radius: 50px; border: 1px solid #222;
+        }
+        .btn-opt {
+            background: transparent; border: none; color: #888; padding: 8px 16px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; border-radius: 50px;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-opt:hover { color: #fff; }
+        .btn-opt.active { background: #333; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        /* Filter Scroll Area */
+        .filter-scroll-container {
+            width: 100%; overflow-x: auto; padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .filter-strip {
+            display: flex; gap: 10px; width: max-content; padding: 0 10px;
+        }
+        .filter-btn {
+            background: #111; border: 1px solid #333; color: #aaa;
+            padding: 8px 18px; border-radius: 50px; font-size: 0.8rem; cursor: pointer;
+            white-space: nowrap; transition: 0.2s;
+        }
+        .filter-btn:hover { border-color: #555; color: #fff; }
+        .filter-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 242, 234, 0.05); }
+
+        /* Main Shutter */
+        .shutter-container {
+            position: relative; width: 80px; height: 80px;
+        }
+        .btn-shutter {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: linear-gradient(145deg, #ff0050, #cc0040);
+            border: 4px solid rgba(255,255,255,0.2);
+            cursor: pointer; position: relative; z-index: 2;
+            box-shadow: 0 0 25px rgba(255, 0, 80, 0.4);
+            transition: transform 0.1s, box-shadow 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-shutter:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 0, 80, 0.6); }
+        .btn-shutter:active { transform: scale(0.95); }
+        .btn-shutter i { width: 26px; height: 20px; background: #fff; border-radius: 4px; display: block; position: relative; }
+        .btn-shutter i::after { content:''; position: absolute; width: 10px; height: 10px; background: #ddd; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); border: 2px solid #aaa; }
+
+        .btn-flash-toggle {
+            position: absolute; top: -5px; right: -5px; z-index: 3;
+            width: 28px; height: 28px; border-radius: 50%; background: #222; border: 1px solid #444;
+            color: #ccc; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; transition: 0.2s;
+        }
+        .btn-flash-toggle.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 10px #fff; }
+
+        /* --- GALLERY --- */
+        .gallery-area {
+            width: 100%; max-width: 1200px;
+            padding: 20px; background: #080808; border-top: 1px solid #222;
+            margin-top: auto; /* Pushes to bottom if flex container */
+        }
+        .gallery-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
+        .gallery-title { font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .count-badge { background: #222; font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; color: #888; }
+        
+        .gallery-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px;
+        }
+        
+        .photo-item {
+            background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden;
+            display: flex; flex-direction: column; transition: transform 0.2s;
+            animation: fadeIn 0.4s var(--ease-out);
+        }
+        .photo-item:hover { transform: translateY(-4px); border-color: #444; }
+        .photo-thumb { width: 100%; height: auto; display: block; cursor: pointer; }
+        
+        .photo-meta {
+            padding: 8px; display: flex; justify-content: space-between; background: #151515; border-top: 1px solid #222;
+        }
+        .meta-actions button {
+            background: transparent; border: none; color: #666; cursor: pointer; font-size: 0.9rem; padding: 4px; transition: 0.2s;
+        }
+        .meta-actions button:hover { color: #fff; }
+        .meta-actions button.del:hover { color: var(--secondary); }
+
+        /* --- UTILS --- */
         .hidden { display: none !important; }
         canvas { display: none; }
 
+        /* Loading Spinner */
+        .loader { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-top: 20px; display: none; }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        
+        /* TABLETS (Max Width: 1024px) */
+        @media (max-width: 1024px) {
+            #workspace { padding: 15px; }
+            .control-deck { padding: 15px; }
+            .btn-opt { font-size: 0.75rem; padding: 6px 12px; }
+        }
+
+        /* MOBILE (Max Width: 768px) */
+        @media (max-width: 768px) {
+            body { background-image: none; background-color: #000; }
+            
+            #app-header { 
+                padding: 0 15px; 
+                height: 50px;
+                background: #000;
+                border-bottom: 1px solid #111;
+            }
+            
+            .logo-text { font-size: 1rem; }
+            .btn-icon { font-size: 0.7rem; padding: 4px 10px; }
+
+            #workspace {
+                padding: 10px 0;
+                gap: 15px;
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .viewfinder-wrapper {
+                border-radius: 0;
+                border: none;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .booth-container {
+                border-radius: 0;
+                width: 100% !important;
+                max-width: 100% !important;
+                aspect-ratio: 3/4 !important; /* Force portrait friendly ratio on mobile viewfinder */
+            }
+            /* Override JS ratio styles for mobile viewfinder to fill screen better */
+            .booth-container.ratio-16-9, 
+            .booth-container.ratio-4-3, 
+            .booth-container.ratio-1-1, 
+            .booth-container.ratio-21-9 {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .control-deck {
+                background: #000;
+                border: none;
+                border-top: 1px solid #222;
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+                width: 100%;
+                padding: 20px 10px;
+                gap: 15px;
+                margin-top: auto; /* Push to bottom */
+            }
+
+            .deck-row {
+                gap: 10px;
+                justify-content: space-between;
+            }
+
+            .control-group {
+                align-items: flex-start;
+            }
+            .group-label { font-size: 0.55rem; margin-left: 5px; margin-bottom: 2px; }
+
+            .btn-set {
+                border-radius: 12px;
+                overflow-x: auto;
+                max-width: 100vw;
+            }
+            
+            .btn-opt {
+                font-size: 0.7rem;
+                padding: 8px 12px;
+            }
+
+            .shutter-container {
+                width: 70px; height: 70px;
+                margin: 0 auto; /* Center shutter */
+            }
+
+            /* Stack controls for mobile convenience */
+            .deck-row:last-child {
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+                align-items: center;
+                width: 100%;
+            }
+
+            /* Hide status text on mobile to save space */
+            .control-group:last-child { display: none; } 
+            
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+                gap: 10px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div id="boot-screen">
-        <h1 class="boot-title">STUDIO<br><span style="color:var(--primary)">ULTIMATE</span></h1>
-        <p class="boot-sub">Mobile-First Photography Suite V3.5<br>Orientation Adaptive • True Flash</p>
-        <button class="btn-boot" onclick="app.init()">START CAMERA</button>
-        <div style="margin-top:30px; font-size:0.8rem;">
-            <a style="color:#555; margin:0 10px;" onclick="ui.modal('privacy')">Privacy</a>
-            <a style="color:#555; margin:0 10px;" onclick="ui.modal('settings')">Settings</a>
+    <div id="welcome-screen">
+        <div class="welcome-content">
+            <span class="brand-badge">Studio Edition V3.0</span>
+            <div class="welcome-title">STUDIO<br>BOOTH</div>
+            <div class="welcome-desc">
+                Professional-grade web photography suite.<br>
+                Featuring <strong>True Flash™</strong> technology, cinema grading, and burst capabilities.
+                All processing is local and private.
+            </div>
+            
+            <button class="btn-start" onclick="app.enter()">Launch Session</button>
+            <div class="loader" id="boot-loader"></div>
+
+            <div class="links-row">
+                <a class="link-item" onclick="modal.open('privacy')">Privacy Policy</a>
+                <a class="link-item" onclick="modal.open('terms')">Terms of Use</a>
+            </div>
         </div>
     </div>
 
-    <div id="app-root" class="hidden">
-        
-        <div id="top-bar">
-            <div class="logo-text">STUDIO<span style="color:var(--primary)">.PRO</span></div>
-            <div class="header-actions">
-                <button class="btn-icon" style="width:36px; height:36px;" onclick="ui.modal('settings')">⚙</button>
-                <button class="btn-icon" style="width:36px; height:36px;" onclick="gallery.open()">🖼</button>
+    <div id="modal-privacy" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="btn-close" onclick="modal.close('privacy')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Your privacy is our priority.</strong></p>
+                <p>This application operates 100% locally within your web browser. No video feed, images, or personal data are ever sent to a server or the cloud. All processing happens on your device using your computer's resources. Images are stored in your browser's temporary memory and are deleted when you refresh the page or close the tab.</p>
+                
+                <h3>Data Handling</h3>
+                <p>We do not use cookies for tracking. We do not use analytics. The only data stored is the temporary image blob in your browser's RAM to allow you to download the photo.</p>
+
+                <h3>Camera Access</h3>
+                <p>Camera access is requested solely to display the video feed on your screen and capture the frame when you press the shutter. The feed is never recorded in the background.</p>
+
+                <h3>Rights</h3>
+                <p>You retain full ownership of all images created. Since we don't store them, we can't claim them.</p>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
+                    <small>Created with love by @ianny. Do not copy without attribution.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-opt active" onclick="modal.close('privacy')">I Understand</button>
             </div>
         </div>
+    </div>
+
+    <div id="modal-terms" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Terms of Use</h2>
+                <button class="btn-close" onclick="modal.close('terms')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>By proceeding, you agree to use this application responsibly and acknowledge that it is provided “as is,” without warranties of any kind.</p>
+                <p>While we strive to ensure smooth performance, we cannot guarantee uninterrupted service or absolute technical perfection. You accept that the application may occasionally encounter errors or limitations due to the constraints of your device’s hardware and browser environment.</p>
+                <p>You also agree not to misuse the application for unlawful purposes. The developers disclaim liability for any misuse or damages resulting from your use of the application.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-opt active" onclick="modal.close('terms')">Agree & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Studio Settings</h2>
+                <button class="btn-close" onclick="modal.close('settings')">&times;</button>
+            </div>
+            <div class="modal-body">
+                
+                <div class="setting-row">
+                    <span>Mirror Video Feed</span>
+                    <label class="switch">
+                        <input type="checkbox" id="set-mirror" checked onchange="app.toggleMirror()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <span>Audio Feedback (Shutter Sound)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="set-audio" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <span>Custom Watermark Text</span>
+                    <input type="text" id="set-watermark" class="input-text" placeholder="e.g. My Studio" oninput="app.updateSettings()">
+                </div>
+
+                <div class="setting-row">
+                    <span>High Quality Export (PNG)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="set-hq">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-opt active" onclick="modal.close('settings')">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        
+        <header id="app-header">
+            <div class="logo-area">
+                <div class="logo-icon"></div>
+                <div class="logo-text">Studio<span style="color:var(--primary)">Pro</span></div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" onclick="modal.open('settings')">Settings</button>
+                <button class="btn-icon" onclick="modal.open('privacy')">Privacy</button>
+            </div>
+        </header>
 
         <div id="workspace">
-            <div class="viewfinder" id="viewfinder-box">
-                <video id="video-feed" autoplay playsinline muted></video>
-                
-                <div class="overlay-layer">
-                    <div class="rec-tag"><div class="rec-dot"></div> <span id="res-label">HD</span></div>
-                    
-                    <div id="grid-system" class="grid-guide">
-                        <div class="g-h" style="top:33%"></div><div class="g-h" style="top:66%"></div>
-                        <div class="g-v" style="left:33%"></div><div class="g-v" style="left:66%"></div>
-                    </div>
-
-                    <div id="countdown" class="countdown">3</div>
-                    <div id="flash-layer" class="flash-white"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="control-deck">
             
-            <div class="filter-scroller" id="filter-container">
-                </div>
+            <div class="viewfinder-wrapper">
+                <div id="booth-frame" class="booth-container ratio-16-9">
+                    <video id="video" autoplay playsinline></video>
+                    
+                    <div class="ui-layer">
+                        <div id="grid-overlay" class="grid-overlay">
+                            <div class="grid-h" style="top:33%"></div>
+                            <div class="grid-h" style="top:66%"></div>
+                            <div class="grid-v" style="left:33%"></div>
+                            <div class="grid-v" style="left:66%"></div>
+                        </div>
+                        
+                        <div class="rec-indicator">
+                            <div class="rec-dot"></div>
+                            <div class="rec-text">LIVE</div>
+                        </div>
 
-            <div class="actions-row">
+                        <div class="sys-info">
+                            ISO AUTO<br>1/60<br>F2.8
+                        </div>
+
+                        <div class="level-meter">
+                            <div class="bar" style="height: 40%; animation: pulse-rec 0.2s infinite alternate"></div>
+                            <div class="bar" style="height: 70%; animation: pulse-rec 0.3s infinite alternate"></div>
+                            <div class="bar" style="height: 50%; animation: pulse-rec 0.1s infinite alternate"></div>
+                            <div class="bar" style="height: 80%; animation: pulse-rec 0.4s infinite alternate"></div>
+                        </div>
+
+                        <div id="countdown" class="countdown-display">3</div>
+                        <div id="flash-overlay" class="flash-bang-overlay"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-deck">
                 
-                <div class="side-actions left">
-                    <button class="btn-circle" id="btn-grid" onclick="app.toggleGrid(this)">#</button>
-                    <button class="btn-circle" id="btn-flash" onclick="app.toggleFlash(this)">⚡</button>
-                </div>
+                <div class="deck-row">
+                    <div class="control-group">
+                        <span class="group-label">Tools</span>
+                        <div class="btn-set">
+                            <button class="btn-opt" onclick="app.toggleGrid(this)"># Grid</button>
+                            <button class="btn-opt" onclick="app.toggleStamp(this)">Date</button>
+                        </div>
+                    </div>
 
-                <div class="shutter-container">
-                    <div class="shutter-outer" onclick="app.snap()">
-                        <div class="shutter-inner"></div>
+                    <div class="control-group">
+                        <span class="group-label">Aspect</span>
+                        <div class="btn-set">
+                            <button class="btn-opt active" onclick="app.setRatio('ratio-16-9', this)">16:9</button>
+                            <button class="btn-opt" onclick="app.setRatio('ratio-4-3', this)">4:3</button>
+                            <button class="btn-opt" onclick="app.setRatio('ratio-1-1', this)">1:1</button>
+                            <button class="btn-opt" onclick="app.setRatio('ratio-21-9', this)">21:9</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <span class="group-label">Timer</span>
+                        <div class="btn-set">
+                            <button class="btn-opt" onclick="app.setTimer(0, this)">0s</button>
+                            <button class="btn-opt active" onclick="app.setTimer(3, this)">3s</button>
+                            <button class="btn-opt" onclick="app.setTimer(5, this)">5s</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="side-actions right">
-                    <button class="btn-circle" onclick="app.switchCam()">↻</button>
-                    <button class="btn-circle" onclick="app.cycleRatio()">1:1</button>
+                <hr style="width:100%; border:0; border-top:1px solid #222;">
+
+                <div class="control-group" style="width:100%">
+                    <span class="group-label">Color Grading Engine</span>
+                    <div class="filter-scroll-container">
+                        <div class="filter-strip" id="filter-container">
+                            </div>
+                    </div>
+                </div>
+
+                <hr style="width:100%; border:0; border-top:1px solid #222;">
+
+                <div class="deck-row">
+                    
+                    <div class="control-group">
+                        <span class="group-label">Mode</span>
+                        <div class="btn-set">
+                            <button class="btn-opt active" onclick="app.setMode('single', this)">1x</button>
+                            <button class="btn-opt" onclick="app.setMode('burst', this)">3x</button>
+                        </div>
+                    </div>
+
+                    <div class="shutter-container">
+                        <button class="btn-shutter" id="shutter-btn" onclick="app.snap()">
+                            <i></i>
+                        </button>
+                        <button id="flash-toggle" class="btn-flash-toggle active" title="Enable True Flash" onclick="app.toggleFlash(this)">
+                            ⚡
+                        </button>
+                    </div>
+
+                    <div class="control-group">
+                        <span class="group-label">Status</span>
+                        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--primary);">
+                            READY
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
         </div>
 
-    </div>
-
-    <div id="modal-settings" class="modal-backdrop">
-        <div class="modal-card">
-            <div class="modal-header"><h3>Settings</h3><button class="btn-icon" style="width:30px;height:30px;" onclick="ui.closeAll()">✕</button></div>
-            <div class="modal-body">
-                <div class="opt-row">
-                    <span class="opt-label">Mirror Selfie</span>
-                    <label class="toggle-switch"><input type="checkbox" id="cfg-mirror" checked onchange="app.updateCfg()"><span class="slider"></span></label>
-                </div>
-                <div class="opt-row">
-                    <span class="opt-label">Shutter Sound</span>
-                    <label class="toggle-switch"><input type="checkbox" id="cfg-sound" checked><span class="slider"></span></label>
-                </div>
-                <div class="opt-row">
-                    <span class="opt-label">Burst Mode (3x)</span>
-                    <label class="toggle-switch"><input type="checkbox" id="cfg-burst"><span class="slider"></span></label>
-                </div>
-                <div class="opt-row">
-                    <span class="opt-label">Haptic Feedback</span>
-                    <label class="toggle-switch"><input type="checkbox" id="cfg-haptic" checked><span class="slider"></span></label>
-                </div>
-                <div style="margin-top:20px; padding-top:15px; border-top:1px solid #333;">
-                    <button class="btn-pill" style="width:100%; text-align:center;" onclick="gallery.clear()">Clear Data</button>
-                </div>
+        <div class="gallery-area">
+            <div class="gallery-header">
+                <div class="gallery-title">Session Gallery <span class="count-badge" id="gallery-count">0</span></div>
+                <button class="btn-opt" style="border:1px solid #333;" onclick="gallery.clear()">Clear Session</button>
             </div>
+            <div id="gallery-grid" class="gallery-grid">
+                </div>
         </div>
+
     </div>
 
-    <div id="modal-privacy" class="modal-backdrop">
-        <div class="modal-card">
-            <div class="modal-header"><h3>Privacy</h3><button class="btn-icon" style="width:30px;height:30px;" onclick="ui.closeAll()">✕</button></div>
-            <div class="modal-body">
-                <p><strong>1. Local Only:</strong> This app runs entirely in your browser. No images are sent to the cloud.</p>
-                <p><strong>2. Temporary:</strong> Images are stored in RAM. Refreshing the page deletes them.</p>
-                <p><strong>3. Camera:</strong> Access is used strictly for the viewfinder and capture.</p>
-            </div>
-        </div>
-    </div>
-
-    <canvas id="hidden-canvas" class="hidden"></canvas>
+    <canvas id="main-canvas"></canvas>
 
     <script>
-        // --- CONSTANTS & STATE ---
+        /**
+         * --- STUDIO BOOTH CORE LOGIC ---
+         */
+
         const FILTERS = [
-            { id: 'none', name: 'Original', css: 'none' },
-            { id: 'bw', name: 'Mono', css: 'grayscale(100%) contrast(1.2)' },
-            { id: 'vivid', name: 'Vivid', css: 'saturate(1.5) contrast(1.1)' },
-            { id: 'warm', name: 'Warm', css: 'sepia(0.4) saturate(1.2)' },
-            { id: 'cool', name: 'Cool', css: 'hue-rotate(180deg) opacity(0.9)' },
-            { id: 'drama', name: 'Drama', css: 'contrast(1.4) saturate(0.8)' },
-            { id: 'cyber', name: 'Cyber', css: 'hue-rotate(-20deg) saturate(2)' },
-            { id: 'silv', name: 'Silver', css: 'grayscale(100%) brightness(1.2)' }
+            { name: 'Studio', val: 'none' },
+            { name: 'B&W', val: 'grayscale(100%) contrast(1.1)' },
+            { name: 'Noir', val: 'grayscale(100%) contrast(1.4) brightness(0.8)' },
+            { name: 'Vivid', val: 'saturate(1.5) contrast(1.1)' },
+            { name: 'Warm', val: 'sepia(0.4) saturate(1.2) contrast(1.1)' },
+            { name: 'Cool', val: 'hue-rotate(180deg) saturate(0.5)' },
+            { name: 'Cyber', val: 'saturate(2) hue-rotate(-10deg) contrast(1.2)' },
+            { name: 'Sepia', val: 'sepia(100%)' },
+            { name: 'Vintage', val: 'sepia(0.5) contrast(0.9) brightness(1.1)' },
+            { name: 'Faded', val: 'opacity(0.8) contrast(0.8) brightness(1.2)' },
+            { name: 'Matte', val: 'contrast(0.9) brightness(1.1)' },
+            { name: 'Dramatic', val: 'contrast(1.5) saturate(0.8)' },
+            { name: 'Pastel', val: 'contrast(0.9) brightness(1.1) saturate(1.5)' },
+            { name: 'Miami', val: 'hue-rotate(330deg) saturate(1.5)' },
+            { name: 'Toxic', val: 'hue-rotate(90deg) contrast(1.2)' },
+            { name: 'Golden', val: 'sepia(0.3) saturate(1.6) contrast(1.1)' },
+            { name: 'Silver', val: 'grayscale(100%) brightness(1.2) contrast(0.8)' },
+            { name: 'Dark', val: 'brightness(0.6) contrast(1.5)' },
+            { name: 'Light', val: 'brightness(1.3) contrast(0.8)' },
+            { name: 'Invert', val: 'invert(100%)' }
         ];
 
-        const RATIOS = [
-            { cls: 'ratio-16-9', w: 16, h: 9 },
-            { cls: 'ratio-4-3', w: 4, h: 3 },
-            { cls: 'ratio-1-1', w: 1, h: 1 }
-        ];
+        // --- MODULES ---
 
-        const state = {
-            stream: null,
-            isCapturing: false,
-            filter: 'none',
-            facingMode: 'user',
-            flash: false,
-            ratioIndex: 0,
-            cfg: { mirror: true, sound: true, burst: false, haptic: true }
-        };
-
-        // --- UI CONTROLLER ---
-        const ui = {
-            el: (id) => document.getElementById(id),
-            
-            modal: (id) => document.getElementById(`modal-${id}`).classList.add('active'),
-            closeAll: () => document.querySelectorAll('.modal-backdrop').forEach(el => el.classList.remove('active')),
-
-            renderFilters: () => {
-                const con = ui.el('filter-container');
-                FILTERS.forEach((f, i) => {
-                    const b = document.createElement('button');
-                    b.className = `filter-chip ${i===0 ? 'active' : ''}`;
-                    b.innerText = f.name;
-                    b.onclick = () => {
-                        document.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active'));
-                        b.classList.add('active');
-                        state.filter = f.css;
-                        ui.el('video-feed').style.filter = f.css;
-                    };
-                    con.appendChild(b);
-                });
-            }
-        };
-
-        // --- APP ENGINE ---
-        const app = {
-            
-            init: async () => {
-                // Initialize Camera
-                try {
-                    const constraints = {
-                        video: {
-                            facingMode: state.facingMode,
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 }
-                        },
-                        audio: false
-                    };
-                    state.stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    ui.el('video-feed').srcObject = state.stream;
-                    
-                    // Transition to App
-                    ui.el('boot-screen').style.opacity = 0;
-                    ui.el('app-root').classList.remove('hidden');
-                    setTimeout(() => ui.el('boot-screen').style.display = 'none', 500);
-                    
-                    app.updateConfig();
-                    ui.renderFilters();
-
-                } catch (err) {
-                    alert("Camera access denied. Please check permissions.");
-                }
+        const modal = {
+            open: (id) => {
+                document.getElementById('modal-' + id).classList.add('active');
             },
-
-            updateConfig: () => {
-                state.cfg.mirror = ui.el('cfg-mirror').checked;
-                state.cfg.sound = ui.el('cfg-sound').checked;
-                state.cfg.burst = ui.el('cfg-burst').checked;
-                state.cfg.haptic = ui.el('cfg-haptic').checked;
-
-                const v = ui.el('video-feed');
-                if (state.cfg.mirror && state.facingMode === 'user') v.classList.remove('no-mirror');
-                else v.classList.add('no-mirror');
-            },
-
-            // Toggles
-            toggleFlash: (btn) => {
-                state.flash = !state.flash;
-                btn.classList.toggle('active');
-            },
-            toggleGrid: (btn) => {
-                ui.el('grid-system').classList.toggle('visible');
-                btn.classList.toggle('active');
-            },
-            switchCam: () => {
-                state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
-                if(state.stream) state.stream.getTracks().forEach(t=>t.stop());
-                app.init();
-            },
-            cycleRatio: () => {
-                state.ratioIndex = (state.ratioIndex + 1) % RATIOS.length;
-                const r = RATIOS[state.ratioIndex];
-                const v = ui.el('viewfinder-box');
-                // Note: Aspect ratio CSS works best on desktop. On mobile portrait we usually fill.
-                // We will apply the class anyway for desktop correctness.
-                v.className = `viewfinder ratio-${r.w}-${r.h}`;
-            },
-
-            // Capture Logic
-            snap: async () => {
-                if(state.isCapturing) return;
-                state.isCapturing = true;
-
-                // Animation
-                const btn = document.querySelector('.shutter-outer');
-                btn.style.transform = 'scale(0.9)';
-                setTimeout(() => btn.style.transform = 'scale(1)', 100);
-
-                // Countdown
-                const cd = ui.el('countdown');
-                cd.style.opacity = 1;
-                for(let i=3; i>0; i--) {
-                    cd.innerText = i;
-                    if(state.cfg.haptic && navigator.vibrate) navigator.vibrate(50);
-                    await new Promise(r => setTimeout(r, 1000));
-                }
-                cd.style.opacity = 0;
-
-                // Capture Sequence
-                const count = state.cfg.burst ? 3 : 1;
-                for(let i=0; i<count; i++) {
-                    await app.takePhoto();
-                    if(i < count - 1) await new Promise(r => setTimeout(r, 800));
-                }
-
-                state.isCapturing = false;
-            },
-
-            takePhoto: async () => {
-                // True Flash Logic
-                if(state.flash) {
-                    document.body.classList.add('flash-active');
-                    // Brightness ramp up
-                    await new Promise(r => setTimeout(r, 150));
-                }
-
-                // Haptic & Sound
-                if(state.cfg.haptic && navigator.vibrate) navigator.vibrate(100);
-                if(state.cfg.sound) {
-                    // Simple beep via Web Audio API (No external file needed)
-                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.frequency.value = 800;
-                    gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.1);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.1);
-                }
-
-                // Draw to Canvas
-                const vid = ui.el('video-feed');
-                const canvas = ui.el('hidden-canvas');
-                const ctx = canvas.getContext('2d');
-                
-                canvas.width = vid.videoWidth;
-                canvas.height = vid.videoHeight;
-
-                ctx.save();
-                if(state.cfg.mirror && state.facingMode === 'user') {
-                    ctx.translate(canvas.width, 0);
-                    ctx.scale(-1, 1);
-                }
-                if(state.filter !== 'none') ctx.filter = state.filter;
-                ctx.drawImage(vid, 0, 0);
-                ctx.restore();
-
-                // Flash Off
-                if(state.flash) {
-                    document.body.classList.remove('flash-active');
-                    const fx = ui.el('flash-layer');
-                    fx.style.animation = 'none';
-                    fx.offsetHeight; 
-                    fx.style.animation = 'flashBang 0.5s ease-out';
-                }
-
-                // Save
-                gallery.save(canvas.toDataURL('image/jpeg', 0.95));
+            close: (id) => {
+                document.getElementById('modal-' + id).classList.remove('active');
             }
         };
 
         const gallery = {
-            save: (url) => {
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `studio_${Date.now()}.jpg`;
-                a.click();
+            count: 0,
+            add: (dataURL) => {
+                gallery.count++;
+                document.getElementById('gallery-count').innerText = gallery.count;
+                
+                const grid = document.getElementById('gallery-grid');
+                const filename = `studio_pro_${Date.now()}.png`; // High quality extension
+                
+                const div = document.createElement('div');
+                div.className = 'photo-item';
+                div.innerHTML = `
+                    <img src="${dataURL}" class="photo-thumb" onclick="gallery.preview('${dataURL}')">
+                    <div class="photo-meta">
+                        <span style="font-size:0.7rem; color:#555;">IMG_${gallery.count.toString().padStart(3,'0')}</span>
+                        <div class="meta-actions">
+                            <button onclick="gallery.download('${dataURL}', '${filename}')" title="Download">⬇</button>
+                            <button class="del" onclick="gallery.remove(this)" title="Delete">✕</button>
+                        </div>
+                    </div>
+                `;
+                grid.prepend(div);
             },
-            open: () => {
-                const i = document.createElement('input');
-                i.type = 'file';
-                i.accept = 'image/*';
-                i.click();
+            remove: (btn) => {
+                if(confirm("Delete this shot?")) {
+                    btn.closest('.photo-item').remove();
+                    gallery.count--;
+                    document.getElementById('gallery-count').innerText = gallery.count;
+                }
             },
             clear: () => {
-                if(confirm('Reset all settings?')) location.reload();
+                if(confirm("Delete all session photos? This cannot be undone.")) {
+                    document.getElementById('gallery-grid').innerHTML = '';
+                    gallery.count = 0;
+                    document.getElementById('gallery-count').innerText = '0';
+                }
+            },
+            download: (url, filename) => {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+            },
+            preview: (url) => {
+                // Could implement a lightbox here, for now just download
+                // gallery.download(url, 'preview.png');
             }
         };
 
-        // Listen for orientation changes to force layout recalculation if needed
-        window.addEventListener('resize', () => {
-            // CSS media queries handle mostly everything now, but we can hook here if needed
-        });
+        const app = {
+            // State
+            stream: null,
+            timer: 3,
+            filter: 'none',
+            mode: 'single', // single | burst
+            isCapturing: false,
+            trueFlash: true,
+            aspectRatio: 1.777, // 16:9 default
+            settings: {
+                mirror: true,
+                audio: true,
+                watermark: '',
+                grid: false,
+                stamp: false,
+                hq: false
+            },
+
+            // Elements
+            elVideo: document.getElementById('video'),
+            elCanvas: document.getElementById('main-canvas'),
+            elCountdown: document.getElementById('countdown'),
+            elFlashOverlay: document.getElementById('flash-overlay'),
+            elBody: document.body,
+
+            init: () => {
+                // Render filters
+                const fCont = document.getElementById('filter-container');
+                FILTERS.forEach((f, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = `filter-btn ${index===0 ? 'active' : ''}`;
+                    btn.innerText = f.name;
+                    btn.onclick = (e) => app.setFilter(f.val, e.target);
+                    fCont.appendChild(btn);
+                });
+            },
+
+            enter: async () => {
+                document.getElementById('boot-loader').style.display = 'block';
+                document.querySelector('.btn-start').style.display = 'none';
+
+                try {
+                    // Request highest possible resolution
+                    const constraints = {
+                        video: {
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 },
+                            facingMode: "user"
+                        },
+                        audio: false
+                    };
+                    
+                    app.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    app.elVideo.srcObject = app.stream;
+                    
+                    // Transition
+                    setTimeout(() => {
+                        document.getElementById('welcome-screen').style.opacity = 0;
+                        document.getElementById('app-container').classList.remove('hidden');
+                        setTimeout(() => {
+                            document.getElementById('welcome-screen').style.display = 'none';
+                            // Trigger opacity fade in for app
+                            document.getElementById('app-container').style.opacity = 1;
+                        }, 800);
+                    }, 1000);
+
+                } catch (err) {
+                    alert("Error: Camera access denied. Please verify permissions.");
+                    console.error(err);
+                    document.getElementById('boot-loader').style.display = 'none';
+                    document.querySelector('.btn-start').style.display = 'block';
+                }
+            },
+
+            /* --- SETTINGS & TOGGLES --- */
+            toggleMirror: () => {
+                app.settings.mirror = document.getElementById('set-mirror').checked;
+                const container = document.getElementById('booth-frame');
+                if(!app.settings.mirror) container.classList.add('no-mirror');
+                else container.classList.remove('no-mirror');
+            },
+
+            toggleFlash: (btn) => {
+                app.trueFlash = !app.trueFlash;
+                btn.classList.toggle('active');
+            },
+
+            toggleGrid: (btn) => {
+                app.settings.grid = !app.settings.grid;
+                btn.classList.toggle('active');
+                const ol = document.getElementById('grid-overlay');
+                if(app.settings.grid) ol.classList.add('active');
+                else ol.classList.remove('active');
+            },
+
+            toggleStamp: (btn) => {
+                app.settings.stamp = !app.settings.stamp;
+                btn.classList.toggle('active');
+            },
+
+            updateSettings: () => {
+                app.settings.watermark = document.getElementById('set-watermark').value;
+                app.settings.hq = document.getElementById('set-hq').checked;
+                app.settings.audio = document.getElementById('set-audio').checked;
+            },
+
+            setRatio: (cls, btn) => {
+                app.updateBtn(btn);
+                const frame = document.getElementById('booth-frame');
+                frame.classList.remove('ratio-16-9', 'ratio-4-3', 'ratio-1-1', 'ratio-21-9');
+                frame.classList.add(cls);
+                
+                // Update internal aspect ratio for canvas crop
+                if(cls === 'ratio-16-9') app.aspectRatio = 16/9;
+                if(cls === 'ratio-4-3') app.aspectRatio = 4/3;
+                if(cls === 'ratio-1-1') app.aspectRatio = 1;
+                if(cls === 'ratio-21-9') app.aspectRatio = 21/9;
+            },
+
+            setTimer: (t, btn) => {
+                app.updateBtn(btn);
+                app.timer = t;
+            },
+
+            setFilter: (val, btn) => {
+                app.updateBtn(btn);
+                app.filter = val;
+                app.elVideo.style.filter = val;
+            },
+
+            setMode: (m, btn) => {
+                app.updateBtn(btn);
+                app.mode = m;
+            },
+
+            updateBtn: (btn) => {
+                // Find siblings and remove active
+                const sibs = btn.parentNode.children;
+                for(let i=0; i<sibs.length; i++) sibs[i].classList.remove('active');
+                btn.classList.add('active');
+            },
+
+            /* --- CAPTURE LOGIC --- */
+            snap: async () => {
+                if(app.isCapturing) return;
+                app.isCapturing = true;
+
+                const shutterBtn = document.getElementById('shutter-btn');
+                shutterBtn.style.pointerEvents = 'none';
+                shutterBtn.style.opacity = 0.7;
+
+                // Countdown
+                if(app.timer > 0) await app.runCountdown();
+
+                if(app.mode === 'single') {
+                    await app.triggerCapture();
+                } else {
+                    // Burst
+                    for(let i=0; i<3; i++) {
+                        await app.triggerCapture();
+                        await new Promise(r => setTimeout(r, 1000)); // 1s between shots
+                    }
+                }
+
+                shutterBtn.style.pointerEvents = 'all';
+                shutterBtn.style.opacity = 1;
+                app.isCapturing = false;
+            },
+
+            runCountdown: () => {
+                return new Promise(resolve => {
+                    let c = app.timer;
+                    app.elCountdown.innerText = c;
+                    app.elCountdown.style.opacity = 1;
+                    
+                    const int = setInterval(() => {
+                        c--;
+                        if(c > 0) {
+                            app.elCountdown.innerText = c;
+                        } else {
+                            clearInterval(int);
+                            app.elCountdown.style.opacity = 0;
+                            resolve();
+                        }
+                    }, 1000);
+                });
+            },
+
+            triggerCapture: async () => {
+                // 1. TRUE FLASH LOGIC
+                if(app.trueFlash) {
+                    // Turn screen white
+                    app.elBody.classList.add('flash-active');
+                    // Wait for screen to brighten and light to travel
+                    await new Promise(r => setTimeout(r, 150)); 
+                }
+
+                // 2. Play Sound
+                if(app.settings.audio) {
+                    // Simple oscillator beep if no file
+                    // or just rely on visual feedback
+                }
+
+                // 3. CAPTURE TO CANVAS
+                app.drawToCanvas();
+
+                // 4. Remove Flash
+                if(app.trueFlash) {
+                    app.elBody.classList.remove('flash-active');
+                    // Add digital flash fade overlay for visual effect
+                    app.elFlashOverlay.style.animation = 'none';
+                    app.elFlashOverlay.offsetHeight; /* trigger reflow */
+                    app.elFlashOverlay.style.animation = 'flash-bang 0.4s ease-out';
+                } else {
+                    app.elFlashOverlay.style.animation = 'none';
+                    app.elFlashOverlay.offsetHeight;
+                    app.elFlashOverlay.style.animation = 'flash-bang 0.2s ease-out';
+                }
+            },
+
+            drawToCanvas: () => {
+                const vid = app.elVideo;
+                const canvas = app.elCanvas;
+                const ctx = canvas.getContext('2d');
+
+                const vW = vid.videoWidth;
+                const vH = vid.videoHeight;
+                
+                // Calculate Crop based on aspect ratio
+                let sW, sH, sX, sY;
+                const vidRatio = vW / vH;
+
+                if (vidRatio > app.aspectRatio) {
+                    // Video is wider than target
+                    sH = vH;
+                    sW = vH * app.aspectRatio;
+                    sX = (vW - sW) / 2;
+                    sY = 0;
+                } else {
+                    // Video is taller than target
+                    sW = vW;
+                    sH = vW / app.aspectRatio;
+                    sX = 0;
+                    sY = (vH - sH) / 2;
+                }
+
+                canvas.width = sW;
+                canvas.height = sH;
+
+                // Mirror Logic (Horizontal Flip)
+                ctx.save();
+                if(app.settings.mirror) {
+                    ctx.translate(sW, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                // Apply Filters to Context
+                if(app.filter !== 'none') {
+                    ctx.filter = app.filter;
+                }
+
+                ctx.drawImage(vid, sX, sY, sW, sH, 0, 0, sW, sH);
+                ctx.restore(); // Restore context (remove mirror/filter for text)
+
+                // Overlays (Date/Watermark)
+                if(app.settings.stamp || app.settings.watermark) {
+                    const fontSize = Math.floor(sH * 0.04);
+                    ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+                    ctx.fillStyle = "#ffaa00"; // Classic date color
+                    ctx.shadowColor = "rgba(0,0,0,0.8)";
+                    ctx.shadowBlur = 4;
+                    ctx.textAlign = "right";
+                    
+                    let bottomOffset = fontSize + 20;
+
+                    if(app.settings.stamp) {
+                        const d = new Date();
+                        const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+                        ctx.fillText(dateStr, sW - 20, sH - 20);
+                        bottomOffset += fontSize + 10;
+                    }
+
+                    if(app.settings.watermark) {
+                        ctx.fillStyle = "rgba(255,255,255,0.7)";
+                        ctx.fillText(app.settings.watermark, sW - 20, sH - bottomOffset + (app.settings.stamp ? 0 : 20));
+                    }
+                }
+
+                // Export
+                const quality = app.settings.hq ? 1.0 : 0.9;
+                const type = app.settings.hq ? 'image/png' : 'image/jpeg';
+                const dataURL = canvas.toDataURL(type, quality);
+                
+                gallery.add(dataURL);
+            }
+        };
+
+        // Initialize Filter Buttons
+        app.init();
 
     </script>
 </body>

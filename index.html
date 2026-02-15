@@ -6,15 +6,13 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="Professional Web-Based Photo Booth Application V3.0">
-    <title>STUDIO BOOTH PRO | Ultimate Edition V3</title>
+    <title>PRO Photo Booth | Studio Edition V3.5</title>
     
     <style>
         /* * ==========================================================================
-         * 1. CSS RESET & CORE VARIABLES
+         * 1. RESET & CORE VARIABLES
          * ==========================================================================
          */
-        
         :root {
             /* --- COLOR PALETTE --- */
             --color-primary: #00f2ea;
@@ -22,61 +20,49 @@
             --color-secondary: #ff0050;
             --color-accent: #ffee00;
             --color-bg: #000000;
-            --color-surface: #121212;
-            --color-surface-light: #1e1e1e;
-            --color-border: rgba(255, 255, 255, 0.15);
+            --color-surface: #111111;
+            --color-surface-trans: rgba(17, 17, 17, 0.9);
+            --color-border: rgba(255, 255, 255, 0.12);
             --color-text-main: #ffffff;
             --color-text-muted: #888888;
 
-            /* --- SPACING & SAFE AREAS (CRITICAL FOR MOBILE) --- */
+            /* --- DIMENSIONS & SPACING --- */
+            --header-height: 50px;
+            --control-deck-height: 240px; /* Tall enough for thumbs */
+            --control-deck-width: 140px;  /* For landscape sidebar */
+            
+            /* --- SAFE AREAS (CRITICAL FOR MOBILE) --- */
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 20px);
             --safe-left: env(safe-area-inset-left, 0px);
             --safe-right: env(safe-area-inset-right, 0px);
-            
-            /* --- DIMENSIONS --- */
-            --header-height: 60px;
-            --control-deck-padding: 20px;
 
-            /* --- ANIMATION CURVES --- */
+            /* --- ANIMATION --- */
             --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
             --ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        /* RESET */
         *, *::before, *::after {
             box-sizing: border-box;
             outline: none;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: manipulation;
         }
 
-        html {
-            width: 100%;
-            height: 100%;
-            background-color: var(--color-bg);
-        }
-
-        body {
+        html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            /* Use 100dvh to prevent address bar layout shifts on mobile */
-            height: 100dvh; 
             background-color: var(--color-bg);
             color: var(--color-text-main);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden; /* Lock scroll to prevent bounce effects */
-            position: fixed; /* Lock body to viewport */
-            display: flex;
-            flex-direction: column;
+            overflow: hidden; /* Lock scroll */
+            position: fixed; /* Prevent iOS rubber-banding */
         }
 
         /* --- TRUE FLASH OVERRIDE --- */
-        /* When this class is active, everything hides and background becomes white */
         body.flash-active {
             background-color: #ffffff !important;
         }
@@ -88,787 +74,424 @@
          * 2. ANIMATIONS
          * ==========================================================================
          */
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        @keyframes pulseRec {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes flashBang {
-            0% { background-color: white; opacity: 1; }
-            100% { background-color: transparent; opacity: 0; }
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes shutterPress {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.9); }
-            100% { transform: scale(1); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slideInRight { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes pulseRec { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes flashBang { 0% { background: white; opacity: 1; } 100% { background: transparent; opacity: 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         /* * ==========================================================================
-         * 3. UI COMPONENTS (BUTTONS, SWITCHES)
-         * ==========================================================================
-         */
-
-        /* Icon Buttons (Circular) */
-        .btn-icon {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid var(--color-border);
-            color: white;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s var(--ease-smooth);
-            font-size: 1.2rem;
-            backdrop-filter: blur(5px);
-        }
-        .btn-icon:hover {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.3);
-        }
-        .btn-icon:active {
-            transform: scale(0.92);
-        }
-        .btn-icon.active {
-            background: var(--color-text-main);
-            color: var(--color-bg);
-            border-color: var(--color-text-main);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-        }
-
-        /* Pill Buttons (Filters/Text) */
-        .btn-pill {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            color: var(--color-text-muted);
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .btn-pill:hover {
-            color: #fff;
-            border-color: #666;
-        }
-        .btn-pill.active {
-            background: var(--color-text-main);
-            color: var(--color-bg);
-            border-color: var(--color-text-main);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-        }
-
-        /* Toggle Switch */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 52px;
-            height: 30px;
-        }
-        .toggle-switch input { 
-            opacity: 0; 
-            width: 0; 
-            height: 0; 
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333;
-            transition: .4s;
-            border-radius: 34px;
-            border: 1px solid #444;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-        input:checked + .slider:before {
-            transform: translateX(22px);
-        }
-
-        /* Loader Spinner */
-        .loader {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(255,255,255,0.1);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 20px auto;
-        }
-        .hidden {
-            display: none !important;
-        }
-
-        /* * ==========================================================================
-         * 4. MAIN LAYOUT STRUCTURE
+         * 3. LAYOUT ARCHITECTURE (FLEX ENGINE)
          * ==========================================================================
          */
         
         #app-root {
+            display: flex;
             width: 100%;
             height: 100%;
-            display: flex;
-            /* Default to Portrait Flow */
-            flex-direction: column; 
-            overflow: hidden;
+            /* Fix for mobile browser bars */
+            height: 100dvh; 
+            flex-direction: column; /* Default: Portrait */
             position: relative;
+            z-index: 1;
         }
 
-        /* HEADER (Top Bar) */
+        /* --- HEADER --- */
         #top-bar {
             height: var(--header-height);
-            width: 100%;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             padding: 0 20px;
             padding-top: var(--safe-top);
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.5);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            z-index: 50;
+            z-index: 20;
+            flex-shrink: 0; /* Never shrink */
             border-bottom: 1px solid var(--color-border);
-            flex-shrink: 0; /* Prevent shrinking */
-        }
-        
-        .logo-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .logo-dot {
-            width: 14px;
-            height: 14px;
-            background: var(--primary);
-            border-radius: 50%;
-            box-shadow: 0 0 12px var(--primary);
-        }
-        .logo-text {
-            font-weight: 900;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            color: #fff;
         }
 
-        /* WORKSPACE (Viewfinder Area) */
-        #stage-area {
-            flex-grow: 1; /* Take up all remaining space */
+        .logo-text { font-weight: 900; font-size: 1rem; letter-spacing: 2px; }
+        .header-actions { display: flex; gap: 15px; }
+
+        /* --- WORKSPACE (The Camera) --- */
+        #workspace {
+            flex-grow: 1; /* Take all available space */
             position: relative;
-            background: #050505;
+            background: #000;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
+            align-items: center; /* Center Vertically */
+            justify-content: center; /* Center Horizontally */
             overflow: hidden;
+            padding: 10px;
         }
 
-        /* The Box holding the Video */
-        .viewfinder-frame {
+        .viewfinder {
             position: relative;
             width: 100%;
             height: 100%;
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
-            background: #000;
-            box-shadow: 0 0 60px rgba(0,0,0,0.6);
+            background: #050505;
+            box-shadow: 0 0 0 1px #222;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #333;
             transition: all 0.3s var(--ease-smooth);
         }
 
-        /* Video Element */
-        video#camera-feed {
+        video {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Ensure it fills the frame */
-            transform: scaleX(-1); /* Default Mirror */
+            object-fit: cover;
+            transform: scaleX(-1);
             display: block;
         }
-        .no-mirror video#camera-feed {
-            transform: scaleX(1);
-        }
+        .no-mirror video { transform: scaleX(1); }
 
-        /* Aspect Ratio Helpers */
-        /* On Desktop/Tablet we respect ratios. On Mobile, we fill. */
-        .ratio-16-9 { aspect-ratio: 16/9; max-width: 100%; height: auto; }
-        .ratio-4-3 { aspect-ratio: 4/3; max-width: 100%; height: auto; }
-        .ratio-1-1 { aspect-ratio: 1/1; max-width: 100%; height: auto; }
-
-        /* OVERLAYS (Grid, Info, Countdown) */
-        .overlay-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        /* Status Bar (Inside Viewfinder) */
-        .status-bar {
-            position: absolute;
-            top: 15px; left: 15px; right: 15px;
+        /* --- CONTROL DECK --- */
+        #control-deck {
+            flex-shrink: 0; /* Never shrink */
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            z-index: 30;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .rec-pill {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            padding: 6px 14px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(255,255,255,0.15);
-        }
-        .rec-dot {
-            width: 10px;
-            height: 10px;
-            background: red;
-            border-radius: 50%;
-            animation: pulseRec 2s infinite;
-        }
-        .status-text {
-            font-size: 0.75rem;
-            font-family: monospace;
-            color: #ffffff;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        /* Composition Grid */
-        .grid-lines {
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .grid-lines.visible {
-            opacity: 1;
-        }
-        .grid-h {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: rgba(255,255,255,0.25);
-            box-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
-        .grid-v {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            width: 1px;
-            background: rgba(255,255,255,0.25);
-            box-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
-
-        /* Big Countdown */
-        .countdown-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 10rem;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            opacity: 0;
-            transition: opacity 0.2s;
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* Flash Overlay (Digital Flash) */
-        .flash-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: white;
-            opacity: 0;
-            z-index: 100;
-            pointer-events: none;
+            flex-direction: column;
+            padding: 20px;
+            padding-bottom: calc(20px + var(--safe-bottom));
+            gap: 20px;
         }
 
         /* * ==========================================================================
-         * 5. CONTROL DECK (BOTTOM SHEET)
+         * 4. UI COMPONENTS (CONTROLS)
          * ==========================================================================
          */
-        
-        #control-deck {
-            flex-shrink: 0;
-            background: var(--color-surface);
-            border-top: 1px solid var(--color-border);
-            z-index: 60;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            gap: 15px;
-            /* Ensure it covers safe area on iPhone X+ */
-            padding-bottom: calc(20px + var(--safe-bottom));
-            transition: all 0.3s ease;
-        }
 
-        /* Filter Scroll Horizontal */
+        /* Filter Strip */
         .filter-scroller {
             width: 100%;
             overflow-x: auto;
             display: flex;
             gap: 10px;
             padding-bottom: 5px;
-            /* Hide Scrollbars */
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            scrollbar-width: none; /* Hide scrollbars */
         }
-        .filter-scroller::-webkit-scrollbar { 
-            display: none; 
+        .filter-scroller::-webkit-scrollbar { display: none; }
+
+        .filter-chip {
+            background: #222;
+            border: 1px solid #333;
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-chip.active {
+            background: var(--color-text-main);
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
         }
 
-        /* Main Controls Container */
-        .main-controls {
+        /* Main Actions Row */
+        .actions-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
         }
 
-        /* Shutter Button Styles */
-        .shutter-wrapper {
-            position: relative;
-            width: 84px;
-            height: 84px;
+        /* Side Buttons Group */
+        .side-actions {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            gap: 15px;
+            flex: 1; /* Take up side space */
         }
-        .shutter-button {
+        .side-actions.left { justify-content: flex-start; }
+        .side-actions.right { justify-content: flex-end; }
+
+        .btn-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-circle:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+        .btn-circle.active { color: var(--color-accent); border-color: var(--color-accent); box-shadow: 0 0 10px rgba(255,238,0,0.2); }
+
+        /* Shutter Button */
+        .shutter-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .shutter-outer {
             width: 72px;
             height: 72px;
             border-radius: 50%;
-            background: var(--color-text-main);
-            border: 4px solid rgba(255,255,255,0.3);
-            cursor: pointer;
-            box-shadow: 0 0 0 4px transparent;
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            z-index: 2;
-        }
-        .shutter-button:active {
-            transform: scale(0.9);
-            background: var(--color-secondary);
-        }
-        .shutter-ring {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            opacity: 0.6;
-            animation: spin 10s linear infinite;
-            pointer-events: none;
-        }
-
-        /* Side Controls (Left/Right of Shutter) */
-        .ctrl-group {
+            border: 4px solid #fff;
             display: flex;
-            gap: 12px;
-            flex: 1;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            cursor: pointer;
+            transition: transform 0.1s;
         }
-        .ctrl-group.left {
-            justify-content: flex-start;
+        .shutter-inner {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--color-secondary);
+            transition: transform 0.1s;
         }
-        .ctrl-group.right {
-            justify-content: flex-end;
-        }
+        .shutter-outer:active { transform: scale(0.95); }
+        .shutter-outer:active .shutter-inner { transform: scale(0.9); }
 
         /* * ==========================================================================
-         * 6. RESPONSIVE ORIENTATION ENGINE (CRITICAL FIXES)
+         * 5. ORIENTATION & RESPONSIVE LOGIC (THE FIX)
          * ==========================================================================
          */
-        
-        /* A. MOBILE PORTRAIT (Vertical) - Default Stack Layout */
-        @media (orientation: portrait) and (max-width: 768px) {
-            #stage-area {
-                padding: 0;
-                align-items: flex-start;
-                background: #000;
-            }
-            
-            /* Fill width, utilize vertical space */
-            .viewfinder-frame {
-                width: 100%;
-                height: auto;
-                aspect-ratio: 3/4; /* Classic Photo Portrait */
-                border-radius: 0;
-                border: none;
-                max-height: 75vh;
-                margin-top: 0;
-            }
-            
-            /* Override explicit ratios to fill properly on mobile */
-            .ratio-16-9, .ratio-4-3, .ratio-1-1 { 
-                width: 100%; 
-                height: auto; 
-                aspect-ratio: 3/4; 
-            }
 
+        /* A. MOBILE PORTRAIT (Default) */
+        @media (orientation: portrait) {
+            #app-root { flex-direction: column; }
+            #top-bar { display: flex; }
+            
+            #workspace { padding: 10px 0; } /* Remove side padding to max width */
+            
+            .viewfinder {
+                width: 100%;
+                /* Let flexbox handle height, but ensure aspect ratio feels good */
+                height: 100%; 
+                border-radius: 20px;
+                max-width: 100%;
+            }
+            
             #control-deck {
-                border-top-left-radius: 24px;
-                border-top-right-radius: 24px;
+                width: 100%;
+                border-radius: 24px 24px 0 0;
                 box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-                border-top: 1px solid rgba(255,255,255,0.1);
-                /* Slightly overlap video for modern look */
-                margin-top: -20px; 
-                background: rgba(18,18,18,0.98);
             }
         }
 
-        /* B. MOBILE LANDSCAPE (Horizontal) - Side-by-Side Layout */
-        @media (orientation: landscape) and (max-width: 920px) {
-            #app-root {
-                flex-direction: row; /* Switch main axis to row */
-            }
-            
-            /* Hide top bar to save vertical space on phones */
-            #top-bar {
-                display: none; 
-            }
+        /* B. MOBILE LANDSCAPE (Side-by-Side) */
+        @media (orientation: landscape) and (max-height: 500px) {
+            #app-root { flex-direction: row; }
+            #top-bar { display: none; } /* Hide top bar to save space */
 
-            #stage-area {
-                width: auto;
-                height: 100%;
-                padding: 0;
-                flex-grow: 1;
-            }
-            
-            .viewfinder-frame {
-                width: 100%;
-                height: 100%;
-                border-radius: 0;
-                border: none;
-                aspect-ratio: unset !important; /* Allow stretch */
-            }
-            
-            .ratio-16-9, .ratio-4-3, .ratio-1-1 { 
-                width: 100%; 
-                height: 100%; 
-            }
+            #workspace { padding: 0; width: auto; height: 100%; }
+            .viewfinder { border-radius: 0; width: 100%; height: 100%; border: none; }
 
-            /* Move Control Deck to the Right Side */
             #control-deck {
-                width: 160px; /* Fixed width sidebar */
+                width: var(--control-deck-width);
                 height: 100%;
                 border-top: none;
                 border-left: 1px solid var(--color-border);
-                padding: 20px 10px;
+                padding: 10px;
                 padding-right: calc(10px + var(--safe-right));
                 justify-content: center;
-                align-items: center;
-                gap: 20px;
-                padding-bottom: 20px;
-                margin-top: 0;
-                border-radius: 0;
-                background: #000;
+                gap: 15px;
             }
 
-            /* Adjust Filter Scroller to Vertical */
+            /* Rotate Layouts for Sidebar */
             .filter-scroller {
                 flex-direction: column;
-                height: 150px;
+                height: 120px;
                 width: 100%;
                 overflow-y: auto;
                 overflow-x: hidden;
-                order: 1; /* Move to top of sidebar */
-                padding-bottom: 0;
+                order: 1; /* Move to top */
             }
-            .btn-pill {
-                text-align: center;
-                width: 100%;
-            }
+            .filter-chip { text-align: center; width: 100%; }
 
-            /* Adjust Controls to Vertical Column */
-            .main-controls {
+            .actions-row {
                 flex-direction: column-reverse;
                 height: auto;
                 gap: 15px;
                 order: 2;
             }
 
-            .ctrl-group {
-                flex-direction: column;
-                width: 100%;
-                align-items: center;
-                justify-content: center;
-                gap: 15px;
-            }
-            
-            /* Add some margin to separate groups */
-            .ctrl-group.left { margin-top: 10px; }
-            .ctrl-group.right { margin-bottom: 10px; }
+            .side-actions { flex-direction: column; width: 100%; align-items: center; justify-content: center; }
+            .side-actions.left { margin-top: 10px; }
+            .side-actions.right { margin-bottom: 10px; }
         }
 
-        /* C. DESKTOP / TABLET (Large Screens) */
-        @media (min-width: 921px) {
-            #stage-area {
-                padding: 40px;
-            }
-            .viewfinder-frame {
+        /* C. DESKTOP / TABLET */
+        @media (min-width: 769px) and (min-height: 501px) {
+            #workspace { padding: 40px; }
+            .viewfinder {
                 max-width: 1200px;
-                max-height: 80vh;
                 box-shadow: 0 30px 80px rgba(0,0,0,0.6);
                 border: 2px solid #333;
             }
+            
             #control-deck {
-                flex-direction: column;
+                flex-direction: row;
                 align-items: center;
+                justify-content: center;
                 padding: 20px;
                 background: #000;
             }
-            .main-controls {
-                max-width: 800px;
-            }
-            .filter-scroller {
-                justify-content: center;
-            }
+            .filter-scroller { width: 300px; margin-right: 40px; justify-content: center; }
+            .actions-row { max-width: 600px; }
         }
 
         /* * ==========================================================================
-         * 7. OVERLAY MODALS & WELCOME SCREEN
+         * 6. OVERLAYS & MODALS
          * ==========================================================================
          */
         
-        #welcome-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.6s ease;
-            padding: 20px;
+        .overlay-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
         }
 
-        .intro-card {
-            text-align: center;
-            width: 100%;
-            max-width: 420px;
-            padding: 40px;
-            background: linear-gradient(145deg, #161616, #080808);
-            border-radius: 30px;
-            border: 1px solid #333;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
-            animation: slideUp 0.8s var(--ease-elastic);
+        /* REC Tag */
+        .rec-tag {
+            position: absolute; top: 15px; left: 15px;
+            background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 4px;
+            display: flex; align-items: center; gap: 6px;
+            font-family: monospace; font-size: 0.75rem; color: #fff;
+        }
+        .rec-dot { width: 8px; height: 8px; background: red; border-radius: 50%; animation: pulseRec 2s infinite; }
+
+        /* Grid */
+        .grid-guide { width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s; }
+        .grid-guide.visible { opacity: 1; }
+        .g-h { position: absolute; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.3); }
+        .g-v { position: absolute; top: 0; height: 100%; width: 1px; background: rgba(255,255,255,0.3); }
+
+        /* Countdown */
+        .countdown {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 8rem; font-weight: 900; color: #fff;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.2s;
         }
 
-        .intro-title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            margin: 0;
-            line-height: 0.9;
-            letter-spacing: -2px;
-            background: linear-gradient(to right, #fff, #999);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* Flash */
+        .flash-white {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; z-index: 100; pointer-events: none;
         }
 
-        .intro-sub {
-            color: var(--color-text-muted);
-            margin-top: 15px;
-            margin-bottom: 40px;
-            font-size: 0.95rem;
-            line-height: 1.5;
+        /* MODALS */
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
         }
+        .modal-backdrop.active { display: flex; opacity: 1; }
+        .modal-card {
+            background: #151515; border: 1px solid #333; width: 90%; max-width: 400px;
+            border-radius: 20px; overflow: hidden; animation: slideUp 0.3s var(--ease-elastic);
+        }
+        .modal-header { padding: 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px; color: #aaa; font-size: 0.9rem; line-height: 1.6; }
         
-        .modal-wrap {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-            padding: 20px;
-        }
-        .modal-wrap.open { display: flex; opacity: 1; }
+        /* SETTINGS ROWS */
+        .opt-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #222; }
+        .opt-label { font-weight: 500; color: #fff; }
 
-        .modal-content {
-            background: #181818;
-            border: 1px solid #333;
-            width: 100%;
-            max-width: 450px;
-            border-radius: 24px;
-            overflow: hidden;
-            animation: popIn 0.3s var(--ease-elastic);
-            display: flex;
-            flex-direction: column;
-            max-height: 85vh;
+        /* BOOT SCREEN */
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 20px; text-align: center;
+        }
+        .boot-title { font-size: 3rem; font-weight: 900; margin: 0; letter-spacing: -2px; color: #fff; }
+        .boot-sub { color: #666; margin: 10px 0 30px 0; }
+        .btn-boot {
+            background: #fff; color: #000; padding: 15px 40px; border-radius: 50px;
+            border: none; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2); animation: pop 2s infinite;
         }
 
-        .modal-head {
-            padding: 20px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #1f1f1f;
-        }
-        .modal-head h3 { margin: 0; font-size: 1.2rem; }
-
-        .modal-body {
-            padding: 25px;
-            color: #ccc;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            overflow-y: auto;
-        }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #2a2a2a;
-        }
-        .setting-row:last-child { border-bottom: none; }
-
-        /* Utility Helper */
+        /* Utils */
+        .hidden { display: none !important; }
         canvas { display: none; }
 
     </style>
 </head>
 <body>
 
-    <div id="welcome-overlay">
-        <div class="intro-card">
-            <div style="color:var(--primary); font-size:0.75rem; font-weight:800; letter-spacing:3px; margin-bottom:15px; text-transform:uppercase;">Studio Booth Pro V3</div>
-            <h1 class="intro-title">STUDIO</h1>
-            <h1 class="intro-title" style="color:#555; -webkit-text-fill-color: #555;">MASTER</h1>
-            
-            <p class="intro-sub">
-                The ultimate browser-based photography suite.<br>
-                <strong>Adaptive Layout • True Flash • Cinema Grade</strong>
-            </p>
-            
-            <button class="btn-pill active" style="padding:18px 0; width:100%; font-size:1.1rem; border-radius:50px;" onclick="app.boot()">INITIALIZE STUDIO</button>
-            
-            <div id="boot-spinner" class="loader hidden"></div>
-            
-            <div style="margin-top:25px; display:flex; gap:20px; justify-content:center; font-size:0.8rem; color:#666;">
-                <span onclick="ui.modal('privacy')" style="cursor:pointer; text-decoration:underline;">Privacy</span>
-                <span onclick="ui.modal('settings')" style="cursor:pointer; text-decoration:underline;">Configure</span>
-            </div>
+    <div id="boot-screen">
+        <h1 class="boot-title">STUDIO<br><span style="color:var(--primary)">ULTIMATE</span></h1>
+        <p class="boot-sub">Mobile-First Photography Suite V3.5<br>Orientation Adaptive • True Flash</p>
+        <button class="btn-boot" onclick="app.init()">START CAMERA</button>
+        <div style="margin-top:30px; font-size:0.8rem;">
+            <a style="color:#555; margin:0 10px;" onclick="ui.modal('privacy')">Privacy</a>
+            <a style="color:#555; margin:0 10px;" onclick="ui.modal('settings')">Settings</a>
         </div>
     </div>
 
     <div id="app-root" class="hidden">
         
         <div id="top-bar">
-            <div class="logo-group">
-                <div class="logo-dot"></div>
-                <div class="logo-text">STUDIO<span style="color:var(--primary)">.PRO</span></div>
-            </div>
-            <div style="display:flex; gap:12px;">
-                <button class="btn-icon" onclick="ui.modal('settings')" title="Settings">⚙</button>
-                <button class="btn-icon" onclick="gallery.open()" title="Gallery">🖼</button>
+            <div class="logo-text">STUDIO<span style="color:var(--primary)">.PRO</span></div>
+            <div class="header-actions">
+                <button class="btn-icon" style="width:36px; height:36px;" onclick="ui.modal('settings')">⚙</button>
+                <button class="btn-icon" style="width:36px; height:36px;" onclick="gallery.open()">🖼</button>
             </div>
         </div>
 
-        <div id="stage-area">
-            <div id="viewfinder" class="viewfinder-frame ratio-16-9">
-                <video id="camera-feed" autoplay playsinline muted></video>
+        <div id="workspace">
+            <div class="viewfinder" id="viewfinder-box">
+                <video id="video-feed" autoplay playsinline muted></video>
                 
-                <div class="overlay-container">
+                <div class="overlay-layer">
+                    <div class="rec-tag"><div class="rec-dot"></div> <span id="res-label">HD</span></div>
                     
-                    <div class="status-bar">
-                        <div class="rec-pill">
-                            <div class="rec-dot"></div> <span class="status-text">LIVE</span>
-                        </div>
-                        <div class="status-text" id="res-tag" style="background:rgba(0,0,0,0.5); padding:4px 8px; border-radius:4px;">HD 1080P</div>
+                    <div id="grid-system" class="grid-guide">
+                        <div class="g-h" style="top:33%"></div><div class="g-h" style="top:66%"></div>
+                        <div class="g-v" style="left:33%"></div><div class="g-v" style="left:66%"></div>
                     </div>
 
-                    <div id="grid-lines" class="grid-lines">
-                        <div class="grid-h" style="top:33%"></div><div class="grid-h" style="top:66%"></div>
-                        <div class="grid-v" style="left:33%"></div><div class="grid-v" style="left:66%"></div>
-                    </div>
-
-                    <div id="countdown" class="countdown-overlay">3</div>
-                    <div id="flash-fx" class="flash-overlay"></div>
-                
+                    <div id="countdown" class="countdown">3</div>
+                    <div id="flash-layer" class="flash-white"></div>
                 </div>
             </div>
         </div>
 
         <div id="control-deck">
             
-            <div class="filter-scroller" id="filter-list">
+            <div class="filter-scroller" id="filter-container">
                 </div>
 
-            <div class="main-controls">
+            <div class="actions-row">
                 
-                <div class="ctrl-group left">
-                    <button class="btn-icon" id="btn-grid" onclick="app.toggleGrid(this)" title="Toggle Grid">#</button>
-                    <button class="btn-icon" id="btn-flash" onclick="app.toggleFlash(this)" title="True Flash">⚡</button>
+                <div class="side-actions left">
+                    <button class="btn-circle" id="btn-grid" onclick="app.toggleGrid(this)">#</button>
+                    <button class="btn-circle" id="btn-flash" onclick="app.toggleFlash(this)">⚡</button>
                 </div>
 
-                <div class="shutter-wrapper">
-                    <div class="shutter-ring"></div>
-                    <button class="shutter-button" id="shutter-btn" onclick="app.snap()"></button>
+                <div class="shutter-container">
+                    <div class="shutter-outer" onclick="app.snap()">
+                        <div class="shutter-inner"></div>
+                    </div>
                 </div>
 
-                <div class="ctrl-group right">
-                    <button class="btn-icon" onclick="app.flipCamera()" title="Flip Camera">↻</button>
-                    <button class="btn-icon" onclick="app.cycleRatio()" title="Aspect Ratio" style="font-size:0.9rem; font-weight:bold;">1:1</button>
+                <div class="side-actions right">
+                    <button class="btn-circle" onclick="app.switchCam()">↻</button>
+                    <button class="btn-circle" onclick="app.cycleRatio()">1:1</button>
                 </div>
 
             </div>
@@ -876,324 +499,268 @@
 
     </div>
 
-    <div id="modal-settings" class="modal-wrap">
-        <div class="modal-content">
-            <div class="modal-head">
-                <h3>Studio Settings</h3>
-                <button class="btn-icon" style="width:32px; height:32px; border:none; background:transparent;" onclick="ui.closeModals()">✕</button>
-            </div>
+    <div id="modal-settings" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header"><h3>Settings</h3><button class="btn-icon" style="width:30px;height:30px;" onclick="ui.closeAll()">✕</button></div>
             <div class="modal-body">
-                <div class="setting-row">
-                    <span>Mirror Front Camera</span>
-                    <label class="toggle-switch"><input type="checkbox" id="set-mirror" checked onchange="app.updateConfig()"><span class="slider"></span></label>
+                <div class="opt-row">
+                    <span class="opt-label">Mirror Selfie</span>
+                    <label class="toggle-switch"><input type="checkbox" id="cfg-mirror" checked onchange="app.updateCfg()"><span class="slider"></span></label>
                 </div>
-                <div class="setting-row">
-                    <span>Shutter Sound</span>
-                    <label class="toggle-switch"><input type="checkbox" id="set-sound" checked><span class="slider"></span></label>
+                <div class="opt-row">
+                    <span class="opt-label">Shutter Sound</span>
+                    <label class="toggle-switch"><input type="checkbox" id="cfg-sound" checked><span class="slider"></span></label>
                 </div>
-                <div class="setting-row">
-                    <span>High Quality Export (PNG)</span>
-                    <label class="toggle-switch"><input type="checkbox" id="set-hq"><span class="slider"></span></label>
+                <div class="opt-row">
+                    <span class="opt-label">Burst Mode (3x)</span>
+                    <label class="toggle-switch"><input type="checkbox" id="cfg-burst"><span class="slider"></span></label>
                 </div>
-                <div class="setting-row">
-                    <span>Burst Mode (3 shots)</span>
-                    <label class="toggle-switch"><input type="checkbox" id="set-burst"><span class="slider"></span></label>
+                <div class="opt-row">
+                    <span class="opt-label">Haptic Feedback</span>
+                    <label class="toggle-switch"><input type="checkbox" id="cfg-haptic" checked><span class="slider"></span></label>
                 </div>
-                
-                <div style="margin-top:20px; padding-top:20px; border-top:1px solid #333;">
-                    <button class="btn-pill active" style="width:100%; text-align:center; background:#222; border-color:#333;" onclick="gallery.clear()">Clear Gallery Cache</button>
+                <div style="margin-top:20px; padding-top:15px; border-top:1px solid #333;">
+                    <button class="btn-pill" style="width:100%; text-align:center;" onclick="gallery.clear()">Clear Data</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="modal-privacy" class="modal-wrap">
-        <div class="modal-content">
-            <div class="modal-head"><h3>Privacy Policy</h3><button class="btn-icon" style="width:32px; height:32px; border:none; background:transparent;" onclick="ui.closeModals()">✕</button></div>
+    <div id="modal-privacy" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header"><h3>Privacy</h3><button class="btn-icon" style="width:30px;height:30px;" onclick="ui.closeAll()">✕</button></div>
             <div class="modal-body">
-                <p style="margin-bottom:15px;"><strong>1. Zero Data Collection</strong><br>This application operates 100% client-side. No images, videos, or usage data are transmitted to any external server or cloud storage.</p>
-                <p style="margin-bottom:15px;"><strong>2. Camera Permissions</strong><br>Camera access is required solely for the viewfinder functionality. The feed is not recorded unless you press the shutter.</p>
-                <p><strong>3. Volatile Storage</strong><br>All captured images are stored in your device's temporary memory (RAM). Refreshing the page or closing the tab permanently erases all session data.</p>
+                <p><strong>1. Local Only:</strong> This app runs entirely in your browser. No images are sent to the cloud.</p>
+                <p><strong>2. Temporary:</strong> Images are stored in RAM. Refreshing the page deletes them.</p>
+                <p><strong>3. Camera:</strong> Access is used strictly for the viewfinder and capture.</p>
             </div>
         </div>
     </div>
 
-    <canvas id="proc-canvas" class="hidden"></canvas>
+    <canvas id="hidden-canvas" class="hidden"></canvas>
 
     <script>
-        /**
-         * STATE & CONFIGURATION
-         */
-        const STATE = {
+        // --- CONSTANTS & STATE ---
+        const FILTERS = [
+            { id: 'none', name: 'Original', css: 'none' },
+            { id: 'bw', name: 'Mono', css: 'grayscale(100%) contrast(1.2)' },
+            { id: 'vivid', name: 'Vivid', css: 'saturate(1.5) contrast(1.1)' },
+            { id: 'warm', name: 'Warm', css: 'sepia(0.4) saturate(1.2)' },
+            { id: 'cool', name: 'Cool', css: 'hue-rotate(180deg) opacity(0.9)' },
+            { id: 'drama', name: 'Drama', css: 'contrast(1.4) saturate(0.8)' },
+            { id: 'cyber', name: 'Cyber', css: 'hue-rotate(-20deg) saturate(2)' },
+            { id: 'silv', name: 'Silver', css: 'grayscale(100%) brightness(1.2)' }
+        ];
+
+        const RATIOS = [
+            { cls: 'ratio-16-9', w: 16, h: 9 },
+            { cls: 'ratio-4-3', w: 4, h: 3 },
+            { cls: 'ratio-1-1', w: 1, h: 1 }
+        ];
+
+        const state = {
             stream: null,
             isCapturing: false,
             filter: 'none',
-            facingMode: 'user', // 'user' (front) or 'environment' (back)
-            flashOn: false,
+            facingMode: 'user',
+            flash: false,
             ratioIndex: 0,
-            ratios: [
-                { cls: 'ratio-16-9', val: 16/9 },
-                { cls: 'ratio-4-3', val: 4/3 },
-                { cls: 'ratio-1-1', val: 1 }
-            ]
+            cfg: { mirror: true, sound: true, burst: false, haptic: true }
         };
 
-        const CONFIG = {
-            mirror: true,
-            sound: true,
-            hq: false,
-            burst: false
-        };
-
-        const FILTERS = [
-            { id: 'none', name: 'Studio', css: 'none' },
-            { id: 'bw', name: 'B&W', css: 'grayscale(100%) contrast(1.2)' },
-            { id: 'vivid', name: 'Vivid', css: 'saturate(1.6) contrast(1.1)' },
-            { id: 'warm', name: 'Warm', css: 'sepia(0.3) saturate(1.2)' },
-            { id: 'cool', name: 'Cool', css: 'hue-rotate(180deg) opacity(0.9)' },
-            { id: 'cyber', name: 'Cyber', css: 'hue-rotate(-20deg) saturate(2) contrast(1.2)' },
-            { id: 'noir', name: 'Noir', css: 'grayscale(100%) contrast(1.5) brightness(0.8)' },
-            { id: 'vintage', name: '1985', css: 'sepia(0.6) contrast(0.8) brightness(1.1)' }
-        ];
-
-        /**
-         * UI CONTROLLER
-         */
+        // --- UI CONTROLLER ---
         const ui = {
             el: (id) => document.getElementById(id),
             
-            initFilters: () => {
-                const container = ui.el('filter-list');
-                FILTERS.forEach((f, i) => {
-                    const btn = document.createElement('button');
-                    btn.className = `btn-pill ${i===0 ? 'active' : ''}`;
-                    btn.innerText = f.name;
-                    btn.onclick = (e) => {
-                        document.querySelectorAll('#filter-list .btn-pill').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                        STATE.filter = f.css;
-                        ui.el('camera-feed').style.filter = f.css;
-                    };
-                    container.appendChild(btn);
-                });
-            },
+            modal: (id) => document.getElementById(`modal-${id}`).classList.add('active'),
+            closeAll: () => document.querySelectorAll('.modal-backdrop').forEach(el => el.classList.remove('active')),
 
-            modal: (id) => {
-                ui.el(`modal-${id}`).classList.add('open');
-            },
-            
-            closeModals: () => {
-                document.querySelectorAll('.modal-wrap').forEach(m => m.classList.remove('open'));
+            renderFilters: () => {
+                const con = ui.el('filter-container');
+                FILTERS.forEach((f, i) => {
+                    const b = document.createElement('button');
+                    b.className = `filter-chip ${i===0 ? 'active' : ''}`;
+                    b.innerText = f.name;
+                    b.onclick = () => {
+                        document.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active'));
+                        b.classList.add('active');
+                        state.filter = f.css;
+                        ui.el('video-feed').style.filter = f.css;
+                    };
+                    con.appendChild(b);
+                });
             }
         };
 
-        /**
-         * APP LOGIC
-         */
+        // --- APP ENGINE ---
         const app = {
             
-            // 1. Initialize Camera
-            boot: async () => {
-                ui.el('boot-spinner').classList.remove('hidden');
-                
+            init: async () => {
+                // Initialize Camera
                 try {
                     const constraints = {
                         video: {
-                            facingMode: STATE.facingMode,
+                            facingMode: state.facingMode,
                             width: { ideal: 1920 },
                             height: { ideal: 1080 }
                         },
                         audio: false
                     };
-
-                    STATE.stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    ui.el('camera-feed').srcObject = STATE.stream;
+                    state.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    ui.el('video-feed').srcObject = state.stream;
                     
-                    // Apply initial config settings
+                    // Transition to App
+                    ui.el('boot-screen').style.opacity = 0;
+                    ui.el('app-root').classList.remove('hidden');
+                    setTimeout(() => ui.el('boot-screen').style.display = 'none', 500);
+                    
                     app.updateConfig();
-
-                    // Animate transition from welcome screen
-                    setTimeout(() => {
-                        ui.el('welcome-overlay').style.opacity = 0;
-                        ui.el('app-root').classList.remove('hidden');
-                        setTimeout(() => ui.el('welcome-overlay').remove(), 600);
-                    }, 1000);
+                    ui.renderFilters();
 
                 } catch (err) {
-                    alert("Camera Access Denied. Please ensure you are using HTTPS and have granted camera permissions.");
-                    console.error(err);
-                    ui.el('boot-spinner').classList.add('hidden');
+                    alert("Camera access denied. Please check permissions.");
                 }
-            },
-
-            // 2. Hardware Toggles
-            flipCamera: () => {
-                STATE.facingMode = STATE.facingMode === 'user' ? 'environment' : 'user';
-                if(STATE.stream) {
-                    STATE.stream.getTracks().forEach(t => t.stop());
-                }
-                app.boot();
-            },
-
-            toggleFlash: (btn) => {
-                STATE.flashOn = !STATE.flashOn;
-                btn.classList.toggle('active');
-                if(STATE.flashOn) btn.style.color = "var(--color-accent)";
-                else btn.style.color = "white";
-            },
-
-            toggleGrid: (btn) => {
-                ui.el('grid-lines').classList.toggle('visible');
-                btn.classList.toggle('active');
-            },
-
-            cycleRatio: () => {
-                STATE.ratioIndex = (STATE.ratioIndex + 1) % STATE.ratios.length;
-                const r = STATE.ratios[STATE.ratioIndex];
-                
-                const vf = ui.el('viewfinder');
-                // Remove old classes
-                STATE.ratios.forEach(ratio => vf.classList.remove(ratio.cls));
-                // Add new class
-                vf.classList.add(r.cls);
             },
 
             updateConfig: () => {
-                CONFIG.mirror = ui.el('set-mirror').checked;
-                CONFIG.sound = ui.el('set-sound').checked;
-                CONFIG.hq = ui.el('set-hq').checked;
-                CONFIG.burst = ui.el('set-burst').checked;
+                state.cfg.mirror = ui.el('cfg-mirror').checked;
+                state.cfg.sound = ui.el('cfg-sound').checked;
+                state.cfg.burst = ui.el('cfg-burst').checked;
+                state.cfg.haptic = ui.el('cfg-haptic').checked;
 
-                const vid = ui.el('camera-feed');
-                // Only mirror if it's the front camera and setting is on
-                if (CONFIG.mirror && STATE.facingMode === 'user') {
-                    vid.classList.remove('no-mirror');
-                } else {
-                    vid.classList.add('no-mirror');
-                }
+                const v = ui.el('video-feed');
+                if (state.cfg.mirror && state.facingMode === 'user') v.classList.remove('no-mirror');
+                else v.classList.add('no-mirror');
             },
 
-            // 3. Capture Sequence
-            snap: async () => {
-                if (STATE.isCapturing) return;
-                STATE.isCapturing = true;
-                const btn = ui.el('shutter-btn');
-                btn.style.transform = 'scale(0.8)';
+            // Toggles
+            toggleFlash: (btn) => {
+                state.flash = !state.flash;
+                btn.classList.toggle('active');
+            },
+            toggleGrid: (btn) => {
+                ui.el('grid-system').classList.toggle('visible');
+                btn.classList.toggle('active');
+            },
+            switchCam: () => {
+                state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
+                if(state.stream) state.stream.getTracks().forEach(t=>t.stop());
+                app.init();
+            },
+            cycleRatio: () => {
+                state.ratioIndex = (state.ratioIndex + 1) % RATIOS.length;
+                const r = RATIOS[state.ratioIndex];
+                const v = ui.el('viewfinder-box');
+                // Note: Aspect ratio CSS works best on desktop. On mobile portrait we usually fill.
+                // We will apply the class anyway for desktop correctness.
+                v.className = `viewfinder ratio-${r.w}-${r.h}`;
+            },
 
-                // Countdown Logic
+            // Capture Logic
+            snap: async () => {
+                if(state.isCapturing) return;
+                state.isCapturing = true;
+
+                // Animation
+                const btn = document.querySelector('.shutter-outer');
+                btn.style.transform = 'scale(0.9)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 100);
+
+                // Countdown
                 const cd = ui.el('countdown');
                 cd.style.opacity = 1;
-                for (let i = 3; i > 0; i--) {
+                for(let i=3; i>0; i--) {
                     cd.innerText = i;
+                    if(state.cfg.haptic && navigator.vibrate) navigator.vibrate(50);
                     await new Promise(r => setTimeout(r, 1000));
                 }
                 cd.style.opacity = 0;
 
-                // Handle Burst Mode
-                const shots = CONFIG.burst ? 3 : 1;
-                
-                for(let i=0; i<shots; i++) {
-                    await app.captureFrame();
-                    if(i < shots-1) await new Promise(r => setTimeout(r, 800));
+                // Capture Sequence
+                const count = state.cfg.burst ? 3 : 1;
+                for(let i=0; i<count; i++) {
+                    await app.takePhoto();
+                    if(i < count - 1) await new Promise(r => setTimeout(r, 800));
                 }
 
-                STATE.isCapturing = false;
-                btn.style.transform = 'scale(1)';
+                state.isCapturing = false;
             },
 
-            captureFrame: async () => {
-                // A. TRUE FLASH (Screen Brightness)
-                if (STATE.flashOn) {
+            takePhoto: async () => {
+                // True Flash Logic
+                if(state.flash) {
                     document.body.classList.add('flash-active');
-                    // Wait for screen to emit light (150ms)
-                    await new Promise(r => setTimeout(r, 150)); 
+                    // Brightness ramp up
+                    await new Promise(r => setTimeout(r, 150));
                 }
 
-                // B. Draw to Canvas
-                const vid = ui.el('camera-feed');
-                const canvas = ui.el('proc-canvas');
-                const ctx = canvas.getContext('2d');
+                // Haptic & Sound
+                if(state.cfg.haptic && navigator.vibrate) navigator.vibrate(100);
+                if(state.cfg.sound) {
+                    // Simple beep via Web Audio API (No external file needed)
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = 800;
+                    gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                }
 
-                // Match canvas size to video source resolution
+                // Draw to Canvas
+                const vid = ui.el('video-feed');
+                const canvas = ui.el('hidden-canvas');
+                const ctx = canvas.getContext('2d');
+                
                 canvas.width = vid.videoWidth;
                 canvas.height = vid.videoHeight;
 
                 ctx.save();
-                // Apply Mirroring to Canvas
-                if (CONFIG.mirror && STATE.facingMode === 'user') {
+                if(state.cfg.mirror && state.facingMode === 'user') {
                     ctx.translate(canvas.width, 0);
                     ctx.scale(-1, 1);
                 }
-                // Apply CSS Filters to Canvas Context
-                if (STATE.filter !== 'none') {
-                    ctx.filter = STATE.filter;
-                }
+                if(state.filter !== 'none') ctx.filter = state.filter;
                 ctx.drawImage(vid, 0, 0);
                 ctx.restore();
 
-                // C. Reset Flash / Animation
-                if (STATE.flashOn) {
+                // Flash Off
+                if(state.flash) {
                     document.body.classList.remove('flash-active');
-                    const fx = ui.el('flash-fx');
+                    const fx = ui.el('flash-layer');
                     fx.style.animation = 'none';
-                    fx.offsetHeight; /* Trigger Reflow */
+                    fx.offsetHeight; 
                     fx.style.animation = 'flashBang 0.5s ease-out';
                 }
 
-                // D. Sound Effect (Web Audio API)
-                if (CONFIG.sound && window.AudioContext) {
-                    const actx = new (window.AudioContext || window.webkitAudioContext)();
-                    const osc = actx.createOscillator();
-                    const gain = actx.createGain();
-                    osc.connect(gain);
-                    gain.connect(actx.destination);
-                    osc.frequency.value = 800;
-                    gain.gain.exponentialRampToValueAtTime(0.00001, actx.currentTime + 0.1);
-                    osc.start();
-                    osc.stop(actx.currentTime + 0.1);
-                }
-
-                // E. Export & Save
-                const format = CONFIG.hq ? 'image/png' : 'image/jpeg';
-                const quality = CONFIG.hq ? 1.0 : 0.92;
-                
-                const dataURL = canvas.toDataURL(format, quality);
-                gallery.add(dataURL);
+                // Save
+                gallery.save(canvas.toDataURL('image/jpeg', 0.95));
             }
         };
 
         const gallery = {
-            items: [],
-            add: (url) => {
-                gallery.items.push(url);
-                // Auto Download for this V3 implementation
+            save: (url) => {
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `studio_shot_${Date.now()}.` + (CONFIG.hq ? 'png' : 'jpg');
+                a.download = `studio_${Date.now()}.jpg`;
                 a.click();
             },
             open: () => {
-                // In a single-file build, we use the file picker as a pseudo-gallery trigger
-                // or simply alert the user where files are.
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.click();
+                const i = document.createElement('input');
+                i.type = 'file';
+                i.accept = 'image/*';
+                i.click();
             },
             clear: () => {
-                if(confirm("Clear local settings and cache?")) {
-                    location.reload();
-                }
+                if(confirm('Reset all settings?')) location.reload();
             }
         };
 
-        // Initialize UI Elements
-        ui.initFilters();
-
-        // Listen for Orientation Changes (Optional: CSS handles most, but JS can force redraws)
+        // Listen for orientation changes to force layout recalculation if needed
         window.addEventListener('resize', () => {
-            let vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
+            // CSS media queries handle mostly everything now, but we can hook here if needed
         });
 
     </script>

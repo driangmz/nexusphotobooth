@@ -3,467 +3,467 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRO Photo Booth | Studio Edition</title>
+    <title>PRO Photo Booth | Studio Edition V3</title>
     <style>
+        /* --- CORE VARIABLES --- */
         :root {
             --primary: #00f2ea;
+            --primary-dim: rgba(0, 242, 234, 0.1);
             --secondary: #ff0050;
             --accent: #ffee00;
             --dark: #050505;
-            --panel-bg: rgba(20, 20, 20, 0.6);
+            --panel-bg: rgba(18, 18, 18, 0.85);
+            --panel-border: 1px solid rgba(255, 255, 255, 0.12);
             --text: #ffffff;
-            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --text-muted: #888888;
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+            --ease-out: cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        * { box-sizing: border-box; outline: none; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
-        /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-
+        /* --- GLOBAL LAYOUT --- */
         body {
             margin: 0;
             padding: 0;
             font-family: var(--font-main);
             background-color: var(--dark);
-            background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000 70%);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 242, 234, 0.03) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 80, 0.03) 0%, transparent 25%);
             color: var(--text);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
+            transition: background-color 0.1s;
         }
 
-        /* --- ANIMATIONS --- */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes glow { 0% { text-shadow: 0 0 10px rgba(0, 242, 234, 0.5); } 50% { text-shadow: 0 0 20px rgba(0, 242, 234, 0.8), 0 0 40px rgba(255, 0, 80, 0.6); } 100% { text-shadow: 0 0 10px rgba(0, 242, 234, 0.5); } }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
-        @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes countAnim { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
-        @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+        @keyframes pulse-rec { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes flash-bang { 0% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- TRUE FLASH OVERRIDE CLASS --- */
+        body.flash-active {
+            background-color: #ffffff !important;
+            background-image: none !important;
+        }
+        body.flash-active * {
+            visibility: hidden; /* Hide everything to maximize screen brightness */
+        }
+        /* Keep video visible but maybe blown out? No, hide it to make screen white light source */
+        
         /* --- WELCOME SCREEN --- */
         #welcome-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(0, 242, 234, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(255, 0, 80, 0.15) 0px, transparent 50%);
-            z-index: 100;
+            z-index: 9000;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.8s var(--ease-out);
         }
 
         .welcome-content {
             text-align: center;
-            animation: fadeIn 1s ease-out;
-            padding: 20px;
-            max-width: 600px;
+            animation: fadeIn 1.2s var(--ease-out);
+            position: relative;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: radial-gradient(circle, rgba(20,20,20,1) 0%, rgba(0,0,0,1) 100%);
+            border-radius: 20px;
+        }
+
+        .brand-badge {
+            background: var(--primary);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px var(--primary-dim);
         }
 
         .welcome-title {
-            font-size: 5rem;
+            font-size: 4rem;
             font-weight: 900;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            letter-spacing: -2px;
-            background: linear-gradient(to right, #fff, #aaa);
+            line-height: 1;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff 0%, #aaa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            letter-spacing: -2px;
         }
-        
-        .welcome-tag {
+
+        .welcome-desc {
+            color: var(--text-muted);
+            max-width: 400px;
+            margin: 0 auto 40px auto;
+            line-height: 1.6;
             font-size: 1rem;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 20px;
-            font-weight: 700;
         }
 
-        .welcome-subtitle {
-            font-size: 1.1rem;
-            color: #888;
-            margin-bottom: 50px;
-            line-height: 1.5;
-        }
-
-        .start-btn {
-            padding: 20px 60px;
-            font-size: 1.1rem;
+        .btn-start {
             background: var(--text);
             color: #000;
             border: none;
-            border-radius: 50px;
+            padding: 18px 45px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: 800;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+            transition: all 0.3s;
             text-transform: uppercase;
             letter-spacing: 1px;
-            animation: float 4s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
         }
-
-        .start-btn:hover { 
-            transform: scale(1.05); 
-            box-shadow: 0 0 50px rgba(255,255,255,0.3); 
-            background: var(--primary);
+        .btn-start::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: translateX(-100%);
+            transition: 0.5s;
         }
+        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
+        .btn-start:hover::after { transform: translateX(100%); }
 
-        .privacy-link {
-            margin-top: 40px;
-            color: #444;
-            text-decoration: none;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: color 0.2s;
-            border-bottom: 1px solid transparent;
-        }
-        .privacy-link:hover { color: var(--text); border-bottom-color: var(--text); }
+        .links-row { margin-top: 30px; display: flex; gap: 20px; justify-content: center; }
+        .link-item { color: #555; text-decoration: none; font-size: 0.8rem; transition: 0.2s; cursor: pointer; }
+        .link-item:hover { color: var(--primary); }
 
-        /* --- PRIVACY MODAL --- */
-        #privacy-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+        /* --- MODALS (Privacy / Settings) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
             backdrop-filter: blur(10px);
-            z-index: 200;
+            z-index: 10000;
             display: none;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
+        .modal-overlay.active { display: flex; opacity: 1; }
 
-        .modal-content {
+        .modal-box {
+            width: 90%; max-width: 650px; max-height: 85vh;
             background: #111;
             border: 1px solid #333;
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 600px;
-            max-height: 85vh;
-            overflow-y: auto;
-            text-align: left;
-            box-shadow: 0 20px 80px rgba(0,0,0,0.8);
-            animation: popIn 0.3s ease;
-            position: relative;
-        }
-
-        .modal-content h2 { margin-top: 0; color: var(--text); border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
-        .modal-content h3 { color: var(--primary); margin-top: 25px; font-size: 1.1rem; }
-        .modal-content p { line-height: 1.7; color: #aaa; font-size: 0.95rem; margin-bottom: 15px; }
-        .modal-content strong { color: #fff; }
-        
-        .credit-tag {
-            display: block;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #222;
-            color: var(--secondary);
-            font-weight: bold;
-            font-family: monospace;
-        }
-
-        .close-modal {
-            background: var(--text);
-            color: #000;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            margin-top: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            float: right;
-            transition: background 0.2s;
-        }
-        .close-modal:hover { background: var(--primary); }
-
-        /* --- MAIN APP --- */
-        #app-container {
-            display: none;
-            width: 100%;
+            border-radius: 12px;
+            padding: 0;
+            display: flex;
             flex-direction: column;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 1s ease;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            transform: scale(0.95);
+            transition: transform 0.3s var(--ease-out);
         }
+        .modal-overlay.active .modal-box { transform: scale(1); }
 
-        /* --- HEADER --- */
-        header {
-            width: 100%;
-            padding: 20px 40px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
+        .modal-header {
+            padding: 20px 30px;
             border-bottom: 1px solid #222;
-            margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+        .modal-header h2 { margin: 0; font-size: 1.5rem; color: var(--text); }
+        
+        .btn-close {
+            background: transparent; border: none; color: #555; font-size: 1.5rem; cursor: pointer;
+        }
+        .btn-close:hover { color: #fff; }
 
-        .header-logo {
-            margin: 0;
-            font-weight: 900;
-            font-size: 1.4rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: linear-gradient(45deg, #fff, #888);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            color: #aaa;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .modal-body h3 { color: var(--primary); margin-top: 25px; margin-bottom: 10px; }
+        .modal-body strong { color: #fff; }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #222;
+            text-align: right;
+        }
+        
+        /* Settings specific styles */
+        .setting-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid #222;
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .input-text {
+            background: #000; border: 1px solid #333; color: #fff; padding: 8px 12px;
+            border-radius: 4px; width: 200px;
+        }
+        .switch {
+            position: relative; display: inline-block; width: 50px; height: 26px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* --- APP HEADER --- */
+        #app-header {
+            width: 100%;
+            height: 70px;
+            border-bottom: var(--panel-border);
+            background: rgba(10,10,10,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 500;
         }
 
-        .header-controls button { 
-            font-size: 0.75rem; 
-            padding: 8px 16px; 
-            border: 1px solid #333; 
-            background: transparent;
-            border-radius: 4px;
-            color: #888;
-            font-weight: 600;
-            text-transform: uppercase;
-            transition: all 0.2s;
-        }
-        .header-controls button:hover { color: #fff; border-color: #666; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { width: 20px; height: 20px; background: var(--primary); border-radius: 3px; }
+        .logo-text { font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; }
 
-        .main-stage {
+        .header-actions { display: flex; gap: 15px; }
+        .btn-icon {
+            background: transparent; border: 1px solid rgba(255,255,255,0.1);
+            color: #ccc; padding: 8px 12px; border-radius: 6px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .btn-icon:hover { border-color: #666; color: #fff; background: rgba(255,255,255,0.05); }
+
+        /* --- MAIN WORKSPACE --- */
+        #workspace {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 1100px;
-            gap: 25px;
-            padding: 0 20px;
+            max-width: 1400px;
+            flex: 1;
+            padding: 30px 20px;
+            gap: 30px;
         }
 
         /* --- VIEWFINDER --- */
+        .viewfinder-wrapper {
+            position: relative;
+            padding: 5px;
+            border: 1px solid #333;
+            border-radius: 16px;
+            background: #000;
+            box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
+        }
+
         .booth-container {
             position: relative;
-            background: #000;
+            background: #050505;
             border-radius: 12px;
-            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.8);
             overflow: hidden;
-            border: 1px solid #333;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.5s var(--ease-out);
         }
-
-        /* Aspect Ratios */
-        .ratio-landscape { width: 100%; max-width: 800px; aspect-ratio: 16/9; }
-        .ratio-portrait  { width: 100%; max-width: 480px; aspect-ratio: 3/4; }
-        .ratio-square    { width: 100%; max-width: 600px; aspect-ratio: 1/1; }
+        
+        /* Ratios */
+        .ratio-16-9 { width: 100%; max-width: 960px; aspect-ratio: 16/9; }
+        .ratio-4-3  { width: 100%; max-width: 640px; aspect-ratio: 4/3; }
+        .ratio-1-1  { width: 100%; max-width: 600px; aspect-ratio: 1/1; }
+        .ratio-21-9 { width: 100%; max-width: 960px; aspect-ratio: 21/9; }
 
         video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
+            width: 100%; height: 100%; object-fit: cover;
+            transform: scaleX(-1); /* Default Mirror */
             display: block;
         }
+        .no-mirror video { transform: scaleX(1); }
 
         /* Overlays */
+        .ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+        }
+
         .grid-overlay {
+            width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s;
+        }
+        .grid-overlay.active { opacity: 1; }
+        .grid-h { position: absolute; width: 100%; height: 1px; background: rgba(255,255,255,0.25); left: 0; }
+        .grid-v { position: absolute; height: 100%; width: 1px; background: rgba(255,255,255,0.25); top: 0; }
+
+        .rec-indicator {
+            position: absolute; top: 20px; right: 20px;
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 4px;
+        }
+        .rec-dot { width: 10px; height: 10px; background: red; border-radius: 50%; animation: pulse-rec 2s infinite; }
+        .rec-text { font-family: var(--font-mono); font-size: 0.8rem; color: #fff; letter-spacing: 1px; }
+
+        .sys-info {
+            position: absolute; bottom: 20px; left: 20px;
+            font-family: var(--font-mono); font-size: 0.7rem; color: var(--primary);
+            opacity: 0.7;
+        }
+
+        .level-meter {
+            position: absolute; bottom: 20px; right: 20px;
+            display: flex; gap: 2px; align-items: flex-end; height: 30px;
+        }
+        .bar { width: 4px; background: var(--primary); opacity: 0.5; border-radius: 2px; }
+        
+        .countdown-display {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 12rem; font-weight: 900; color: #fff;
+            text-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            opacity: 0; transition: opacity 0.1s;
+        }
+
+        .flash-bang-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
-        }
-        .grid-visible { opacity: 1; }
-        .grid-line-h { position: absolute; width: 100%; height: 1px; background: rgba(255,255,255,0.3); left: 0; }
-        .grid-line-v { position: absolute; height: 100%; width: 1px; background: rgba(255,255,255,0.3); top: 0; }
-
-        .overlay-countdown {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 10rem;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 0 4px 40px rgba(0,0,0,0.5);
-            opacity: 0;
-            pointer-events: none;
-            z-index: 10;
-            font-variant-numeric: tabular-nums;
+            background: white; opacity: 0; pointer-events: none; z-index: 100;
         }
 
-        .flash-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 20;
-        }
-
-        /* --- CONTROLS --- */
-        .controls-panel {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            padding: 25px;
-            background: #111;
-            border: 1px solid #222;
+        /* --- CONTROL DECK --- */
+        .control-deck {
+            background: var(--panel-bg);
+            border: var(--panel-border);
             border-radius: 16px;
-            width: 100%;
-            max-width: 900px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 25px;
+            width: 100%; max-width: 1000px;
+            display: flex; flex-direction: column; gap: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            backdrop-filter: blur(15px);
+        }
+
+        .deck-row {
+            display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: center;
         }
 
         .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-            min-width: 120px;
+            display: flex; flex-direction: column; gap: 8px; align-items: center;
+        }
+        .group-label {
+            font-size: 0.65rem; text-transform: uppercase; color: #555; font-weight: 700; letter-spacing: 1px;
         }
 
-        .control-label {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666;
-            font-weight: 700;
+        .btn-set {
+            display: flex; background: #000; padding: 4px; border-radius: 8px; border: 1px solid #222;
         }
-
-        .btn-group {
-            display: flex;
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 4px;
-            gap: 2px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn-group button {
-            background: transparent;
-            border: none;
-            color: #888;
-            padding: 8px 14px;
-            cursor: pointer;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-            font-weight: 600;
-        }
-
-        .btn-group button:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .btn-group button.active { background: #333; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-
-        /* Toggles */
-        .toggle-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            background: #1a1a1a;
-            border: 1px solid transparent;
-            color: #888;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        .btn-opt {
+            background: transparent; border: none; color: #777; padding: 8px 14px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; border-radius: 5px;
             transition: all 0.2s;
         }
-        .toggle-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 242, 234, 0.05); }
+        .btn-opt:hover { color: #fff; }
+        .btn-opt.active { background: #222; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-        /* Shutter */
-        .shutter-wrapper { width: 100%; display: flex; justify-content: center; margin-top: 10px; }
-        .shutter-btn {
-            background: linear-gradient(135deg, var(--secondary), #d00040) !important;
-            color: white !important;
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            border: 4px solid rgba(255,255,255,0.1) !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(255, 0, 80, 0.3);
+        /* Filter Scroll Area */
+        .filter-scroll-container {
+            width: 100%; overflow-x: auto; padding-bottom: 10px;
+        }
+        .filter-strip {
+            display: flex; gap: 10px; width: max-content; padding: 0 10px;
+        }
+        .filter-btn {
+            background: #111; border: 1px solid #333; color: #aaa;
+            padding: 8px 16px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+            white-space: nowrap; transition: 0.2s;
+        }
+        .filter-btn:hover { border-color: #555; color: #fff; }
+        .filter-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(0, 242, 234, 0.05); }
+
+        /* Main Shutter */
+        .shutter-container {
+            position: relative; width: 90px; height: 90px;
+        }
+        .btn-shutter {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: linear-gradient(145deg, #ff0050, #cc0040);
+            border: 4px solid rgba(255,255,255,0.15);
+            cursor: pointer; position: relative; z-index: 2;
+            box-shadow: 0 0 25px rgba(255, 0, 80, 0.4);
             transition: transform 0.1s, box-shadow 0.2s;
-            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-        .shutter-btn:hover { transform: scale(1.05); box-shadow: 0 10px 40px rgba(255, 0, 80, 0.5); }
-        .shutter-btn:active { transform: scale(0.92); }
-        .shutter-icon { width: 30px; height: 30px; background: white; border-radius: 50%; }
+        .btn-shutter:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 0, 80, 0.6); }
+        .btn-shutter:active { transform: scale(0.95); }
+        .btn-shutter i { width: 30px; height: 24px; background: #fff; border-radius: 4px; display: block; position: relative; }
+        .btn-shutter i::after { content:''; position: absolute; width: 12px; height: 12px; background: #ddd; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); border: 2px solid #aaa; }
+
+        .btn-flash-toggle {
+            position: absolute; top: -10px; right: -10px; z-index: 3;
+            width: 32px; height: 32px; border-radius: 50%; background: #222; border: 1px solid #444;
+            color: #ccc; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; transition: 0.2s;
+        }
+        .btn-flash-toggle.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 10px #fff; }
 
         /* --- GALLERY --- */
-        .gallery-section {
-            width: 100%;
-            max-width: 1100px;
-            margin-top: 40px;
-            padding-bottom: 50px;
+        .gallery-area {
+            width: 100%; max-width: 1200px;
+            padding: 30px; background: #080808; border-top: 1px solid #222;
         }
-
-        .gallery-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 1px solid #222;
-            padding-bottom: 15px;
-        }
-        .gallery-header h3 { margin: 0; color: #fff; font-size: 1.2rem; }
-
+        .gallery-header { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
+        .gallery-title { font-size: 1.2rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .count-badge { background: #222; font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; color: #888; }
+        
         .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 25px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;
         }
-
-        .photo-card {
-            background: #111;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #222;
-            transition: transform 0.2s;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            flex-direction: column;
+        
+        .photo-item {
+            background: #111; border: 1px solid #222; border-radius: 8px; overflow: hidden;
+            display: flex; flex-direction: column; transition: transform 0.2s;
+            animation: fadeIn 0.4s var(--ease-out);
         }
-
-        .photo-card:hover { transform: translateY(-5px); border-color: #444; }
-        .photo-card img { width: 100%; height: auto; display: block; flex-grow: 1; }
-
-        .card-actions {
-            display: flex;
-            padding: 12px;
-            gap: 10px;
-            background: #151515;
-            border-top: 1px solid #222;
+        .photo-item:hover { transform: translateY(-4px); border-color: #444; }
+        .photo-thumb { width: 100%; height: auto; display: block; cursor: pointer; }
+        
+        .photo-meta {
+            padding: 10px; display: flex; justify-content: space-between; background: #151515; border-top: 1px solid #222;
         }
-
-        .action-btn { 
-            flex: 1;
-            font-size: 0.75rem; 
-            padding: 8px; 
-            border-radius: 6px; 
-            text-decoration: none; 
-            text-align: center;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
+        .meta-actions button {
+            background: transparent; border: none; color: #666; cursor: pointer; font-size: 0.9rem; padding: 4px; transition: 0.2s;
         }
-        .btn-download { background: #fff; color: #000; }
-        .btn-download:hover { background: #ddd; }
-        .btn-delete { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
-        .btn-delete:hover { background: rgba(255, 68, 68, 0.2); }
+        .meta-actions button:hover { color: #fff; }
+        .meta-actions button.del:hover { color: var(--secondary); }
 
+        /* --- UTILS --- */
+        .hidden { display: none !important; }
         canvas { display: none; }
 
+        /* Loading Spinner */
+        .loader { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-top: 20px; display: none; }
+
         @media (max-width: 768px) {
-            .welcome-title { font-size: 3rem; }
-            .controls-panel { gap: 15px; padding: 15px; }
-            .btn-group { width: 100%; }
-            .control-group { width: 100%; }
-            .shutter-btn { width: 70px; height: 70px; }
-            .gallery-grid { grid-template-columns: 1fr; }
+            .welcome-title { font-size: 2.5rem; }
+            .control-deck { padding: 15px; }
+            .btn-opt { padding: 8px 10px; font-size: 0.75rem; }
+            .shutter-container { width: 70px; height: 70px; }
+            #app-header { padding: 0 15px; }
         }
     </style>
 </head>
@@ -471,402 +471,638 @@
 
     <div id="welcome-screen">
         <div class="welcome-content">
-            <div class="welcome-tag">New V2.0</div>
-            <div class="welcome-title">Studio<br>Booth</div>
-            <div class="welcome-subtitle">Advanced Web-Based Photography Suite<br>Local. Private. High Fidelity.</div>
-            <button class="start-btn" onclick="enterBooth()">Start Session</button>
-            <br>
-            <a class="privacy-link" onclick="openPrivacy()">Privacy Policy & Terms</a>
+            <span class="brand-badge">Studio Edition V3.0</span>
+            <div class="welcome-title">STUDIO<br>BOOTH</div>
+            <div class="welcome-desc">
+                Professional-grade web photography suite.<br>
+                Featuring <strong>True Flash™</strong> technology, cinema grading, and burst capabilities.
+                All processing is local and private.
+            </div>
+            
+            <button class="btn-start" onclick="app.enter()">Launch Session</button>
+            <div class="loader" id="boot-loader"></div>
+
+            <div class="links-row">
+                <a class="link-item" onclick="modal.open('privacy')">Privacy Policy</a>
+                <a class="link-item" onclick="modal.open('terms')">Terms of Use</a>
+            </div>
         </div>
     </div>
 
-    <div id="privacy-modal">
-        <div class="modal-content">
-            <h2>Privacy Policy</h2>
-            <p><strong>Your privacy is our priority.</strong></p>
-            <p>This application operates 100% locally within your web browser. No video feed, images, or personal data are ever sent to a server or the cloud. All processing happens on your device using your computer's resources. Images are stored in your browser's temporary memory and are deleted when you refresh the page or close the tab.</p>
-            <p>We are committed to protecting your privacy and ensuring that your experience remains safe, transparent, and under your control. By using this application, you acknowledge that all data remains confined to your device and that no external party has access to your content. This design ensures that your information is never collected, analyzed, or shared beyond your browser session.</p>
-            
-            <h3>Rights and Terms</h3>
-            <p>You retain full ownership of all images, videos, and content processed through this application. Nothing you create or upload is stored permanently, nor is it transmitted to any external service. You have the right to close the application at any time, which will immediately clear temporary memory and remove any stored images. We do not claim any rights over your creative output, and you are free to use, share, or delete your content as you see fit.</p>
-            <p>By proceeding, you agree to use this application responsibly and acknowledge that it is provided “as is,” without warranties of any kind. While we strive to ensure smooth performance, we cannot guarantee uninterrupted service or absolute technical perfection. You accept that the application may occasionally encounter errors or limitations due to the constraints of your device’s hardware and browser environment.</p>
-            <p>You also agree not to misuse the application for unlawful purposes, including but not limited to the creation or distribution of harmful, offensive, or illegal content. The developers disclaim liability for any misuse or damages resulting from your use of the application. Your continued use signifies your acceptance of these terms and your understanding that responsibility for all content rests with you.</p>
-            <p>We reserve the right to update this Privacy Policy and Terms of Use to reflect improvements, legal requirements, or changes in technology. Any updates will be communicated through revisions to this text, and your continued use after such updates will constitute acceptance of the revised terms.</p>
-            
-            <h3>Further and Credits</h3>
-            <p>This project was built with a commitment to transparency, accessibility, and respect for user privacy. It reflects a philosophy of empowering users to create freely without sacrificing control over their personal data.</p>
-            
-            <span class="credit-tag">Created with love. by @ianny</span>
-            
-            <button class="close-modal" onclick="closePrivacy()">I Understand</button>
+    <div id="modal-privacy" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="btn-close" onclick="modal.close('privacy')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Your privacy is our priority.</strong></p>
+                <p>This application operates 100% locally within your web browser. No video feed, images, or personal data are ever sent to a server or the cloud. All processing happens on your device using your computer's resources. Images are stored in your browser's temporary memory and are deleted when you refresh the page or close the tab.</p>
+                
+                <h3>Data Handling</h3>
+                <p>We do not use cookies for tracking. We do not use analytics. The only data stored is the temporary image blob in your browser's RAM to allow you to download the photo.</p>
+
+                <h3>Camera Access</h3>
+                <p>Camera access is requested solely to display the video feed on your screen and capture the frame when you press the shutter. The feed is never recorded in the background.</p>
+
+                <h3>Rights</h3>
+                <p>You retain full ownership of all images created. Since we don't store them, we can't claim them.</p>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;">
+                    <small>Created with love by @ianny. Do not copy without attribution.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-opt active" onclick="modal.close('privacy')">I Understand</button>
+            </div>
         </div>
     </div>
 
-    <div id="app-container">
-        <header>
-            <div class="header-logo">Studio Booth Pro</div>
-            <div class="header-controls">
-                <button onclick="openPrivacy()">Info & Privacy</button>
+    <div id="modal-terms" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Terms of Use</h2>
+                <button class="btn-close" onclick="modal.close('terms')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>By proceeding, you agree to use this application responsibly and acknowledge that it is provided “as is,” without warranties of any kind.</p>
+                <p>While we strive to ensure smooth performance, we cannot guarantee uninterrupted service or absolute technical perfection. You accept that the application may occasionally encounter errors or limitations due to the constraints of your device’s hardware and browser environment.</p>
+                <p>You also agree not to misuse the application for unlawful purposes. The developers disclaim liability for any misuse or damages resulting from your use of the application.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-opt active" onclick="modal.close('terms')">Agree & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Studio Settings</h2>
+                <button class="btn-close" onclick="modal.close('settings')">&times;</button>
+            </div>
+            <div class="modal-body">
+                
+                <div class="setting-row">
+                    <span>Mirror Video Feed</span>
+                    <label class="switch">
+                        <input type="checkbox" id="set-mirror" checked onchange="app.toggleMirror()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <span>Audio Feedback (Shutter Sound)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="set-audio" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <span>Custom Watermark Text</span>
+                    <input type="text" id="set-watermark" class="input-text" placeholder="e.g. My Studio" oninput="app.updateSettings()">
+                </div>
+
+                <div class="setting-row">
+                    <span>High Quality Export (PNG)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="set-hq">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-opt active" onclick="modal.close('settings')">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        
+        <header id="app-header">
+            <div class="logo-area">
+                <div class="logo-icon"></div>
+                <div class="logo-text">Studio<span style="color:var(--primary)">Pro</span></div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" onclick="modal.open('settings')">Settings</button>
+                <button class="btn-icon" onclick="modal.open('privacy')">Privacy</button>
             </div>
         </header>
 
-        <div class="main-stage">
-            <div id="booth-frame" class="booth-container ratio-landscape">
-                <video id="video" autoplay playsinline></video>
-                
-                <div id="grid-overlay" class="grid-overlay">
-                    <div class="grid-line-h" style="top: 33%;"></div>
-                    <div class="grid-line-h" style="top: 66%;"></div>
-                    <div class="grid-line-v" style="left: 33%;"></div>
-                    <div class="grid-line-v" style="left: 66%;"></div>
-                </div>
+        <div id="workspace">
+            
+            <div class="viewfinder-wrapper">
+                <div id="booth-frame" class="booth-container ratio-16-9">
+                    <video id="video" autoplay playsinline></video>
+                    
+                    <div class="ui-layer">
+                        <div id="grid-overlay" class="grid-overlay">
+                            <div class="grid-h" style="top:33%"></div>
+                            <div class="grid-h" style="top:66%"></div>
+                            <div class="grid-v" style="left:33%"></div>
+                            <div class="grid-v" style="left:66%"></div>
+                        </div>
+                        
+                        <div class="rec-indicator">
+                            <div class="rec-dot"></div>
+                            <div class="rec-text">LIVE</div>
+                        </div>
 
-                <div id="countdown" class="overlay-countdown">3</div>
-                <div id="flash" class="flash-overlay"></div>
+                        <div class="sys-info">
+                            ISO AUTO<br>1/60<br>F2.8
+                        </div>
+
+                        <div class="level-meter">
+                            <div class="bar" style="height: 40%; animation: pulse-rec 0.2s infinite alternate"></div>
+                            <div class="bar" style="height: 70%; animation: pulse-rec 0.3s infinite alternate"></div>
+                            <div class="bar" style="height: 50%; animation: pulse-rec 0.1s infinite alternate"></div>
+                            <div class="bar" style="height: 80%; animation: pulse-rec 0.4s infinite alternate"></div>
+                        </div>
+
+                        <div id="countdown" class="countdown-display">3</div>
+                        <div id="flash-overlay" class="flash-bang-overlay"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="controls-panel">
+            <div class="control-deck">
                 
-                <div class="control-group">
-                    <span class="control-label">Tools</span>
-                    <div class="btn-group">
-                        <button id="btn-grid" onclick="toggleGrid(this)"># Grid</button>
-                        <button id="btn-stamp" onclick="toggleDateStamp(this)">Date Stamp</button>
+                <div class="deck-row">
+                    <div class="control-group">
+                        <span class="group-label">Tools</span>
+                        <div class="btn-set">
+                            <button class="btn-opt" onclick="app.toggleGrid(this)"># Grid</button>
+                            <button class="btn-opt" onclick="app.toggleStamp(this)">Date</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <span class="group-label">Aspect</span>
+                        <div class="btn-set">
+                            <button class="btn-opt active" onclick="app.setRatio('ratio-16-9', this)">16:9</button>
+                            <button class="btn-opt" onclick="app.setRatio('ratio-4-3', this)">4:3</button>
+                            <button class="btn-opt" onclick="app.setRatio('ratio-1-1', this)">1:1</button>
+                            <button class="btn-opt" onclick="app.setRatio('ratio-21-9', this)">21:9</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <span class="group-label">Timer</span>
+                        <div class="btn-set">
+                            <button class="btn-opt" onclick="app.setTimer(0, this)">0s</button>
+                            <button class="btn-opt active" onclick="app.setTimer(3, this)">3s</button>
+                            <button class="btn-opt" onclick="app.setTimer(5, this)">5s</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <span class="control-label">Format</span>
-                    <div class="btn-group">
-                        <button onclick="setRatio('landscape', this)" class="active">16:9</button>
-                        <button onclick="setRatio('portrait', this)">3:4</button>
-                        <button onclick="setRatio('square', this)">1:1</button>
+                <hr style="width:100%; border:0; border-top:1px solid #222;">
+
+                <div class="control-group" style="width:100%">
+                    <span class="group-label">Color Grading Engine</span>
+                    <div class="filter-scroll-container">
+                        <div class="filter-strip" id="filter-container">
+                            </div>
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <span class="control-label">Mode</span>
-                    <div class="btn-group">
-                        <button onclick="setMode('single', this)" class="active">Single</button>
-                        <button onclick="setMode('burst', this)">Burst (3x)</button>
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <span class="control-label">Timer</span>
-                    <div class="btn-group">
-                        <button onclick="setTimer(0, this)">0s</button>
-                        <button onclick="setTimer(3, this)" class="active">3s</button>
-                        <button onclick="setTimer(5, this)">5s</button>
-                    </div>
-                </div>
+                <hr style="width:100%; border:0; border-top:1px solid #222;">
 
-                <div class="control-group" style="width: 100%; max-width: 800px;">
-                    <span class="control-label">Color Grading</span>
-                    <div class="btn-group">
-                        <button onclick="setFilter('none', this)" class="active">Clean</button>
-                        <button onclick="setFilter('grayscale(100%) contrast(1.2)', this)">Mono</button>
-                        <button onclick="setFilter('contrast(1.1) brightness(1.1) saturate(1.3)', this)">Pop</button>
-                        <button onclick="setFilter('sepia(0.5) contrast(1.2) saturate(0.8)', this)">Warm</button>
-                        <button onclick="setFilter('contrast(0.9) brightness(1.1) saturate(0.5) sepia(0.2)', this)">Nordic</button>
-                        <button onclick="setFilter('hue-rotate(-10deg) saturate(1.5) contrast(1.2)', this)">Miami</button>
-                        <button onclick="setFilter('sepia(0.3) contrast(1.5) brightness(0.9)', this)">Cinema</button>
-                        <button onclick="setFilter('contrast(1.2) saturate(1.8) hue-rotate(180deg)', this)">Invert</button>
+                <div class="deck-row" style="justify-content: space-between; width: 100%;">
+                    
+                    <div class="control-group">
+                        <span class="group-label">Burst Mode</span>
+                        <div class="btn-set">
+                            <button class="btn-opt active" onclick="app.setMode('single', this)">Single</button>
+                            <button class="btn-opt" onclick="app.setMode('burst', this)">Burst (3x)</button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="shutter-wrapper">
-                    <button id="snap-btn" class="shutter-btn">
-                        <div class="shutter-icon"></div>
-                    </button>
+                    <div class="shutter-container">
+                        <button class="btn-shutter" id="shutter-btn" onclick="app.snap()">
+                            <i></i>
+                        </button>
+                        <button id="flash-toggle" class="btn-flash-toggle active" title="Enable True Flash" onclick="app.toggleFlash(this)">
+                            ⚡
+                        </button>
+                    </div>
+
+                    <div class="control-group">
+                        <span class="group-label">Status</span>
+                        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--primary);">
+                            READY
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
         </div>
 
-        <div class="gallery-section">
+        <div class="gallery-area">
             <div class="gallery-header">
-                <h3>Session Gallery</h3>
-                <button onclick="clearGallery()" style="background:transparent; border:1px solid #333; color:#888; padding:5px 10px; border-radius:4px; cursor:pointer;">Clear All</button>
+                <div class="gallery-title">Session Gallery <span class="count-badge" id="gallery-count">0</span></div>
+                <button class="btn-opt" style="border:1px solid #333;" onclick="gallery.clear()">Clear Session</button>
             </div>
             <div id="gallery-grid" class="gallery-grid">
                 </div>
         </div>
+
     </div>
 
-    <canvas id="canvas"></canvas>
+    <canvas id="main-canvas"></canvas>
 
     <script>
         /**
-         * STATE & CONFIGURATION
+         * --- STUDIO BOOTH CORE LOGIC ---
          */
-        const state = {
-            filter: 'none',
-            timerDuration: 3,
-            ratio: 'landscape', 
-            mode: 'single', // 'single' or 'burst'
-            isCapturing: false,
-            showGrid: false,
-            dateStamp: false
+
+        const FILTERS = [
+            { name: 'Studio', val: 'none' },
+            { name: 'B&W', val: 'grayscale(100%) contrast(1.1)' },
+            { name: 'Noir', val: 'grayscale(100%) contrast(1.4) brightness(0.8)' },
+            { name: 'Vivid', val: 'saturate(1.5) contrast(1.1)' },
+            { name: 'Warm', val: 'sepia(0.4) saturate(1.2) contrast(1.1)' },
+            { name: 'Cool', val: 'hue-rotate(180deg) saturate(0.5)' },
+            { name: 'Cyber', val: 'saturate(2) hue-rotate(-10deg) contrast(1.2)' },
+            { name: 'Sepia', val: 'sepia(100%)' },
+            { name: 'Vintage', val: 'sepia(0.5) contrast(0.9) brightness(1.1)' },
+            { name: 'Faded', val: 'opacity(0.8) contrast(0.8) brightness(1.2)' },
+            { name: 'Matte', val: 'contrast(0.9) brightness(1.1)' },
+            { name: 'Dramatic', val: 'contrast(1.5) saturate(0.8)' },
+            { name: 'Pastel', val: 'contrast(0.9) brightness(1.1) saturate(1.5)' },
+            { name: 'Miami', val: 'hue-rotate(330deg) saturate(1.5)' },
+            { name: 'Toxic', val: 'hue-rotate(90deg) contrast(1.2)' },
+            { name: 'Golden', val: 'sepia(0.3) saturate(1.6) contrast(1.1)' },
+            { name: 'Silver', val: 'grayscale(100%) brightness(1.2) contrast(0.8)' },
+            { name: 'Dark', val: 'brightness(0.6) contrast(1.5)' },
+            { name: 'Light', val: 'brightness(1.3) contrast(0.8)' },
+            { name: 'Invert', val: 'invert(100%)' }
+        ];
+
+        // --- MODULES ---
+
+        const modal = {
+            open: (id) => {
+                document.getElementById('modal-' + id).classList.add('active');
+            },
+            close: (id) => {
+                document.getElementById('modal-' + id).classList.remove('active');
+            }
         };
 
-        const DOM = {
-            welcome: document.getElementById('welcome-screen'),
-            app: document.getElementById('app-container'),
-            privacy: document.getElementById('privacy-modal'),
-            video: document.getElementById('video'),
-            canvas: document.getElementById('canvas'),
-            frame: document.getElementById('booth-frame'),
-            countdown: document.getElementById('countdown'),
-            flash: document.getElementById('flash'),
-            snapBtn: document.getElementById('snap-btn'),
-            gallery: document.getElementById('gallery-grid'),
-            gridOverlay: document.getElementById('grid-overlay')
-        };
-
-        /**
-         * UX FLOW
-         */
-        function openPrivacy() { DOM.privacy.style.display = 'flex'; }
-        function closePrivacy() { DOM.privacy.style.display = 'none'; }
-
-        function enterBooth() {
-            initCamera().then(success => {
-                if(success) {
-                    DOM.welcome.style.opacity = '0';
-                    setTimeout(() => {
-                        DOM.welcome.style.display = 'none';
-                        DOM.app.style.display = 'flex';
-                        DOM.app.offsetHeight; // Reflow
-                        DOM.app.style.opacity = '1';
-                    }, 800);
+        const gallery = {
+            count: 0,
+            add: (dataURL) => {
+                gallery.count++;
+                document.getElementById('gallery-count').innerText = gallery.count;
+                
+                const grid = document.getElementById('gallery-grid');
+                const filename = `studio_pro_${Date.now()}.png`; // High quality extension
+                
+                const div = document.createElement('div');
+                div.className = 'photo-item';
+                div.innerHTML = `
+                    <img src="${dataURL}" class="photo-thumb" onclick="gallery.preview('${dataURL}')">
+                    <div class="photo-meta">
+                        <span style="font-size:0.7rem; color:#555;">IMG_${gallery.count.toString().padStart(3,'0')}</span>
+                        <div class="meta-actions">
+                            <button onclick="gallery.download('${dataURL}', '${filename}')" title="Download">⬇</button>
+                            <button class="del" onclick="gallery.remove(this)" title="Delete">✕</button>
+                        </div>
+                    </div>
+                `;
+                grid.prepend(div);
+            },
+            remove: (btn) => {
+                if(confirm("Delete this shot?")) {
+                    btn.closest('.photo-item').remove();
+                    gallery.count--;
+                    document.getElementById('gallery-count').innerText = gallery.count;
                 }
-            });
-        }
+            },
+            clear: () => {
+                if(confirm("Delete all session photos? This cannot be undone.")) {
+                    document.getElementById('gallery-grid').innerHTML = '';
+                    gallery.count = 0;
+                    document.getElementById('gallery-count').innerText = '0';
+                }
+            },
+            download: (url, filename) => {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+            },
+            preview: (url) => {
+                // Could implement a lightbox here, for now just download
+                // gallery.download(url, 'preview.png');
+            }
+        };
 
-        /**
-         * CAMERA INIT
-         */
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: { ideal: 1920 }, 
-                        height: { ideal: 1080 },
-                        facingMode: "user" 
-                    }, 
-                    audio: false 
+        const app = {
+            // State
+            stream: null,
+            timer: 3,
+            filter: 'none',
+            mode: 'single', // single | burst
+            isCapturing: false,
+            trueFlash: true,
+            aspectRatio: 1.777, // 16:9 default
+            settings: {
+                mirror: true,
+                audio: true,
+                watermark: '',
+                grid: false,
+                stamp: false,
+                hq: false
+            },
+
+            // Elements
+            elVideo: document.getElementById('video'),
+            elCanvas: document.getElementById('main-canvas'),
+            elCountdown: document.getElementById('countdown'),
+            elFlashOverlay: document.getElementById('flash-overlay'),
+            elBody: document.body,
+
+            init: () => {
+                // Render filters
+                const fCont = document.getElementById('filter-container');
+                FILTERS.forEach((f, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = `filter-btn ${index===0 ? 'active' : ''}`;
+                    btn.innerText = f.name;
+                    btn.onclick = (e) => app.setFilter(f.val, e.target);
+                    fCont.appendChild(btn);
                 });
-                DOM.video.srcObject = stream;
-                return true;
-            } catch (error) {
-                console.error("Camera Error:", error);
-                alert("Camera Access Denied. Please ensure you are using HTTPS or Localhost.");
-                return false;
-            }
-        }
+            },
 
-        /**
-         * CONTROLS
-         */
-        function setRatio(type, btn) {
-            updateActiveButton(btn);
-            state.ratio = type;
-            DOM.frame.className = `booth-container ratio-${type}`;
-        }
+            enter: async () => {
+                document.getElementById('boot-loader').style.display = 'block';
+                document.querySelector('.btn-start').style.display = 'none';
 
-        function setTimer(seconds, btn) {
-            updateActiveButton(btn);
-            state.timerDuration = seconds;
-        }
+                try {
+                    // Request highest possible resolution
+                    const constraints = {
+                        video: {
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 },
+                            facingMode: "user"
+                        },
+                        audio: false
+                    };
+                    
+                    app.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    app.elVideo.srcObject = app.stream;
+                    
+                    // Transition
+                    setTimeout(() => {
+                        document.getElementById('welcome-screen').style.opacity = 0;
+                        document.getElementById('app-container').classList.remove('hidden');
+                        setTimeout(() => {
+                            document.getElementById('welcome-screen').style.display = 'none';
+                            // Trigger opacity fade in for app
+                            document.getElementById('app-container').style.opacity = 1;
+                        }, 800);
+                    }, 1000);
 
-        function setMode(mode, btn) {
-            updateActiveButton(btn);
-            state.mode = mode;
-        }
+                } catch (err) {
+                    alert("Error: Camera access denied. Please verify permissions.");
+                    console.error(err);
+                    document.getElementById('boot-loader').style.display = 'none';
+                    document.querySelector('.btn-start').style.display = 'block';
+                }
+            },
 
-        function setFilter(filterVal, btn) {
-            updateActiveButton(btn);
-            state.filter = filterVal;
-            DOM.video.style.filter = filterVal;
-        }
+            /* --- SETTINGS & TOGGLES --- */
+            toggleMirror: () => {
+                app.settings.mirror = document.getElementById('set-mirror').checked;
+                const container = document.getElementById('booth-frame');
+                if(!app.settings.mirror) container.classList.add('no-mirror');
+                else container.classList.remove('no-mirror');
+            },
 
-        function toggleGrid(btn) {
-            state.showGrid = !state.showGrid;
-            btn.classList.toggle('active');
-            if(state.showGrid) DOM.gridOverlay.classList.add('grid-visible');
-            else DOM.gridOverlay.classList.remove('grid-visible');
-        }
+            toggleFlash: (btn) => {
+                app.trueFlash = !app.trueFlash;
+                btn.classList.toggle('active');
+            },
 
-        function toggleDateStamp(btn) {
-            state.dateStamp = !state.dateStamp;
-            btn.classList.toggle('active');
-        }
+            toggleGrid: (btn) => {
+                app.settings.grid = !app.settings.grid;
+                btn.classList.toggle('active');
+                const ol = document.getElementById('grid-overlay');
+                if(app.settings.grid) ol.classList.add('active');
+                else ol.classList.remove('active');
+            },
 
-        function updateActiveButton(clickedBtn) {
-            const siblings = clickedBtn.parentElement.children;
-            for (let btn of siblings) btn.classList.remove('active');
-            clickedBtn.classList.add('active');
-        }
+            toggleStamp: (btn) => {
+                app.settings.stamp = !app.settings.stamp;
+                btn.classList.toggle('active');
+            },
 
-        /**
-         * CAPTURE LOGIC
-         */
-        DOM.snapBtn.addEventListener('click', () => {
-            if (state.isCapturing) return;
-            startCaptureSequence();
-        });
+            updateSettings: () => {
+                app.settings.watermark = document.getElementById('set-watermark').value;
+                app.settings.hq = document.getElementById('set-hq').checked;
+                app.settings.audio = document.getElementById('set-audio').checked;
+            },
 
-        async function startCaptureSequence() {
-            state.isCapturing = true;
-            DOM.snapBtn.style.opacity = '0.5';
-            DOM.snapBtn.style.pointerEvents = 'none';
-
-            // Initial delay
-            if (state.timerDuration > 0) {
-                await runCountdown(state.timerDuration);
-            }
-
-            if (state.mode === 'single') {
-                takePicture();
-            } else if (state.mode === 'burst') {
-                // Burst Logic: 3 shots with 1s interval
-                takePicture();
-                await new Promise(r => setTimeout(r, 1200));
-                takePicture();
-                await new Promise(r => setTimeout(r, 1200));
-                takePicture();
-            }
-
-            state.isCapturing = false;
-            DOM.snapBtn.style.opacity = '1';
-            DOM.snapBtn.style.pointerEvents = 'all';
-        }
-
-        function runCountdown(num) {
-            return new Promise(resolve => {
-                let count = num;
-                DOM.countdown.innerText = count;
-                DOM.countdown.style.opacity = 1; 
+            setRatio: (cls, btn) => {
+                app.updateBtn(btn);
+                const frame = document.getElementById('booth-frame');
+                frame.classList.remove('ratio-16-9', 'ratio-4-3', 'ratio-1-1', 'ratio-21-9');
+                frame.classList.add(cls);
                 
-                DOM.countdown.style.animation = 'none';
-                DOM.countdown.offsetHeight; 
-                DOM.countdown.style.animation = 'countAnim 1s linear';
-                
-                const interval = setInterval(() => {
-                    count--;
-                    if (count > 0) {
-                        DOM.countdown.innerText = count;
-                        DOM.countdown.style.animation = 'none';
-                        DOM.countdown.offsetHeight; 
-                        DOM.countdown.style.animation = 'countAnim 1s linear';
-                    } else {
-                        clearInterval(interval);
-                        DOM.countdown.style.opacity = 0;
-                        resolve();
+                // Update internal aspect ratio for canvas crop
+                if(cls === 'ratio-16-9') app.aspectRatio = 16/9;
+                if(cls === 'ratio-4-3') app.aspectRatio = 4/3;
+                if(cls === 'ratio-1-1') app.aspectRatio = 1;
+                if(cls === 'ratio-21-9') app.aspectRatio = 21/9;
+            },
+
+            setTimer: (t, btn) => {
+                app.updateBtn(btn);
+                app.timer = t;
+            },
+
+            setFilter: (val, btn) => {
+                app.updateBtn(btn);
+                app.filter = val;
+                app.elVideo.style.filter = val;
+            },
+
+            setMode: (m, btn) => {
+                app.updateBtn(btn);
+                app.mode = m;
+            },
+
+            updateBtn: (btn) => {
+                // Find siblings and remove active
+                const sibs = btn.parentNode.children;
+                for(let i=0; i<sibs.length; i++) sibs[i].classList.remove('active');
+                btn.classList.add('active');
+            },
+
+            /* --- CAPTURE LOGIC --- */
+            snap: async () => {
+                if(app.isCapturing) return;
+                app.isCapturing = true;
+
+                const shutterBtn = document.getElementById('shutter-btn');
+                shutterBtn.style.pointerEvents = 'none';
+                shutterBtn.style.opacity = 0.7;
+
+                // Countdown
+                if(app.timer > 0) await app.runCountdown();
+
+                if(app.mode === 'single') {
+                    await app.triggerCapture();
+                } else {
+                    // Burst
+                    for(let i=0; i<3; i++) {
+                        await app.triggerCapture();
+                        await new Promise(r => setTimeout(r, 1000)); // 1s between shots
                     }
-                }, 1000);
-            });
-        }
+                }
 
-        function takePicture() {
-            // Flash Effect
-            DOM.flash.style.animation = 'none';
-            DOM.flash.offsetHeight;
-            DOM.flash.style.animation = 'flashAnim 0.2s ease-out';
-            
-            // Canvas Setup
-            const vidW = DOM.video.videoWidth;
-            const vidH = DOM.video.videoHeight;
-            const ctx = DOM.canvas.getContext('2d');
+                shutterBtn.style.pointerEvents = 'all';
+                shutterBtn.style.opacity = 1;
+                app.isCapturing = false;
+            },
 
-            // Crop Calc
-            let drawW, drawH, startX, startY;
-            const videoRatio = vidW / vidH;
-            
-            let targetRatio = 16/9;
-            if (state.ratio === 'portrait') targetRatio = 3/4;
-            if (state.ratio === 'square') targetRatio = 1/1;
+            runCountdown: () => {
+                return new Promise(resolve => {
+                    let c = app.timer;
+                    app.elCountdown.innerText = c;
+                    app.elCountdown.style.opacity = 1;
+                    
+                    const int = setInterval(() => {
+                        c--;
+                        if(c > 0) {
+                            app.elCountdown.innerText = c;
+                        } else {
+                            clearInterval(int);
+                            app.elCountdown.style.opacity = 0;
+                            resolve();
+                        }
+                    }, 1000);
+                });
+            },
 
-            if (videoRatio > targetRatio) {
-                drawH = vidH;
-                drawW = vidH * targetRatio;
-                startX = (vidW - drawW) / 2;
-                startY = 0;
-            } else {
-                drawW = vidW;
-                drawH = vidW / targetRatio;
-                startX = 0;
-                startY = (vidH - drawH) / 2;
-            }
+            triggerCapture: async () => {
+                // 1. TRUE FLASH LOGIC
+                if(app.trueFlash) {
+                    // Turn screen white
+                    app.elBody.classList.add('flash-active');
+                    // Wait for screen to brighten and light to travel
+                    await new Promise(r => setTimeout(r, 150)); 
+                }
 
-            DOM.canvas.width = drawW;
-            DOM.canvas.height = drawH;
+                // 2. Play Sound
+                if(app.settings.audio) {
+                    // Simple oscillator beep if no file
+                    // or just rely on visual feedback
+                }
 
-            // Draw Video
-            ctx.save();
-            ctx.translate(drawW, 0);
-            ctx.scale(-1, 1);
+                // 3. CAPTURE TO CANVAS
+                app.drawToCanvas();
 
-            if (state.filter !== 'none') {
-                ctx.filter = state.filter;
-            }
-            
-            ctx.drawImage(DOM.video, startX, startY, drawW, drawH, 0, 0, drawW, drawH);
-            ctx.restore();
+                // 4. Remove Flash
+                if(app.trueFlash) {
+                    app.elBody.classList.remove('flash-active');
+                    // Add digital flash fade overlay for visual effect
+                    app.elFlashOverlay.style.animation = 'none';
+                    app.elFlashOverlay.offsetHeight; /* trigger reflow */
+                    app.elFlashOverlay.style.animation = 'flash-bang 0.4s ease-out';
+                } else {
+                    app.elFlashOverlay.style.animation = 'none';
+                    app.elFlashOverlay.offsetHeight;
+                    app.elFlashOverlay.style.animation = 'flash-bang 0.2s ease-out';
+                }
+            },
 
-            // Date Stamp Overlay
-            if (state.dateStamp) {
-                const date = new Date();
-                const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            drawToCanvas: () => {
+                const vid = app.elVideo;
+                const canvas = app.elCanvas;
+                const ctx = canvas.getContext('2d');
+
+                const vW = vid.videoWidth;
+                const vH = vid.videoHeight;
                 
-                ctx.font = 'bold 24px monospace';
-                ctx.fillStyle = '#ffaa00'; // Classic amber date color
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 4;
-                ctx.textAlign = 'right';
+                // Calculate Crop based on aspect ratio
+                let sW, sH, sX, sY;
+                const vidRatio = vW / vH;
+
+                if (vidRatio > app.aspectRatio) {
+                    // Video is wider than target
+                    sH = vH;
+                    sW = vH * app.aspectRatio;
+                    sX = (vW - sW) / 2;
+                    sY = 0;
+                } else {
+                    // Video is taller than target
+                    sW = vW;
+                    sH = vW / app.aspectRatio;
+                    sX = 0;
+                    sY = (vH - sH) / 2;
+                }
+
+                canvas.width = sW;
+                canvas.height = sH;
+
+                // Mirror Logic (Horizontal Flip)
+                ctx.save();
+                if(app.settings.mirror) {
+                    ctx.translate(sW, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                // Apply Filters to Context
+                if(app.filter !== 'none') {
+                    ctx.filter = app.filter;
+                }
+
+                ctx.drawImage(vid, sX, sY, sW, sH, 0, 0, sW, sH);
+                ctx.restore(); // Restore context (remove mirror/filter for text)
+
+                // Overlays (Date/Watermark)
+                if(app.settings.stamp || app.settings.watermark) {
+                    const fontSize = Math.floor(sH * 0.04);
+                    ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+                    ctx.fillStyle = "#ffaa00"; // Classic date color
+                    ctx.shadowColor = "rgba(0,0,0,0.8)";
+                    ctx.shadowBlur = 4;
+                    ctx.textAlign = "right";
+                    
+                    let bottomOffset = fontSize + 20;
+
+                    if(app.settings.stamp) {
+                        const d = new Date();
+                        const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+                        ctx.fillText(dateStr, sW - 20, sH - 20);
+                        bottomOffset += fontSize + 10;
+                    }
+
+                    if(app.settings.watermark) {
+                        ctx.fillStyle = "rgba(255,255,255,0.7)";
+                        ctx.fillText(app.settings.watermark, sW - 20, sH - bottomOffset + (app.settings.stamp ? 0 : 20));
+                    }
+                }
+
+                // Export
+                const quality = app.settings.hq ? 1.0 : 0.9;
+                const type = app.settings.hq ? 'image/png' : 'image/jpeg';
+                const dataURL = canvas.toDataURL(type, quality);
                 
-                // Position bottom right
-                const pad = 30;
-                ctx.fillText(dateStr, drawW - pad, drawH - pad);
+                gallery.add(dataURL);
             }
+        };
 
-            // Save
-            const dataURL = DOM.canvas.toDataURL('image/jpeg', 0.95);
-            addToGallery(dataURL);
-        }
+        // Initialize Filter Buttons
+        app.init();
 
-        /**
-         * GALLERY
-         */
-        function addToGallery(dataURL) {
-            const filename = `studio_booth_${Date.now()}.jpg`;
-
-            const card = document.createElement('div');
-            card.className = 'photo-card';
-            card.innerHTML = `
-                <img src="${dataURL}" alt="Photo capture">
-                <div class="card-actions">
-                    <button class="action-btn btn-delete" onclick="deletePhoto(this)">Delete</button>
-                    <a href="${dataURL}" download="${filename}" class="action-btn btn-download">Download</a>
-                </div>
-            `;
-            
-            DOM.gallery.prepend(card);
-        }
-
-        function deletePhoto(btn) {
-            if(confirm('Delete this photo?')) {
-                const card = btn.closest('.photo-card');
-                card.remove();
-            }
-        }
-
-        function clearGallery() {
-            if(confirm('Delete all photos?')) {
-                DOM.gallery.innerHTML = '';
-            }
-        }
     </script>
 </body>
 </html>

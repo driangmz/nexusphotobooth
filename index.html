@@ -2,547 +2,143 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NeoBooth AI | iOS Pro Suite</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Photo Booth</title>
     <style>
         :root {
-            /* --- iOS DESIGN TOKENS --- */
-            --ios-blue: #007AFF;
-            --ios-green: #34C759;
-            --ios-orange: #FF9500;
-            --ios-red: #FF3B30;
-            --ios-dark: #000000;
-            --ios-surface: rgba(28, 28, 30, 0.75);
-            --ios-glass: blur(25px) saturate(180%);
-            --ios-radius-lg: 32px;
-            --ios-radius-md: 18px;
-            --ios-radius-sm: 10px;
-            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-            --safe-bottom: env(safe-area-inset-bottom, 20px);
+            --accent: #ff007b;
+            --bg: #121212;
         }
 
-        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; font-family: var(--font-stack); }
-        
         body {
-            background-color: var(--ios-dark);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
             color: white;
-            margin: 0;
-            height: 100dvh;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
-        }
-
-        /* --- ADAPTIVE LAYOUT ENGINE --- */
-        .app-container {
-            display: grid;
-            height: 100%;
-            width: 100%;
-            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        /* DESKTOP (Pro Studio Layout) */
-        @media (min-width: 1025px) {
-            .app-container {
-                grid-template-columns: 320px 1fr 360px;
-                grid-template-rows: 60px 1fr 60px;
-                gap: 20px;
-                padding: 20px;
-                background: radial-gradient(circle at center, #1c1c1e 0%, #000 100%);
-            }
-            .header { grid-column: 1 / -1; display: flex; }
-            .sidebar-left { grid-row: 2; display: flex; }
-            .stage-area { grid-row: 2; border-radius: 16px; }
-            .sidebar-right { grid-row: 2; display: flex; }
-            .footer { grid-column: 1 / -1; display: flex; }
-            .mobile-controls { display: none !important; }
-        }
-
-        /* TABLET (Hybrid Layout) */
-        @media (max-width: 1024px) and (min-width: 769px) {
-            .app-container {
-                grid-template-columns: 280px 1fr;
-                grid-template-rows: 60px 1fr;
-                padding: 15px;
-            }
-            .sidebar-right { display: none; } /* Moves to bottom sheet on tablet */
-            .mobile-controls { display: none !important; }
-        }
-
-        /* MOBILE (iOS Camera App Style) */
-        @media (max-width: 768px) {
-            .app-container {
-                display: flex;
-                flex-direction: column;
-                padding: 0;
-                background: #000;
-            }
-            
-            .header { 
-                order: 1; padding: 15px 20px; background: transparent !important; 
-                border: none !important; z-index: 10; pointer-events: none; 
-            }
-            .header * { pointer-events: auto; }
-            
-            .stage-area { 
-                order: 2; 
-                flex-grow: 1; 
-                margin: 0; 
-                border-radius: 0 0 24px 24px; 
-                overflow: hidden;
-            }
-            
-            /* Hide Desktop Sidebars */
-            .sidebar-left, .sidebar-right, .footer { display: none !important; }
-            
-            /* Show Mobile Controls */
-            .mobile-controls {
-                order: 3;
-                background: black;
-                padding-bottom: var(--safe-bottom);
-                padding-top: 10px;
-                display: flex !important;
-                flex-direction: column;
-                justify-content: space-between;
-                height: auto;
-                min-height: 160px;
-            }
-        }
-
-        /* --- COMPONENTS --- */
-        
-        /* Glass Panels */
-        .glass-panel {
-            background: var(--ios-surface);
-            backdrop-filter: var(--ios-glass);
-            -webkit-backdrop-filter: var(--ios-glass);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: var(--ios-radius-md);
+            align-items: center;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            overflow-y: auto;
         }
 
-        /* Header */
-        .header { justify-content: space-between; align-items: center; font-weight: 600; letter-spacing: -0.5px; }
-        .brand { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
-        .live-badge { 
-            background: rgba(255, 59, 48, 0.2); color: var(--ios-red); 
-            padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; 
-            display: flex; align-items: center; gap: 6px;
-        }
-        .live-badge::before { content:''; width: 6px; height: 6px; background: currentColor; border-radius: 50%; animation: blink 2s infinite; }
+        h1 { margin-bottom: 10px; color: var(--accent); }
 
-        /* Stage */
-        .stage-area {
+        #container {
             position: relative;
-            background: #000;
+            border: 5px solid #333;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .viewport { width: 100%; height: 100%; position: relative; }
-        video, canvas { 
-            width: 100%; height: 100%; object-fit: contain; 
-            position: absolute; top:0; left:0; 
-            transform: scaleX(-1); /* Mirror */
+            background: #000;
+            box-shadow: 0 0 20px rgba(255, 0, 123, 0.3);
         }
 
-        /* Authentic iOS Shutter */
-        .shutter-ring {
-            width: 72px; height: 72px; border-radius: 50%;
-            border: 4px solid white; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: transform 0.1s; background: transparent;
-        }
-        .shutter-inner {
-            width: 56px; height: 56px; background: white; border-radius: 50%; transition: all 0.2s;
-        }
-        .shutter-ring:active { transform: scale(0.95); opacity: 0.8; }
-        .shutter-ring:active .shutter-inner { transform: scale(0.9); }
-        .shutter-ring.recording .shutter-inner { width: 30px; height: 30px; border-radius: 4px; background: var(--ios-red); }
-
-        /* iOS Segmented Controls */
-        .ios-segment { display: flex; background: rgba(118, 118, 128, 0.24); padding: 2px; border-radius: 8px; width: 100%; }
-        .segment-opt {
-            flex: 1; text-align: center; padding: 6px; font-size: 13px; font-weight: 500;
-            border-radius: 6px; cursor: pointer; color: white; transition: 0.2s;
-        }
-        .segment-opt.active { background: #636366; color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
-
-        /* Mobile Controls */
-        .mode-scroller {
-            display: flex; gap: 25px; overflow-x: auto; padding: 10px 50% 10px 50%;
-            scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-        }
-        .mode-scroller::-webkit-scrollbar { display: none; }
-        .mode-item {
-            font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
-            color: rgba(255,255,255,0.5); white-space: nowrap; scroll-snap-align: center;
-            transition: 0.2s; cursor: pointer;
-        }
-        .mode-item.active { color: #FFD60A; transform: scale(1.1); text-shadow: 0 0 15px rgba(255, 214, 10, 0.6); }
-
-        .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0 40px; margin-top: 10px; }
-        .tool-icon {
-            width: 44px; height: 44px; background: rgba(50,50,50,0.5); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
-            backdrop-filter: blur(10px); cursor: pointer; color: white;
+        video {
+            width: 100%;
+            max-width: 640px;
+            display: block;
+            transform: scaleX(-1); /* Mirror effect */
         }
 
-        /* Dynamic Island */
-        .dynamic-island {
-            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-            background: black; color: white; padding: 0 15px; height: 36px; border-radius: 20px;
-            display: flex; align-items: center; gap: 8px; font-size: 0.85rem; z-index: 100;
-            opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
         }
-        .dynamic-island.show { opacity: 1; width: auto; min-width: 120px; }
 
-        /* Bottom Sheet */
-        .bottom-sheet {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1c1e;
-            border-radius: 24px 24px 0 0; padding: 20px; transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 2000;
-            max-height: 70vh; overflow-y: auto; padding-bottom: 40px;
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            transition: 0.3s;
         }
-        .bottom-sheet.open { transform: translateY(0); }
-        .sheet-handle { width: 36px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: 0 auto 20px auto; }
 
-        /* Buttons */
-        .btn {
-            background: var(--ios-blue); color: white; border: none; padding: 14px;
-            border-radius: 12px; font-weight: 600; font-size: 1rem; width: 100%; cursor: pointer;
+        #snap-btn {
+            background-color: var(--accent);
+            color: white;
         }
-        .btn.secondary { background: rgba(255,255,255,0.1); }
 
-        /* Sliders */
-        input[type=range] { width: 100%; -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; background: white; border-radius: 50%; margin-top: -8px; box-shadow: 0 2px 5px black; }
+        #snap-btn:hover { background-color: #d40066; transform: scale(1.05); }
 
-        @keyframes blink { 50% { opacity: 0.3; } }
-        @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+        #gallery {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        canvas { display: none; }
+
+        .strip-item {
+            width: 100%;
+            border: 3px solid white;
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+
+        .strip-item:hover { transform: rotate(3deg); }
     </style>
 </head>
 <body>
 
-    <div class="dynamic-island" id="island">
-        <span id="islandIcon">📸</span> <span id="islandText">Processing...</span>
+    <h1>📸 FLASH & SMILE</h1>
+    <p>Step into the booth and strike a pose!</p>
+
+    <div id="container">
+        <video id="video" autoplay playsinline></video>
     </div>
 
-    <div class="app-container">
-        
-        <div class="header glass-panel" style="height:auto; border:none; background:transparent;">
-            <div class="brand">
-                <span style="font-weight:800">NeoBooth</span>
-            </div>
-            <div class="live-badge">LIVE</div>
-        </div>
-
-        <aside class="glass-panel sidebar-left">
-            <h3 style="opacity:0.6; font-size:0.8rem; margin:0;">LENS</h3>
-            <div class="ios-segment">
-                <div class="segment-opt active" onclick="setZoom(1)">1x</div>
-                <div class="segment-opt" onclick="setZoom(2)">2x</div>
-                <div class="segment-opt" onclick="setZoom(0.5)">0.5x</div>
-            </div>
-
-            <h3 style="opacity:0.6; font-size:0.8rem; margin-top:15px;">ASPECT</h3>
-            <div class="ios-segment">
-                <div class="segment-opt" onclick="setAspect('9/16')">9:16</div>
-                <div class="segment-opt active" onclick="setAspect('16/9')">16:9</div>
-                <div class="segment-opt" onclick="setAspect('1/1')">1:1</div>
-            </div>
-
-            <div style="margin-top:auto;">
-                <button class="btn secondary" style="margin-bottom:10px;" onclick="toggleGrid()">Grid Lines</button>
-                <button class="btn secondary" onclick="toggleMirror()">Mirror Cam</button>
-            </div>
-        </aside>
-
-        <main class="stage-area">
-            <div class="viewport" id="viewport">
-                <video id="video" autoplay playsinline muted></video>
-                <canvas id="canvas"></canvas>
-                
-                <div id="gridOverlay" style="position:absolute; inset:0; background-image: linear-gradient(to right, rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.3) 1px, transparent 1px); background-size:33.3% 33.3%; display:none; pointer-events:none;"></div>
-                <div id="flash" style="position:absolute; inset:0; background:white; opacity:0; pointer-events:none;"></div>
-                <div id="countdown" style="position:absolute; inset:0; display:none; align-items:center; justify-content:center; font-size:8rem; font-weight:800; text-shadow:0 5px 20px rgba(0,0,0,0.5);">3</div>
-            </div>
-        </main>
-
-        <aside class="glass-panel sidebar-right">
-            <h3 style="opacity:0.6; font-size:0.8rem;">FILTERS</h3>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div class="segment-opt active" style="background:#333; height:60px; line-height:48px;" onclick="setFilter('none')">Orig</div>
-                <div class="segment-opt" style="background:#444; height:60px; line-height:48px;" onclick="setFilter('noir')">Noir</div>
-                <div class="segment-opt" style="background:#555; height:60px; line-height:48px;" onclick="setFilter('vivid')">Vivid</div>
-                <div class="segment-opt" style="background:#666; height:60px; line-height:48px;" onclick="setFilter('warm')">Warm</div>
-            </div>
-
-            <h3 style="opacity:0.6; font-size:0.8rem; margin-top:20px;">ADJUST</h3>
-            <div style="font-size:0.8rem; display:flex; justify-content:space-between;"><span>Exposure</span></div>
-            <input type="range" min="50" max="150" value="100" oninput="updateAdjust('brightness', this.value)">
-            
-            <div style="font-size:0.8rem; display:flex; justify-content:space-between; margin-top:10px;"><span>Contrast</span></div>
-            <input type="range" min="50" max="150" value="100" oninput="updateAdjust('contrast', this.value)">
-
-            <button class="btn" style="margin-top:auto;" onclick="openShare()">Export Photo</button>
-        </aside>
-
-        <div class="mobile-controls">
-            <div class="mode-scroller">
-                <div class="mode-item" onclick="setMode('pano')">PANO</div>
-                <div class="mode-item" onclick="setMode('square')">SQUARE</div>
-                <div class="mode-item active" onclick="setMode('photo')">PHOTO</div>
-                <div class="mode-item" onclick="setMode('burst')">BURST</div>
-            </div>
-
-            <div class="toolbar">
-                <div class="tool-icon" onclick="openSheet('gallery')">🖼️</div>
-                <div class="shutter-ring" onclick="capture()">
-                    <div class="shutter-inner"></div>
-                </div>
-                <div class="tool-icon" onclick="openSheet('tools')">🛠️</div>
-            </div>
-        </div>
-
-        <div class="glass-panel footer" style="flex-direction:row; align-items:center; justify-content:space-between; height:auto;">
-            <div style="font-size:0.8rem; opacity:0.6; font-family:monospace;">RAW • 12MP • f/1.8</div>
-            <div class="shutter-ring" style="width:50px; height:50px; border-width:3px;" onclick="capture()">
-                <div class="shutter-inner" style="width:40px; height:40px;"></div>
-            </div>
-            <div style="font-size:0.8rem; opacity:0.6;">ISO 100</div>
-        </div>
-
+    <div class="controls">
+        <button id="snap-btn">SAY CHEESE!</button>
     </div>
 
-    <div class="bottom-sheet" id="toolSheet">
-        <div class="sheet-handle" onclick="closeSheet()"></div>
-        <h3 style="text-align:center; margin-bottom:20px;">Studio Tools</h3>
-        
-        <div style="margin-bottom:20px;">
-            <label style="font-size:0.8rem; opacity:0.6; margin-bottom:5px; display:block;">LAYOUT</label>
-            <div class="ios-segment">
-                <div class="segment-opt" onclick="setAspect('9/16')">9:16</div>
-                <div class="segment-opt active" onclick="setAspect('16/9')">16:9</div>
-                <div class="segment-opt" onclick="setAspect('1/1')">1:1</div>
-            </div>
-        </div>
+    <div id="gallery"></div>
 
-        <div style="margin-bottom:20px;">
-            <label style="font-size:0.8rem; opacity:0.6; margin-bottom:5px; display:block;">FILTERS</label>
-            <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;">
-                <div class="segment-opt" style="min-width:70px; background:#333;" onclick="setFilter('none')">Orig</div>
-                <div class="segment-opt" style="min-width:70px; background:#444;" onclick="setFilter('noir')">Noir</div>
-                <div class="segment-opt" style="min-width:70px; background:#555;" onclick="setFilter('vivid')">Vivid</div>
-            </div>
-        </div>
-
-        <button class="btn" onclick="closeSheet()">Done</button>
-    </div>
-
-    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:5000; display:none; align-items:center; justify-content:center;" id="shareModal">
-        <div style="width:90%; max-width:400px; background:#1c1c1e; border-radius:20px; padding:30px; text-align:center;">
-            <h2 style="margin-bottom:10px;">Privacy First</h2>
-            <p style="font-size:0.8rem; opacity:0.7; margin-bottom:20px;">
-                NeoBooth processes images locally in your browser. No data is sent to the cloud. Save your creation below.
-            </p>
-            <div style="background:white; padding:10px; border-radius:10px; display:inline-block;">
-                <div id="qrcode"></div>
-            </div>
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn" style="background:rgba(255,255,255,0.1);" onclick="closeShare()">Close</button>
-                <button class="btn" onclick="downloadFile()">Save Image</button>
-            </div>
-        </div>
-    </div>
+    <canvas id="canvas" width="640" height="480"></canvas>
 
     <script>
-        // --- STATE ---
-        const state = {
-            mode: 'photo',
-            zoom: 1,
-            aspect: 1.77,
-            filter: 'none',
-            adjust: { brightness: 100, contrast: 100 }
-        };
-
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        const snapBtn = document.getElementById('snap-btn');
+        const gallery = document.getElementById('gallery');
+        const context = canvas.getContext('2d');
 
-        // --- INIT ---
-        async function init() {
+        // Access the webcam
+        async function initCamera() {
             try {
-                // Adaptive constraints for best resolution
-                const constraints = { 
-                    video: { 
-                        width: { ideal: 1920 }, 
-                        height: { ideal: 1080 },
-                        facingMode: "user" 
-                    } 
-                };
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
-                showIsland("Camera Ready", "📸");
-            } catch(e) {
-                showIsland("Access Denied", "⚠️");
-            }
-        }
-        init();
-
-        // --- CORE FUNCTIONS ---
-        function capture() {
-            // Haptic Feedback UI
-            const inner = document.querySelector('.shutter-inner');
-            inner.style.transform = "scale(0.85)";
-            setTimeout(() => inner.style.transform = "scale(1)", 100);
-
-            // Flash
-            const flash = document.getElementById('flash');
-            flash.style.animation = 'none';
-            flash.offsetHeight; /* Trigger reflow */
-            flash.style.animation = 'flash 0.3s ease-out';
-
-            // Capture logic
-            if(state.mode === 'photo') {
-                takePhoto();
-            } else if (state.mode === 'burst') {
-                showIsland("Burst Mode", "🚀");
-                takePhoto(); // Simplified burst
+            } catch (err) {
+                alert("Please allow camera access to use the booth!");
             }
         }
 
-        function takePhoto() {
-            // High Res Capture
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+        // Take the photo
+        snapBtn.addEventListener('click', () => {
+            // Flash effect
+            document.body.style.backgroundColor = "white";
+            setTimeout(() => { document.body.style.backgroundColor = "#121212"; }, 100);
+
+            // Draw video frame to canvas
+            context.save();
+            context.scale(-1, 1); // Flip horizontally to match mirror video
+            context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+            context.restore();
+
+            // Create image element
+            const data = canvas.toDataURL('image/png');
+            const img = document.createElement('img');
+            img.src = data;
+            img.className = 'strip-item';
             
-            // Mirroring
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-            
-            // Apply Filters
-            let filterString = `brightness(${state.adjust.brightness}%) contrast(${state.adjust.contrast}%)`;
-            if(state.filter === 'noir') filterString += ' grayscale(100%)';
-            if(state.filter === 'vivid') filterString += ' saturate(150%)';
-            if(state.filter === 'warm') filterString += ' sepia(30%)';
-            
-            ctx.filter = filterString;
-            ctx.drawImage(video, 0, 0);
-            
-            showIsland("Photo Captured", "✅");
-            
-            // On mobile, maybe open share immediately?
-            if(window.innerWidth < 768) setTimeout(openShare, 500);
-        }
+            // Add to gallery (newest first)
+            gallery.prepend(img);
+        });
 
-        // --- ADAPTATION ---
-        function setZoom(lvl) {
-            state.zoom = lvl;
-            video.style.transform = `scaleX(-1) scale(${lvl})`;
-            // Update UI highlight
-            document.querySelectorAll('.segment-opt').forEach(e => e.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-
-        function setAspect(ratio) {
-            const viewport = document.querySelectorAll('.stage-area, .viewport');
-            viewport.forEach(el => {
-                if(ratio === '1/1') el.style.aspectRatio = '1/1';
-                else if(ratio === '9/16') el.style.aspectRatio = '9/16';
-                else el.style.aspectRatio = '16/9';
-            });
-        }
-
-        function toggleGrid() {
-            const grid = document.getElementById('gridOverlay');
-            grid.style.display = grid.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function toggleMirror() {
-            const current = video.style.transform;
-            if(current.includes('scaleX(-1)')) video.style.transform = 'scaleX(1)';
-            else video.style.transform = 'scaleX(-1)';
-        }
-
-        // --- FILTERS ---
-        function setFilter(name) {
-            state.filter = name;
-            // Preview logic would apply css filter to video tag here
-            let filterCSS = '';
-            if(name === 'noir') filterCSS = 'grayscale(1)';
-            if(name === 'vivid') filterCSS = 'saturate(1.5)';
-            video.style.filter = filterCSS;
-        }
-
-        function updateAdjust(prop, val) {
-            state.adjust[prop] = val;
-            // Live preview update
-            video.style.filter = `brightness(${state.adjust.brightness}%) contrast(${state.adjust.contrast}%)`;
-        }
-
-        // --- MOBILE INTERACTION ---
-        function setMode(m) {
-            state.mode = m;
-            document.querySelectorAll('.mode-item').forEach(el => el.classList.remove('active'));
-            event.target.classList.add('active');
-            event.target.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-            showIsland(m.toUpperCase(), "🎥");
-        }
-
-        function openSheet(type) {
-            document.getElementById('toolSheet').classList.add('open');
-        }
-        function closeSheet() {
-            document.getElementById('toolSheet').classList.remove('open');
-        }
-
-        // --- NOTIFICATIONS & SHARE ---
-        function showIsland(text, icon) {
-            const island = document.getElementById('island');
-            island.innerHTML = `<span>${icon}</span> <span>${text}</span>`;
-            island.classList.add('show');
-            setTimeout(() => island.classList.remove('show'), 2500);
-        }
-
-        function openShare() {
-            document.getElementById('shareModal').style.display = 'flex';
-            const qr = document.getElementById('qrcode');
-            qr.innerHTML = '';
-            new QRCode(qr, { text: "PRIVACY: NeoBooth processes locally.", width: 120, height: 120 });
-        }
-
-        function closeShare() {
-            document.getElementById('shareModal').style.display = 'none';
-        }
-
-        function downloadFile() {
-            const link = document.createElement('a');
-            link.download = `NeoBooth_${Date.now()}.jpg`;
-            link.href = canvas.toDataURL('image/jpeg', 0.9);
-            link.click();
-        }
-
-        /* Inject CSS Animations dynamically */
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
-            .dynamic-island {
-                position: absolute; top: 10px; left: 50%; transform: translateX(-50%) scale(0.9);
-                background: black; color: white; padding: 0 20px; height: 36px; border-radius: 20px;
-                display: flex; align-items: center; gap: 8px; font-size: 0.85rem; z-index: 200;
-                opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                pointer-events: none;
-            }
-            .dynamic-island.show { opacity: 1; transform: translateX(-50%) scale(1); width: auto; }
-        `;
-        document.head.appendChild(style);
-
+        initCamera();
     </script>
 </body>
 </html>
